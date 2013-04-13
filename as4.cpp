@@ -8,7 +8,7 @@
 #include <sstream>
 #include <cmath>
 #include <string>
-#include <unistd.h>
+// #include <unistd.h>
 #include <time.h>
 #include <math.h>
 #include <list>
@@ -34,6 +34,20 @@ void myDisplay();
 
 class Viewport;
 class pt;
+
+bool debug = false;
+int firstTime = 1;
+int prevCounter = 0;
+int counter = 0;
+
+void appendToFile(string fnameParam, string toAppend){
+    ofstream outfile;
+    const char * fname = fnameParam.c_str();
+    outfile.open(fname, ios_base::app);
+    outfile << toAppend; 
+    outfile.close();
+}
+
 //}
 
 //{ Classes (Viewport, pt):
@@ -76,10 +90,21 @@ m = massp;
 void sphere::render(){
     glTranslatef(pos.x,pos.y,pos.z);
     
-    glutSolidSphere(r,sphAcc,sphAcc);
     // glutWireSphere(r,sphAcc,sphAcc);
+    glutSolidSphere(r,sphAcc,sphAcc);
     
     glTranslatef(-pos.x,-pos.y,-pos.z);
+    
+    if (counter != prevCounter){
+        appendToFile("test1","EOF\n");
+        prevCounter = counter;
+    }
+    
+    string str = "";
+    ostringstream ss;
+    ss << pos.x << " " << pos.y << " " << pos.z << "\n";
+    appendToFile("test1",ss.str());
+    
 }
 bool sphere::intersect(sphere s2){
     float sumOfRadii = r + s2.r;
@@ -97,15 +122,13 @@ pos = pos + 1*vel;
 Viewport viewport;
 GLfloat light_diffuse[] = {0.2, 0.1, 1, 1.0};  /* Red diffuse light. */
 GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
-bool debug = false;
-int firstTime = 1;
-int counter = 0;
+
 
 vector<sphere> listOfSpheres;
 int prevX, prevY;
 
 time_t initTime;
-
+vector<vector<Vect3> > fData;
 //{ Defaults for rotations, translations, zooms:
 float scaleAmt = 1;
 float rotX = 0;
@@ -200,8 +223,8 @@ void myKybdHndlr(unsigned char key, int x, int y){
     glutPostRedisplay ();
 }
 void myParse(std::string file) {
-
   std::ifstream inpfile(file.c_str());
+  vector<Vect3> tmpFrame;
   if(!inpfile.is_open()) {
     std::cout << "Unable to open file" << std::endl;
   } else {
@@ -222,7 +245,15 @@ void myParse(std::string file) {
       }
       //Ignore comments
       if(splitline[0][0] == '#') {
-        continue;        
+        continue; 
+      }
+      if(splitline[0][0] == 'E') {
+        fData.push_back(tmpFrame);
+        tmpFrame.clear();
+        continue;
+      }
+      if(splitline.size() == 3){
+        tmpFrame.push_back(Vect3(atof(splitline[0].c_str()),atof(splitline[1].c_str()),atof(splitline[2].c_str())));
       } else {
         std::cerr << "Unknown command: " << splitline[0] << std::endl;
       }
@@ -232,7 +263,6 @@ void myParse(std::string file) {
   }
 
 } //}
-
 
 void initScene(){
     glLineWidth(0.5);
@@ -244,7 +274,7 @@ void initScene(){
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
     
-    int numCubed = 5;
+    int numCubed = 0;
     for (int i = 0; i < numCubed; i++){
         for (int j = 0; j < numCubed; j++){
             for (int k = 0; k < numCubed; k++){
@@ -299,7 +329,7 @@ void myDisplay() {
     glRotatef(rotY,0,1,0);  //rotate about y axis
     glRotatef(rotX,1,0,0);  //} rotate about x
     
-    if (firstTime==1){  time(&initTime);  cout << "yES"<<endl; firstTime = 0;}
+    if (firstTime==1){  time(&initTime); firstTime = 0;}
     if ((counter % 50)==49){
     time_t finalTime;
     time(&finalTime);
@@ -308,14 +338,15 @@ void myDisplay() {
     counter++;
     for (int k = 0; k < listOfSpheres.size(); k++){
         sphere& s1 = listOfSpheres[k];
+
         s1.move();
 
         
-        //gravity loop
+        // gravity loop
         for (int j = 0; j < listOfSpheres.size(); j++){
             if (j == k){ continue; }
             sphere& s2 = listOfSpheres[j];
-            s1.vel = s1.vel + 0.00001*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/((s2.pos-s1.pos).getNorm()));
+            s1.vel = s1.vel + 0.00005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/((s2.pos-s1.pos).getNorm()));
         }
         
         //intersection loop
@@ -328,7 +359,18 @@ void myDisplay() {
         s1.render();
     }
     
-    
+    /*
+    if (counter<fData.size()){
+        vector<Vect3> thisFrame = fData[counter];
+        for (int i = 0 ; i < thisFrame.size(); i++){
+            Vect3 pos = thisFrame[i];
+            glTranslatef(pos.x,pos.y,pos.z);
+            glutSolidSphere(0.2,sphAcc,sphAcc);
+            glTranslatef(-pos.x,-pos.y,-pos.z);
+        }
+    } else {counter = 0;}
+    */
+
     glFlush();
     glutSwapBuffers();					// swap buffers (we earlier set double buffer)
   
@@ -338,7 +380,8 @@ void myDisplay() {
 int main(int argc, char *argv[]) {
 //{ PARSING:
     // if (argc < 3) { cout << "Please provide the filename and subdivision_Parameter" << endl; exit(0); }
-    // string fname = argv[1];
+    //string fname = argv[1];
+	string fname = "test1";
     // stpSize = atof(argv[2]);
     // if (argc == 4){
         // if (string(argv[3]) == "-a"){ adaptive = true; }
@@ -349,7 +392,7 @@ int main(int argc, char *argv[]) {
         // if (numDivs != 1.0f/stpSize){ numDivs++; }
         // stpSize = 1 / numDivs;
     // }
-    // myParse(fname);  //}
+    myParse(fname);  //}
  
     //GL polygon mode (filled / line)
 //{ Initialization of glut and window:  
