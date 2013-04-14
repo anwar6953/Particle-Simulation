@@ -1,0 +1,6 @@
+Implemented:
+OpenGL rendering basics from as3.
+Sphere objects and functions such as move(), render(), intersect() and
+collide().
+(Timer for performance benchmarking).
+Crude collisions, Gravity.
