@@ -39,6 +39,14 @@ bool debug = false;
 int firstTime = 1;
 int prevCounter = 0;
 int counter = 0;
+int fDataCounter = 0;
+
+//{ SETTINGS:
+bool loadFromFile = 0;
+bool saveToFile = 0;
+string fname = "test1";
+
+//}
 
 void appendToFile(string fnameParam, string toAppend){
     ofstream outfile;
@@ -95,16 +103,16 @@ void sphere::render(){
     
     glTranslatef(-pos.x,-pos.y,-pos.z);
     
-    if (counter != prevCounter){
-        appendToFile("test1","EOF\n");
-        prevCounter = counter;
+    if(saveToFile){
+        if (counter != prevCounter){
+            appendToFile("test1","EOF\n");
+            prevCounter = counter;
+        }
+        string str = "";
+        ostringstream ss;
+        ss << pos.x << " " << pos.y << " " << pos.z << "\n";
+        appendToFile("test1",ss.str());
     }
-    
-    string str = "";
-    ostringstream ss;
-    ss << pos.x << " " << pos.y << " " << pos.z << "\n";
-    appendToFile("test1",ss.str());
-    
 }
 bool sphere::intersect(sphere s2){
     float sumOfRadii = r + s2.r;
@@ -119,6 +127,7 @@ pos = pos + 1*vel;
 //}
 
 //{ Global Variables
+//{ Other
 Viewport viewport;
 GLfloat light_diffuse[] = {0.2, 0.1, 1, 1.0};  /* Red diffuse light. */
 GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
@@ -127,8 +136,10 @@ GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
 vector<sphere> listOfSpheres;
 int prevX, prevY;
 
-time_t initTime;
-vector<vector<Vect3> > fData;
+time_t initTime;  //for performance uses.
+vector<vector<Vect3> > fData; //The pre-rendered data from file.
+//}
+
 //{ Defaults for rotations, translations, zooms:
 float scaleAmt = 1;
 float rotX = 0;
@@ -162,7 +173,7 @@ switch (button)
     {
       if (state == 0){prevX = x; prevY = y; return;}
       float r = 1 - 2 *(float) rand() / RAND_MAX;
-      float lenOfDrag = sqrt(pow(x-prevX,2)+pow(y-prevY,2)) / 40;
+      float lenOfDrag = sqrt(pow(x-prevX,2.0f)+pow(y-prevY,2.0f)) / 40;
       float xx = (float)(-300 + prevX)/50;
       float yy = (float)(-300 + prevY)/-50;
       // Vect3 vel = 0.02 * normalize(Vect3(-xx,-yy,0)); //Make balls always start with vel TOWARDS CENTER.
@@ -336,6 +347,8 @@ void myDisplay() {
     cout << (float) counter/(finalTime - initTime) << endl;
     }
     counter++;
+    fDataCounter++;
+    
     for (int k = 0; k < listOfSpheres.size(); k++){
         sphere& s1 = listOfSpheres[k];
 
@@ -359,18 +372,18 @@ void myDisplay() {
         s1.render();
     }
     
-    /*
-    if (counter<fData.size()){
-        vector<Vect3> thisFrame = fData[counter];
-        for (int i = 0 ; i < thisFrame.size(); i++){
-            Vect3 pos = thisFrame[i];
-            glTranslatef(pos.x,pos.y,pos.z);
-            glutSolidSphere(0.2,sphAcc,sphAcc);
-            glTranslatef(-pos.x,-pos.y,-pos.z);
-        }
-    } else {counter = 0;}
-    */
-
+    if(loadFromFile){
+        if (fDataCounter < fData.size()){
+            vector<Vect3> thisFrame = fData[fDataCounter];
+            for (int i = 0 ; i < thisFrame.size(); i++){
+                Vect3 pos = thisFrame[i];
+                glTranslatef(pos.x,pos.y,pos.z);
+                glutSolidSphere(0.2,sphAcc,sphAcc);
+                glTranslatef(-pos.x,-pos.y,-pos.z);
+            }
+        } else {fDataCounter = 0;}
+    }
+    
     glFlush();
     glutSwapBuffers();					// swap buffers (we earlier set double buffer)
   
@@ -381,7 +394,7 @@ int main(int argc, char *argv[]) {
 //{ PARSING:
     // if (argc < 3) { cout << "Please provide the filename and subdivision_Parameter" << endl; exit(0); }
     //string fname = argv[1];
-	string fname = "test1";
+	// string fname = "test1";
     // stpSize = atof(argv[2]);
     // if (argc == 4){
         // if (string(argv[3]) == "-a"){ adaptive = true; }
@@ -392,9 +405,10 @@ int main(int argc, char *argv[]) {
         // if (numDivs != 1.0f/stpSize){ numDivs++; }
         // stpSize = 1 / numDivs;
     // }
+    if (loadFromFile){
     myParse(fname);  //}
- 
-    //GL polygon mode (filled / line)
+    }
+    
 //{ Initialization of glut and window:  
     viewport.w = 600;
     viewport.h = 600;
