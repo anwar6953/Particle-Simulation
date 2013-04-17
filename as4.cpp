@@ -33,7 +33,8 @@ using namespace std;
 void myDisplay();
 
 class Viewport;
-class pt;
+class sphere;
+class plane;
 
 bool debug = false;
 int firstTime = 1;
@@ -64,6 +65,31 @@ class Viewport {
     int w, h; // width and height
 };
 
+class plane {
+    public:
+     Vect3 pt;
+     Vect3 n;
+     float a,b,c,d;
+     plane();
+     plane(float, float, float, float);
+};
+plane::plane(){
+a=0;
+b=0;
+c=0;
+d=0;
+n=Vect3();
+pt=Vect3();
+}    
+plane::plane(float ap, float bp, float cp, float dp){
+a = ap;
+b = bp;
+c = cp;
+d = dp;
+n = Vect3();
+pt= Vect3();
+}
+
 class sphere {
     public:
      Vect3 pos;
@@ -75,6 +101,7 @@ class sphere {
      sphere(Vect3, Vect3, float, float);
      void render();
      bool intersect(sphere);
+     bool intersect(plane);
      void move();
     };
 sphere::sphere(){
@@ -114,6 +141,21 @@ void sphere::render(){
         appendToFile("test1",ss.str());
     }
 }
+bool sphere::intersect(plane p){
+    float sumabcsquared = pow(p.a,2.0) + pow(p.b,2.0) + pow(p.c,2.0);
+    float xo = pos.x;
+    float yo = pos.y;
+    float zo = pos.z;
+    float firstTerm = p.a*xo + p.b*yo + p.c*zo + p.d;
+    float xc = xo - p.a * (firstTerm) / (sumabcsquared);
+    float yc = yo - p.b * (firstTerm) / (sumabcsquared);
+    float zc = zo - p.c * (firstTerm) / (sumabcsquared);
+
+    float d = abs(p.a*xo + p.b*yo + p.c*zo + p.d) / pow(sumabcsquared,0.5);
+    
+    if (r < d){ return false; }
+    else { return true; }
+}
 bool sphere::intersect(sphere s2){
     float sumOfRadii = r + s2.r;
     float distBetweenRadii = (pos - s2.pos).getNorm();
@@ -134,6 +176,7 @@ GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
 
 
 vector<sphere> listOfSpheres;
+vector<plane> listOfPlanes;
 int prevX, prevY;
 
 time_t initTime;  //for performance uses.
@@ -285,6 +328,8 @@ void initScene(){
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
     
+    listOfPlanes.push_back(plane(1,1,1,0));
+    
     int numCubed = 0;
     for (int i = 0; i < numCubed; i++){
         for (int j = 0; j < numCubed; j++){
@@ -326,7 +371,10 @@ void collide(sphere& s1, sphere& s2){
     s2.pos = pos2+(pos2-pos1)*((diff)/2);
 
 }
-
+void collide(sphere& s1, plane& p1){
+    // cout << "ALERT. COLLIDED WITH PLANE." << endl;
+    s1.vel = s1.vel * -1;
+}
 void myDisplay() {
     //{ Buffers and Matrices:
     glClear(GL_COLOR_BUFFER_BIT);		    // clear the color buffer
@@ -371,6 +419,11 @@ void myDisplay() {
             if (j == k){ continue; }
             sphere& s2 = listOfSpheres[j];
             if (s1.intersect(s2)){ collide(s1,s2); }
+        }
+        for (int j = 0; j < listOfPlanes.size(); j++){
+            plane p = listOfPlanes[j];
+            if (s1.intersect(p)){ collide(s1,p); }
+        
         }
         
         s1.render();
