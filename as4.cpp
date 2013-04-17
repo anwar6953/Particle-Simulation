@@ -162,7 +162,7 @@ switch (button)
     {
       if (state == 0){prevX = x; prevY = y; return;}
       float r = 1 - 2 *(float) rand() / RAND_MAX;
-      float lenOfDrag = sqrt(pow(x-prevX,2)+pow(y-prevY,2)) / 40;
+      float lenOfDrag = sqrt(pow(x-prevX,2.0f)+pow(y-prevY,2.0f)) / 40;
       float xx = (float)(-300 + prevX)/50;
       float yy = (float)(-300 + prevY)/-50;
       // Vect3 vel = 0.02 * normalize(Vect3(-xx,-yy,0)); //Make balls always start with vel TOWARDS CENTER.
@@ -298,8 +298,12 @@ void collide(sphere& s1, sphere& s2){
     
     Vect3 vel1 = s1.vel;
     Vect3 vel2 = s2.vel;
-    s1.vel = ((s1.m-s2.m)*vel1 + 2 * s2.m * vel2)*(1/(s1.m+s2.m));
-    s2.vel = (2*s1.m*vel1 - (s1.m-s2.m)*vel2)*(1/(s1.m+s2.m));
+    
+    s1.vel = (((s2.m)*(vel2 - vel1)) + (s2.m * vel2) + (s1.m * vel1))*(1/(s1.m+s2.m));
+    s2.vel = (((s1.m)*(vel1 - vel2)) + (s2.m * vel2) + (s1.m * vel1))*(1/(s1.m+s2.m));
+    
+    //s1.vel = ((s1.m-s2.m)*vel1 + 2 * s2.m * vel2)*(1/(s1.m+s2.m));
+    //s2.vel = (2*s1.m*vel1 - (s1.m-s2.m)*vel2)*(1/(s1.m+s2.m));
     
     // s1.vel = (2 * s2.vel)*(1/(s1.m+s2.m));
     // s2.vel = (2 * s1.vel)*(1/(s1.m+s2.m));
