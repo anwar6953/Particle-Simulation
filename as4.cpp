@@ -45,6 +45,7 @@ int fDataCounter = 0;
 //{ SETTINGS:
 bool loadFromFile = 0;
 bool saveToFile = 0;
+bool dragOn = 0;
 string fname = "test1";
 
 //}
@@ -103,6 +104,7 @@ class sphere {
      bool intersect(sphere);
      bool intersect(plane);
      void move();
+     void drag();
     };
 sphere::sphere(){
 pos = Vect3();
@@ -165,6 +167,13 @@ bool sphere::intersect(sphere s2){
 }
 void sphere::move(){   
 pos = pos + 1*vel;
+}
+void sphere::drag(){
+float dragCoef = 200;
+float force = 0.5 * vel * vel * dragCoef;
+float acc = (force / m);
+vel = vel - Vect3(acc, acc, acc);
+// vel = vel * (1 / vel.getNorm());
 }
 //}
 
@@ -328,7 +337,7 @@ void initScene(){
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
     
-    listOfPlanes.push_back(plane(1,1,1,0));
+    // listOfPlanes.push_back(plane(1,1,1,0));
     
     int numCubed = 0;
     for (int i = 0; i < numCubed; i++){
@@ -405,6 +414,8 @@ void myDisplay() {
         sphere& s1 = listOfSpheres[k];
 
         s1.move();
+        if (dragOn)
+            s1.drag();
 
         
         // gravity loop
@@ -420,9 +431,10 @@ void myDisplay() {
             sphere& s2 = listOfSpheres[j];
             if (s1.intersect(s2)){ collide(s1,s2); }
         }
+        
         for (int j = 0; j < listOfPlanes.size(); j++){
             plane p = listOfPlanes[j];
-            if (s1.intersect(p)){ collide(s1,p); }
+            // if (s1.intersect(p)){ collide(s1,p); }
         
         }
         
