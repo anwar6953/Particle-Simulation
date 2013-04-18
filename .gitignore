@@ -1,6 +1,5 @@
 ## CUSTOM
 glut-3.7.6-*
-*.vcxproj
 as4
 test*
 

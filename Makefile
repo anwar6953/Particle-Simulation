@@ -14,14 +14,15 @@ all: main
 main: as4.o ColorAndVector.o Geometry.o
 	@echo Compiling executable! ./as4
 	@$(CC) $(CFLAGS) -o as4 as4.o ColorAndVector.o Geometry.o $(LDFLAGS) 
-as4.o: as4.cpp ColorAndVector.h Geometry.h
-	@echo Compiling as4.cpp
-	@$(CC) $(CFLAGS) -c as4.cpp -o as4.o
-Geometry.o: Geometry.cpp Geometry.h ColorAndVector.h
-	@$(CC) $(CFLAGS) -c Geometry.cpp -o Geometry.o $(LDFLAGS) 
-ColorAndVector.o: ColorAndVector.cpp ColorAndVector.h
-	@echo Compiling ColorAndVector.cpp
-	@$(CC) -c ColorAndVector.cpp -o ColorAndVector.o
+as4.o: src/as4.cpp src/ColorAndVector.h src/Geometry.h
+	@echo Compiling src/as4.cpp
+	@$(CC) $(CFLAGS) -c src/as4.cpp -o as4.o
+Geometry.o: src/Geometry.cpp src/Geometry.h src/ColorAndVector.h
+	@echo Compiling src/Geometry.cpp
+	@$(CC) $(CFLAGS) -c src/Geometry.cpp -o Geometry.o $(LDFLAGS) 
+ColorAndVector.o: src/ColorAndVector.cpp src/ColorAndVector.h
+	@echo Compiling src/ColorAndVector.cpp
+	@$(CC) -c src/ColorAndVector.cpp -o ColorAndVector.o
 clean: 
 	@echo Cleaning up *.o and ./as4
 	@$(RM) *.o as4

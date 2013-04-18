@@ -42,7 +42,7 @@ int fDataCounter = 0;
 bool loadFromFile = 0;
 bool saveToFile = 0;
 bool dragOn = 0;
-string fname = "test1";
+string fname = "scenes/test1";
 
 //}
 
@@ -53,8 +53,6 @@ void appendToFile(string fnameParam, string toAppend){
     outfile << toAppend; 
     outfile.close();
 }
-
-//}
 
 //}
 
@@ -370,7 +368,7 @@ int main(int argc, char *argv[]) {
         // stpSize = 1 / numDivs;
     // }
     if (loadFromFile){
-    myParse(fname);  //}
+        myParse(fname);  //}
     }
     
 //{ Initialization of glut and window:  
