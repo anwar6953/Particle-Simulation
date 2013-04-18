@@ -42,6 +42,7 @@ int fDataCounter = 0;
 bool loadFromFile = 0;
 bool saveToFile = 0;
 bool dragOn = 0;
+bool gravityOn = 0;
 string fname = "scenes/test1";
 
 //}
@@ -204,7 +205,8 @@ void myParse(std::string file) {
     inpfile.close();
   }
 
-} //}
+} 
+//}
 
 void initScene(){
     glLineWidth(0.5);
@@ -342,18 +344,6 @@ void collide(sphere& s1, sphere& s2){
     //     **** calculate the normalized impact parameter ***
     dr=d*sin(thetav)/r12;
     
-    
-    //     **** return old positions and velocities if balls do not collide ***
-    if (thetav>pi/2 || fabs(dr)>1) {
-        x2=x2+x1;
-        y2=y2+y1;
-        z2=z2+z1;
-        vx1=vx1+vx2;
-        vy1=vy1+vy2;
-        vz1=vz1+vz2;
-        return;
-    }
-    
     //     **** calculate impact angles if balls do collide ***
     alpha=asin(-dr);
     beta=phiv;
@@ -363,7 +353,6 @@ void collide(sphere& s1, sphere& s2){
     
     //     **** calculate time to collision ***
     t=(d*cos(thetav) -r12*sqrt(1-dr*dr))/v;
-    
     
     //     **** update positions and reverse the coordinate shift ***
     x2=x2+vx2*t +x1;
@@ -408,10 +397,10 @@ void collide(sphere& s1, sphere& s2){
     vx2=(vx2-vx_cm)*R + vx_cm;
     vy2=(vy2-vy_cm)*R + vy_cm;
     vz2=(vz2-vz_cm)*R + vz_cm;
+    
     s1.vel = Vect3(vx1, vy1, vz1);
     s2.vel = Vect3(vx2, vy2, vz2);
     return;
-    //}
     
     
     //**************************************************************
@@ -436,9 +425,7 @@ void collide(sphere& s1, sphere& s2){
     
 }
 void collide(sphere& s1, plane& p1){
-    // cout << "ALERT. COLLIDED WITH PLANE." << endl;
     float mag = s1.vel.getNorm();
-    cout << mag << endl;
     float d = normalize(-1*s1.vel) * (p1.n);
     Vect3 normal = p1.n;
     if (d < 0){
@@ -446,12 +433,9 @@ void collide(sphere& s1, plane& p1){
 	d = normalize(-1*s1.vel)*(p1.n*-1);
     }
     s1.vel = mag*normalize(normalize(s1.vel) + 2*d*(normal));
-
-    //while(s1.intersect(p1)){
-
-    //}
-
+    //move sphere OUT of plane, if necessary.
 }
+
 void myDisplay() {
     //{ Buffers and Matrices:
     glClear(GL_COLOR_BUFFER_BIT);		    // clear the color buffer
@@ -487,11 +471,12 @@ void myDisplay() {
 
         
         // gravity loop
-        for (int j = 0; j < listOfSpheres.size(); j++){
-            if (j == k){ continue; }
-            sphere& s2 = listOfSpheres[j];
-            //s1.vel = s1.vel + 0.00005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/((s2.pos-s1.pos).getNorm()));
-        }
+        if (gravityOn)
+            for (int j = 0; j < listOfSpheres.size(); j++){
+                if (j == k){ continue; }
+                sphere& s2 = listOfSpheres[j];
+                s1.vel = s1.vel + 0.00005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/((s2.pos-s1.pos).getNorm()));
+            }
         
         //intersection loop
         for (int j = 0; j < listOfSpheres.size(); j++){
@@ -502,8 +487,7 @@ void myDisplay() {
         
         for (int j = 0; j < listOfPlanes.size(); j++){
             plane p = listOfPlanes[j];
-            // if (s1.intersect(p)){ collide(s1,p); }
-        
+            if (s1.intersect(p)){ collide(s1,p); }
         }
         
         s1.render();
