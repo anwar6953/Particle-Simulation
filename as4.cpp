@@ -87,7 +87,7 @@ a = ap;
 b = bp;
 c = cp;
 d = dp;
-n = Vect3();
+n = normalize(Vect3(a,b,c));
 pt= Vect3();
 }
 
@@ -337,7 +337,7 @@ void initScene(){
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
     
-    // listOfPlanes.push_back(plane(1,1,1,0));
+    listOfPlanes.push_back(plane(1,1,0,0));
     
     int numCubed = 0;
     for (int i = 0; i < numCubed; i++){
@@ -382,7 +382,19 @@ void collide(sphere& s1, sphere& s2){
 }
 void collide(sphere& s1, plane& p1){
     // cout << "ALERT. COLLIDED WITH PLANE." << endl;
-    s1.vel = s1.vel * -1;
+    float mag = s1.vel.getNorm();
+    cout << mag << endl;
+    float d = normalize(-1*s1.vel) * (p1.n);
+    Vect3 normal = p1.n;
+    if (d < 0){
+	normal = normal * -1;
+	d = normalize(-1*s1.vel)*(p1.n*-1);
+    }
+    s1.vel = mag*normalize(normalize(s1.vel) + 2*d*(normal));
+
+    //while(s1.intersect(p1)){
+
+    //}
 }
 void myDisplay() {
     //{ Buffers and Matrices:
@@ -434,7 +446,7 @@ void myDisplay() {
         
         for (int j = 0; j < listOfPlanes.size(); j++){
             plane p = listOfPlanes[j];
-            // if (s1.intersect(p)){ collide(s1,p); }
+            if (s1.intersect(p)){ collide(s1,p); }
         
         }
         
