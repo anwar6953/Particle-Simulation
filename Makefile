@@ -11,12 +11,18 @@ endif
 	
 RM = /bin/rm -f 
 all: main 
-main: as4.o 
-	$(CC) $(CFLAGS) -o as4 as4.o $(LDFLAGS) 
-as4.o: as4.cpp
-	$(CC) $(CFLAGS) -c as4.cpp -o as4.o
+main: as4.o ColorAndVector.o
+	@echo Compiling executable! ./as4
+	@$(CC) $(CFLAGS) -o as4 as4.o ColorAndVector.o $(LDFLAGS) 
+as4.o: as4.cpp ColorAndVector.h
+	@echo Compiling as4.cpp
+	@$(CC) $(CFLAGS) -c as4.cpp -o as4.o
+ColorAndVector.o: ColorAndVector.cpp ColorAndVector.h
+	@echo Compiling ColorAndVector.cpp
+	@$(CC) -c ColorAndVector.cpp -o ColorAndVector.o
 clean: 
-	$(RM) *.o as4
+	@echo Cleaning up *.o and ./as4
+	@$(RM) *.o as4
  
 
 
