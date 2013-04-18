@@ -11,12 +11,14 @@ endif
 	
 RM = /bin/rm -f 
 all: main 
-main: as4.o ColorAndVector.o
+main: as4.o ColorAndVector.o Geometry.o
 	@echo Compiling executable! ./as4
-	@$(CC) $(CFLAGS) -o as4 as4.o ColorAndVector.o $(LDFLAGS) 
-as4.o: as4.cpp ColorAndVector.h
+	@$(CC) $(CFLAGS) -o as4 as4.o ColorAndVector.o Geometry.o $(LDFLAGS) 
+as4.o: as4.cpp ColorAndVector.h Geometry.h
 	@echo Compiling as4.cpp
 	@$(CC) $(CFLAGS) -c as4.cpp -o as4.o
+Geometry.o: Geometry.cpp Geometry.h ColorAndVector.h
+	@$(CC) $(CFLAGS) -c Geometry.cpp -o Geometry.o $(LDFLAGS) 
 ColorAndVector.o: ColorAndVector.cpp ColorAndVector.h
 	@echo Compiling ColorAndVector.cpp
 	@$(CC) -c ColorAndVector.cpp -o ColorAndVector.o

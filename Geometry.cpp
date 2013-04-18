@@ -92,7 +92,7 @@ void sphere::render(){
     }
 }
 bool sphere::intersect(plane p){
-    float sumabcsquared = pow(p.a,2.0) + pow(p.b,2.0) + pow(p.c,2.0);
+    float sumabcsquared = pow(p.a,2.0f) + pow(p.b,2.0f) + pow(p.c,2.0f);
     float xo = pos.x;
     float yo = pos.y;
     float zo = pos.z;
@@ -101,7 +101,7 @@ bool sphere::intersect(plane p){
     float yc = yo - p.b * (firstTerm) / (sumabcsquared);
     float zc = zo - p.c * (firstTerm) / (sumabcsquared);
 
-    float d = abs(p.a*xo + p.b*yo + p.c*zo + p.d) / pow(sumabcsquared,0.5);
+    float d = abs(p.a*xo + p.b*yo + p.c*zo + p.d) / pow(sumabcsquared,0.5f);
     
     if (r < d){ return false; }
     else { return true; }
