@@ -261,9 +261,23 @@ void collide(sphere& s1, sphere& s2){
     s2.pos = pos2+(pos2-pos1)*((diff)/2);
 
 }
+
 void collide(sphere& s1, plane& p1){
     // cout << "ALERT. COLLIDED WITH PLANE." << endl;
-    s1.vel = s1.vel * -1;
+    float mag = s1.vel.getNorm();
+    cout << mag << endl;
+    float d = normalize(-1*s1.vel) * (p1.n);
+    Vect3 normal = p1.n;
+    if (d < 0){
+	normal = normal * -1;
+	d = normalize(-1*s1.vel)*(p1.n*-1);
+    }
+    s1.vel = mag*normalize(normalize(s1.vel) + 2*d*(normal));
+
+    //while(s1.intersect(p1)){
+
+    //}
+
 }
 void myDisplay() {
     //{ Buffers and Matrices:
