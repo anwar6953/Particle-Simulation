@@ -42,9 +42,11 @@ int fDataCounter = 0;
 bool loadFromFile = 0;
 bool saveToFile = 0;
 bool dragOn = 0;
-bool gravityOn = 0;
+bool gravityOn = 1;
 string fname = "scenes/test1";
 
+float defRadius = 0.2;
+float defMass = 1;
 //}
 
 void appendToFile(string fnameParam, string toAppend){
@@ -108,10 +110,9 @@ switch (button)
       float lenOfDrag = sqrt(pow(x-prevX,2.0f)+pow(y-prevY,2.0f)) / 40;
       float xx = (float)(-300 + prevX)/50;
       float yy = (float)(-300 + prevY)/-50;
-      // Vect3 vel = 0.02 * normalize(Vect3(-xx,-yy,0)); //Make balls always start with vel TOWARDS CENTER.
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),Vect3(0.02*r,0.02*r,0),0.2)); //RANDOM vel dir.
-      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,0.2));
+      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
     } break;
   default:
     return;
@@ -145,7 +146,18 @@ void myKybdHndlr(int key, int x, int y){
             transX += transAmt;
         else
             rotY += rotAmount;
-
+    else if (key == GLUT_KEY_PAGE_UP){
+        // if (glutGetModifiers() == GLUT_ACTIVE_SHIFT)
+            // transX += transAmt;
+        // elsedefRadius,defMass
+            defMass += 10;
+            defRadius += 0.2;}
+    else if (key == GLUT_KEY_PAGE_DOWN){
+        // if (glutGetModifiers() == GLUT_ACTIVE_SHIFT)
+            // transX += transAmt;
+        // else
+            defMass -= 10;
+            defRadius -= 0.2;}
     else 
         return;
     
@@ -234,13 +246,7 @@ void initScene(){
 
 }
 
-void collide(sphere& s1, sphere& s2){
-    // float t1 = s1.vel.getNorm();
-    // float t2 = s2.vel.getNorm();
-    // Vect3 dir = 0.04 * normalize(s1.pos-s2.pos);
-    // s1.vel = t2 *  normalize(s1.vel + dir);
-    // s2.vel = t1 *  normalize(s2.vel - dir);
-    
+void collide(sphere& s1, sphere& s2){    
     //**************************************************************
     // Exact handler of 3D collisions. Based off of Thomas Smid's implementation from http://www.plasmaphysics.org.uk/programs/coll3d_cpp.htm
     //**************************************************************
@@ -279,7 +285,7 @@ void collide(sphere& s1, sphere& s2){
     vz2 = s2.vel.z;
     
     float  pi,r12,m21,d,v,theta2,phi2,st,ct,sp,cp,vx1r,vy1r,vz1r,fvz1r,
-    thetav,phiv,dr,alpha,beta,sbeta,cbeta,dc,sqs,t,a,dvz2,
+    thetav,phiv,dr,alpha,beta,sbeta,cbeta,t,a,dvz2,
     vx2r,vy2r,vz2r,x21,y21,z21,vx21,vy21,vz21,vx_cm,vy_cm,vz_cm;
     
     //     **** initialize some variables ****
@@ -321,7 +327,10 @@ void collide(sphere& s1, sphere& s2){
     vz1=-vz21;
     
     //     **** find the polar coordinates of the location of ball 2 ***
-    theta2=acos(z2/d);
+    if (!d)
+        theta2 = 0;
+    else
+        theta2=acos(z2/d);
     if (x2==0 && y2==0) {phi2=0;} else {phi2=atan2(y2,x2);}
     st=sin(theta2);
     ct=cos(theta2);
@@ -334,7 +343,10 @@ void collide(sphere& s1, sphere& s2){
     vx1r=ct*cp*vx1+ct*sp*vy1-st*vz1;
     vy1r=cp*vy1-sp*vx1;
     vz1r=st*cp*vx1+st*sp*vy1+ct*vz1;
-    fvz1r = vz1r/v ;
+    if (!v)
+        fvz1r = 0;
+    else
+        fvz1r = vz1r/v ;
     if (fvz1r>1) {fvz1r=1;}   // fix for possible rounding errors
     else if (fvz1r<-1) {fvz1r=-1;}
     thetav=acos(fvz1r);
@@ -353,7 +365,7 @@ void collide(sphere& s1, sphere& s2){
     
     //     **** calculate time to collision ***
     t=(d*cos(thetav) -r12*sqrt(1-dr*dr))/v;
-    
+    cout << t << endl;
     //     **** update positions and reverse the coordinate shift ***
     x2=x2+vx2*t +x1;
     y2=y2+vy2*t +y1;
@@ -397,9 +409,10 @@ void collide(sphere& s1, sphere& s2){
     vx2=(vx2-vx_cm)*R + vx_cm;
     vy2=(vy2-vy_cm)*R + vy_cm;
     vz2=(vz2-vz_cm)*R + vz_cm;
-    
+    // if (s1.intersect(s2)){
     s1.vel = Vect3(vx1, vy1, vz1);
     s2.vel = Vect3(vx2, vy2, vz2);
+    // }
     return;
     
     
@@ -457,7 +470,7 @@ void myDisplay() {
     if ((counter % 50)==49){
     time_t finalTime;
     time(&finalTime);
-    cout << (float) counter/(finalTime - initTime) << endl;
+    // cout << (float) counter/(finalTime - initTime) << endl;
     }
     counter++;
     fDataCounter++;
@@ -475,7 +488,8 @@ void myDisplay() {
             for (int j = 0; j < listOfSpheres.size(); j++){
                 if (j == k){ continue; }
                 sphere& s2 = listOfSpheres[j];
-                s1.vel = s1.vel + 0.00005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/((s2.pos-s1.pos).getNorm()));
+                if ((s2.pos-s1.pos).getNorm() < 0.001) continue;
+                else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
             }
         
         //intersection loop
@@ -483,6 +497,7 @@ void myDisplay() {
             if (j == k){ continue; }
             sphere& s2 = listOfSpheres[j];
             if (s1.intersect(s2)){ collide(s1,s2); }
+            // collide(s1,s2);
         }
         
         for (int j = 0; j < listOfPlanes.size(); j++){
