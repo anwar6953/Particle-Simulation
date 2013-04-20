@@ -559,8 +559,7 @@ int main(int argc, char *argv[]) {
         // if (numDivs != 1.0f/stpSize){ numDivs++; }
         // stpSize = 1 / numDivs;
     // }
-<<<<<<< HEAD
-   
+    
     if (argc < 2){
 		printf("Dude, are you passing something at all? We'll just read input from an arbitrary file for now.\n");
     } else {
@@ -586,10 +585,7 @@ int main(int argc, char *argv[]) {
         }
     }
     
-    if (loadFromFile){
-=======
     if (loadFromFile) {
->>>>>>> bf6a43705a3177d92ff22a96a4a06b25df5fe4db
         myParse(fname);  //}
     }
     
