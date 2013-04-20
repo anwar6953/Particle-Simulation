@@ -117,9 +117,41 @@ void sphere::move(){
     pos = pos + 1*vel;
 }
 void sphere::drag(){
-    float dragCoef = 200;
+void sphere::drag(){
+    /*float dragCoef = 2;
     float force = 0.5 * vel * vel * dragCoef;
     float acc = (force / m);
-    vel = vel - Vect3(acc, acc, acc);
+    vel = vel - Vect3(acc, acc, acc);*/
     // vel = vel * (1 / vel.getNorm());
+    float selfVelX = vel.x;
+    float selfVelY = vel.y;
+    float selfVelZ = vel.z;
+    
+    float pi=acos(-1.0E0);
+    float dragCoef = 0.47;
+    float force = 0.5 * vel * vel * dragCoef * (1 / (pi * r * r));
+    float acc = (force / m);
+    
+    float accX = sqrt((vel.x * vel.x) / (vel * vel)) * force;
+    float accY = sqrt((vel.y * vel.y) / (vel * vel)) * force;
+    float accZ = sqrt((vel.z * vel.z) / (vel * vel)) * force;
+    
+    if (vel.x >= 0) {
+        vel.x = max(0.0f, vel.x - accX);
+    } else {
+        vel.x = min(0.0f, vel.x + accX);
+    }
+    
+    if (vel.y >= 0) {
+        vel.y = max(0.0f, vel.y - accY);
+    } else {
+        vel.y = min(0.0f, vel.y + accY);
+    }
+    
+    if (vel.z >= 0) {
+        vel.z = max(0.0f, vel.z - accZ);
+    } else {
+        vel.z = min(0.0f, vel.z + accZ);
+    }
+    
 }

@@ -413,7 +413,7 @@ void collide(sphere& s1, sphere& s2){
     s1.vel = Vect3(vx1, vy1, vz1);
     s2.vel = Vect3(vx2, vy2, vz2);
     // }
-    return;
+    // return;
     
     
     //**************************************************************
@@ -430,11 +430,13 @@ void collide(sphere& s1, sphere& s2){
      // s1.vel = (2 * s2.vel)*(1/(s1.m+s2.m));
      // s2.vel = (2 * s1.vel)*(1/(s1.m+s2.m));*/
      
-     Vect3 pos1 = s1.pos;
+    Vect3 pos1 = s1.pos;
      Vect3 pos2 = s2.pos;
-     float diff = (s2.pos-s1.pos).getNorm() * (s1.r+s2.r);
-     s1.pos = pos1+(pos1-pos2)*((diff)/2);
-     s2.pos = pos2+(pos2-pos1)*((diff)/2);
+     float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
+    float delta = 0.0001;
+    Vect3 deltaVector = Vect3(delta,delta,delta);
+     s1.pos = pos1+(normalize(pos1-pos2+deltaVector))*((diff)/2);
+     s2.pos = pos2+(normalize(pos2-pos1-deltaVector))*((diff)/2);
     
 }
 void collide(sphere& s1, plane& p1){
@@ -541,6 +543,32 @@ int main(int argc, char *argv[]) {
         // if (numDivs != 1.0f/stpSize){ numDivs++; }
         // stpSize = 1 / numDivs;
     // }
+   
+    if (argc < 2){
+		printf("Dude, are you passing something at all? We'll just read input from an arbitrary file for now.\n");
+    } else {
+        int i = 1;
+        
+        while (i < argc) {
+            if ((i == 2) && (*(argv[i]) != '-')) {
+                fname = argv[2];
+                loadFromFile = true;
+            }
+            if (*(argv[i]) == '-') {
+                char *p = argv[i];
+                
+                if (*(p+1) == 'g' ) {
+                    gravityOn = true;
+                } else if (*(p+1) == 'd' ) {
+                    dragOn = true;
+                } else if (*(p+1) == 'd' ) {
+                    saveToFile = true;
+                }
+            }
+            i++;
+        }
+    }
+    
     if (loadFromFile){
         myParse(fname);  //}
     }
