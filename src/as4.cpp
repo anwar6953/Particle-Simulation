@@ -41,7 +41,7 @@ int fDataCounter = 0;
 //{ SETTINGS:
 bool loadFromFile = 0;
 bool saveToFile = 0;
-bool dragOn = 0;
+bool dragOn = 1;
 bool gravityOn = 1;
 string fname = "scenes/test1";
 
@@ -220,7 +220,22 @@ void myParse(std::string file) {
 } 
 //}
 
-void initScene(){
+
+void applyVectorField(sphere & thisSph) {
+    //apply vortex field
+    Vect3 fieldVector = thisSph.pos;
+    //float denom = pow(fieldVector.x, 2) + pow(fieldVector.y, 2);
+    //    fieldVector = Vect3(-1.0f * (1.0f / denom ) * fieldVector.y, (1.0f / denom ) * fieldVector.x, 0.0);
+    //    thisSph.vel = thisSph.vel + 0.0001 * fieldVector;
+
+    //fieldVector = Vect3(0,sin(thisSph.pos.x),0);
+    //float mag = thisSph.vel.getNorm();
+    //    thisSph.vel = mag * normalize(thisSph.vel + 0.01 * fieldVector);
+    thisSph.vel.y = 0.01 *  (sin(thisSph.pos.x / 2.0f));
+    //    thisSph.vel.y = 0.01 *  (cos(thisSph.pos.y));
+    }
+
+void initScene() {
     glLineWidth(0.5);
     glColor3f(1,1,1);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
@@ -233,7 +248,7 @@ void initScene(){
     // listOfPlanes.push_back(plane(1,1,1,0));
     
     int numCubed = 0;
-    for (int i = 0; i < numCubed; i++){
+    for (int i = 0; i < numCubed; i++) {
         for (int j = 0; j < numCubed; j++){
             for (int k = 0; k < numCubed; k++){
                 listOfSpheres.push_back(sphere(Vect3(i,j,k),Vect3(0,0,0),0.2));
@@ -365,7 +380,7 @@ void collide(sphere& s1, sphere& s2){
     
     //     **** calculate time to collision ***
     t=(d*cos(thetav) -r12*sqrt(1-dr*dr))/v;
-    cout << t << endl;
+    //cout << t << endl;
     //     **** update positions and reverse the coordinate shift ***
     x2=x2+vx2*t +x1;
     y2=y2+vy2*t +y1;
@@ -477,7 +492,7 @@ void myDisplay() {
     counter++;
     fDataCounter++;
     
-    for (int k = 0; k < listOfSpheres.size(); k++){
+    for (int k = 0; k < listOfSpheres.size(); k++) {
         sphere& s1 = listOfSpheres[k];
 
         s1.move();
@@ -495,25 +510,26 @@ void myDisplay() {
             }
         
         //intersection loop
-        for (int j = 0; j < listOfSpheres.size(); j++){
-            if (j == k){ continue; }
+        for (int j = 0; j < listOfSpheres.size(); j++) {
+            if (j == k) { continue; }
             sphere& s2 = listOfSpheres[j];
-            if (s1.intersect(s2)){ collide(s1,s2); }
+            if (s1.intersect(s2)) { collide(s1,s2); }
             // collide(s1,s2);
         }
         
-        for (int j = 0; j < listOfPlanes.size(); j++){
+        for (int j = 0; j < listOfPlanes.size(); j++) {
             plane p = listOfPlanes[j];
-            if (s1.intersect(p)){ collide(s1,p); }
+            if (s1.intersect(p)) { collide(s1,p); }
         }
-        
+
+	//applyVectorField(s1);	 
         s1.render();
     }
     
-    if(loadFromFile){
-        if (fDataCounter < fData.size()){
+    if(loadFromFile) {
+        if (fDataCounter < fData.size()) {
             vector<Vect3> thisFrame = fData[fDataCounter];
-            for (int i = 0 ; i < thisFrame.size(); i++){
+            for (int i = 0 ; i < thisFrame.size(); i++) {
                 Vect3 pos = thisFrame[i];
                 glTranslatef(pos.x,pos.y,pos.z);
                 glutSolidSphere(0.2,sphAcc,sphAcc);
@@ -543,6 +559,7 @@ int main(int argc, char *argv[]) {
         // if (numDivs != 1.0f/stpSize){ numDivs++; }
         // stpSize = 1 / numDivs;
     // }
+<<<<<<< HEAD
    
     if (argc < 2){
 		printf("Dude, are you passing something at all? We'll just read input from an arbitrary file for now.\n");
@@ -570,6 +587,9 @@ int main(int argc, char *argv[]) {
     }
     
     if (loadFromFile){
+=======
+    if (loadFromFile) {
+>>>>>>> bf6a43705a3177d92ff22a96a4a06b25df5fe4db
         myParse(fname);  //}
     }
     
