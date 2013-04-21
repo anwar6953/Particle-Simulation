@@ -13,6 +13,7 @@ using namespace std;
 class Viewport;
 class sphere;
 class plane;
+class KDtree;
 
 // *****************************
 // Viewport prototype
@@ -51,6 +52,19 @@ class sphere {
     bool intersect(plane);
     void move();
     void drag();
+};
+
+// *****************************
+// KDtree prototype
+// *****************************
+class KDtree {
+ public:
+    KDtree();
+    KDtree(Vect3, Vect3);
+    Vect3 upperLeft;
+    Vect3 lowerRight;
+ private:
+    init(Vect3, Vect3);
 };
 
 
