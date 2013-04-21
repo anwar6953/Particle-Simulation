@@ -584,12 +584,18 @@ int main(int argc, char *argv[]) {
             i++;
         }
     }
-    */
+
     if (loadFromFile) {
         myParse(fname);  //}
     }
-    
+    */
+
+    KDtree t;
+    cout << t.UL.printMe() << endl;
+    cout << t.LR.printMe() << endl;
 //{ Initialization of glut and window:  
+/*
+
     viewport.w = 600;
     viewport.h = 600;
     glutInit(&argc, argv);                        // This initializes glut  
@@ -609,6 +615,8 @@ int main(int argc, char *argv[]) {
     glutKeyboardFunc(myKybdHndlr);
     glutSpecialFunc(myKybdHndlr);
     glutMainLoop();				    // infinite loop that will keep drawing and resizing
+
+*/
     return 0;                       //} never reaches here? 
 
 }
