@@ -117,7 +117,6 @@ void sphere::move(){
     pos = pos + 1*vel;
 }
 void sphere::drag(){
-void sphere::drag(){
     /*float dragCoef = 2;
     float force = 0.5 * vel * vel * dragCoef;
     float acc = (force / m);
