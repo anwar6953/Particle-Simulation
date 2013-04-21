@@ -64,8 +64,7 @@ class KDtree {
     Vect3 UL;
     Vect3 LR;
  private:
-    init(Vect3 &, Vect3 &);
+    void init(Vect3 &, Vect3 &);
 };
-
 
 #endif
