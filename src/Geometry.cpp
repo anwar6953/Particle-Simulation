@@ -155,3 +155,17 @@ void sphere::drag(){
     }
     
 }
+
+// *****************************
+// KDtree Implementation
+// *****************************
+KDtree::KDtree(void) {
+    KDtree::init(Vect3(1, 1, 1), Vect3(-1, -1, -1)); 
+}
+KDtree::KDtree(Vect3 & upperLeft, Vect3 & lowerRight) {
+    KDtree::init(upperLeft, lowerRight);
+}
+KDtree::init(Vect3 & upperLeft, Vect3 & lowerRight) {
+    this->UL = Vect3(upperLeft.x, upperLeft.y, upperLeft.z);
+    this->LR = Vect3(lowerRight.x, lowerRight.y, lowerRight.z);
+}

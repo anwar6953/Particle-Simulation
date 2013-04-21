@@ -60,11 +60,11 @@ class sphere {
 class KDtree {
  public:
     KDtree();
-    KDtree(Vect3, Vect3);
-    Vect3 upperLeft;
-    Vect3 lowerRight;
+    KDtree(Vect3 &, Vect3 &);
+    Vect3 UL;
+    Vect3 LR;
  private:
-    init(Vect3, Vect3);
+    init(Vect3 &, Vect3 &);
 };
 
 
