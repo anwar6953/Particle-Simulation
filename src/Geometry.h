@@ -35,7 +35,7 @@ class plane {
 };
 
 // *****************************
-// plane prototype
+// sphere prototype
 // *****************************
 class sphere {
  public:
