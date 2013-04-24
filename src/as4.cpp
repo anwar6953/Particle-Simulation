@@ -300,38 +300,41 @@ void collide(sphere& s1, sphere& s2){
     vx2 = v2.x;
     vy2 = v2.y;
     vz2 = v2.z;
-    
-    float  pi,r12,m21,d,v,theta2,phi2,st,ct,sp,cp,vx1r,vy1r,vz1r,fvz1r,
+
+    Vect3 displacement(p2 - p1), velDiff(v2 - v1);
+
+    float  r12,m21,d,v,theta2,phi2,st,ct,sp,cp,vx1r,vy1r,vz1r,fvz1r,
     thetav,phiv,dr,alpha,beta,sbeta,cbeta,t,a,dvz2,
-    vx2r,vy2r,vz2r,x21,y21,z21,vx21,vy21,vz21,vx_cm,vy_cm,vz_cm;
+	vx2r,vy2r,vz2r,x21,y21,z21,vx21,vy21,vz21,vx_cm,vy_cm,vz_cm, totalMass;
     
     //     **** initialize some variables ****
-    pi=acos(-1.0E0);
-    r12=r1 + r2;
-    m21=m2 / m1;
+    totalMass = m1 + m2;
+    r12 = r1 + r2;
+    m21 = m2 / m1;
     
-    x21=x2-x1;
-    y21=y2-y1;
-    z21=z2-z1;
+    x21 = displacement.x;
+    y21 = displacement.y;
+    z21 = displacement.z;
     
     //Vect3 posDiff = s2.pos - p1.pos;
     
-    vx21=vx2-vx1;
-    vy21=vy2-vy1;
-    vz21=vz2-vz1;
+    vx21 = velDiff.x;
+    vy21 = velDiff.y;
+    vz21 = velDiff.z;
     
     //Vect3 velDiff = s2.vel - s1.vel;
-    
-    vx_cm = (m1*vx1+m2*vx2)/(m1+m2) ;
-    vy_cm = (m1*vy1+m2*vy2)/(m1+m2) ;
-    vz_cm = (m1*vz1+m2*vz2)/(m1+m2) ;
+    Vect3 v_cm = ((m1 * v1) + (m2 * v2)) * (1.0f / totalMass);
+
+    vx_cm = v_cm.x;
+    vy_cm = v_cm.y;
+    vz_cm = v_cm.z;
     
     //Vect3 centerVect = ((m1 * s1.vel) + (m2 * s2.vel)) * (1 / (m1 + m2));
     
     
     //     **** calculate relative distance and relative speed ***
-    d=sqrt(x21*x21 +y21*y21 +z21*z21);
-    v=sqrt(vx21*vx21 +vy21*vy21 +vz21*vz21);
+    d = displacement.getNorm();
+    v = velDiff.getNorm();
     
     //     **** shift coordinate system so that ball 1 is at the origin ***
     x2=x21;
