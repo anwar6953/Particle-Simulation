@@ -272,18 +272,20 @@ void collide(sphere& s1, sphere& s2){
      double& vx1, double& vy1, double& vz1,
      double& vx2, double& vy2, double& vz2,
      int& error)     {*/
-    
-    float x1, x2, y1, y2, z1, z2, m1, m2, r1, r2, vx1, vx2, vy1, vy2, vz1, vz2, R;
+
+    Vect3& p1(s1.pos), p2(s2.pos), v1(s1.vel) , v2(s2.vel);
+
+    float x1,x2,y1,y2,z1,z2, vx1,vx2,vy1,vy2,vz1,vz2, m1,m2, r1, r2, R;
     
     R = 1.0f;
     
-    x1 = s1.pos.x;
-    y1 = s1.pos.y;
-    z1 = s1.pos.z;
+    x1 = p1.x;
+    y1 = p1.y;
+    z1 = p1.z;
     
-    x2 = s2.pos.x;
-    y2 = s2.pos.y;
-    z2 = s2.pos.z;
+    x2 = p2.x;
+    y2 = p2.y;
+    z2 = p2.z;
     
     m1 = s1.m;
     m2 = s2.m;
@@ -291,13 +293,13 @@ void collide(sphere& s1, sphere& s2){
     r1 = s1.r;
     r2 = s2.r;
     
-    vx1 = s1.vel.x;
-    vy1 = s1.vel.y;
-    vz1 = s1.vel.z;
+    vx1 = v1.x;
+    vy1 = v1.y;
+    vz1 = v1.z;
     
-    vx2 = s2.vel.x;
-    vy2 = s2.vel.y;
-    vz2 = s2.vel.z;
+    vx2 = v2.x;
+    vy2 = v2.y;
+    vz2 = v2.z;
     
     float  pi,r12,m21,d,v,theta2,phi2,st,ct,sp,cp,vx1r,vy1r,vz1r,fvz1r,
     thetav,phiv,dr,alpha,beta,sbeta,cbeta,t,a,dvz2,
