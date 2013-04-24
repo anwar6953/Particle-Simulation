@@ -334,9 +334,14 @@ void collide(sphere& s1, sphere& s2){
     
     //     **** express the velocity vector of ball 1 in a rotated coordinate
     //          system where ball 2 lies on the z-axis ******
-    vx1r = ct * cp * vx1 + ct * sp * vy1 - st * vz1;
-    vy1r = cp * vy1 - sp * vx1;
-    vz1r = st * cp * vx1 + st * sp * vy1 + ct * vz1;
+    Vect3 vel1r;
+    vel1r.x = (ct * cp * vx1) + (ct * sp * vy1) - (st * vz1);
+    vel1r.y = (cp * vy1) - (sp * vx1);
+    vel1r.z = (st * cp * vx1) + (st * sp * vy1) + (ct * vz1);
+
+    vx1r = vel1r.x;
+    vy1r = vel1r.y;
+    vz1r = vel1r.z;
 
     fvz1r = (!v) ? 0 : vz1r / v;
     if (fvz1r > 1) fvz1r = 1;   // fix for possible rounding errors
@@ -374,16 +379,17 @@ void collide(sphere& s1, sphere& s2){
     
     //  ***  update velocities ***
     
-    a=tan(thetav+alpha);
+    a = tan(thetav + alpha);
+    dvz2 = 2 * (vz1r + a * (cbeta * vx1r + sbeta * vy1r)) / 
+	((1 + a * a) * (1 + m21));
     
-    dvz2=2*(vz1r+a*(cbeta*vx1r+sbeta*vy1r))/((1+a*a)*(1+m21));
-    
-    vz2r=dvz2;
-    vx2r=a*cbeta*dvz2;
-    vy2r=a*sbeta*dvz2;
-    vz1r=vz1r-m21*vz2r;
-    vx1r=vx1r-m21*vx2r;
-    vy1r=vy1r-m21*vy2r;
+    Vect3 vel2r = dvz2 * Vect3(a * cbeta, a * sbeta, 1.0);
+    vz2r = dvz2;
+    vx2r = a * cbeta * dvz2;
+    vy2r = a * sbeta * dvz2;
+    vz1r = vz1r - m21 * vz2r;
+    vx1r = vx1r - m21 * vx2r;
+    vy1r = vy1r - m21 * vy2r;
     
     
     //     **** rotate the velocity vectors back and add the initial velocity
