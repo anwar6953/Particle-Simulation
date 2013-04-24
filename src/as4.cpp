@@ -275,17 +275,9 @@ void collide(sphere& s1, sphere& s2){
 
     Vect3& p1(s1.pos), p2(s2.pos), v1(s1.vel) , v2(s2.vel);
 
-    float x1,x2,y1,y2,z1,z2, vx1,vx2,vy1,vy2,vz1,vz2, m1,m2, r1, r2, R;
+    float vx1,vx2,vy1,vy2,vz1,vz2, m1,m2, r1, r2, R;
     
     R = 1.0f;
-    
-    x1 = p1.x;
-    y1 = p1.y;
-    z1 = p1.z;
-    
-    x2 = p2.x;
-    y2 = p2.y;
-    z2 = p2.z;
     
     m1 = s1.m;
     m2 = s2.m;
@@ -331,7 +323,7 @@ void collide(sphere& s1, sphere& s2){
     vz1 = - velDiff.z;
     
     //     **** find the polar coordinates of the location of ball 2 ***
-    theta2 = (!d) ? 0 : acos( z2 / d );
+    theta2 = (!d) ? 0 : acos( p2.z / d );
     phi2 = (displacement.x == 0 && displacement.y == 0) ? 
 	0 : atan2( displacement.y, displacement.x );
 
