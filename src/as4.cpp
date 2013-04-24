@@ -24,7 +24,7 @@
 #include <GL/glu.h>
 #endif
 
-
+#include <windows.h>
 #define PI 3.14159265  // Should be used from mathlib
 #define sphAcc 20
 
@@ -593,6 +593,7 @@ int main(int argc, char *argv[]) {
     KDtree t;
     cout << t.UL.printMe() << endl;
     cout << t.LR.printMe() << endl;
+    Sleep(5000);
 //{ Initialization of glut and window:  
 /*
 

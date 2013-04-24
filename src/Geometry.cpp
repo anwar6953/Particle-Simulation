@@ -168,3 +168,7 @@ void KDtree::init(Vect3 upperLeft, Vect3 lowerRight) {
     this->UL = Vect3(upperLeft.x, upperLeft.y, upperLeft.z);
     this->LR = Vect3(lowerRight.x, lowerRight.y, lowerRight.z);
 }
+
+// *****************************
+// Helper Functions
+// *****************************
