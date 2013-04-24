@@ -325,11 +325,6 @@ void collide(sphere& s1, sphere& s2){
     d = displacement.getNorm();
     v = velDiff.getNorm();
     
-    //     **** shift coordinate system so that ball 1 is at the origin ***
-    x2 = displacement.x;
-    y2 = displacement.y;
-    z2 = displacement.z;
-    
     //     **** boost coordinate system so that ball 2 is resting ***
     vx1 = - velDiff.x;
     vy1 = - velDiff.y;
