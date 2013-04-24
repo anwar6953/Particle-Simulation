@@ -305,16 +305,12 @@ void collide(sphere& s1, sphere& s2){
 
     float  r12,m21,d,v,theta2,phi2,st,ct,sp,cp,vx1r,vy1r,vz1r,fvz1r,
     thetav,phiv,dr,alpha,beta,sbeta,cbeta,t,a,dvz2,
-	vx2r,vy2r,vz2r,x21,y21,z21,vx21,vy21,vz21,vx_cm,vy_cm,vz_cm, totalMass;
+	vx2r,vy2r,vz2r,vx21,vy21,vz21,vx_cm,vy_cm,vz_cm, totalMass;
     
     //     **** initialize some variables ****
     totalMass = m1 + m2;
     r12 = r1 + r2;
     m21 = m2 / m1;
-    
-    x21 = displacement.x;
-    y21 = displacement.y;
-    z21 = displacement.z;
     
     //Vect3 posDiff = s2.pos - p1.pos;
     
@@ -330,16 +326,14 @@ void collide(sphere& s1, sphere& s2){
     vz_cm = v_cm.z;
     
     //Vect3 centerVect = ((m1 * s1.vel) + (m2 * s2.vel)) * (1 / (m1 + m2));
-    
-    
     //     **** calculate relative distance and relative speed ***
     d = displacement.getNorm();
     v = velDiff.getNorm();
     
     //     **** shift coordinate system so that ball 1 is at the origin ***
-    x2=x21;
-    y2=y21;
-    z2=z21;
+    x2 = displacement.x;
+    y2 = displacement.y;
+    z2 = displacement.z;
     
     //     **** boost coordinate system so that ball 2 is resting ***
     vx1=-vx21;
