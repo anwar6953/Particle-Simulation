@@ -245,6 +245,7 @@ void initScene() {
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
     
+    listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
     // listOfPlanes.push_back(plane(1,1,1,0));
     
     int numCubed = 0;
@@ -519,13 +520,19 @@ void myDisplay() {
         
         for (int j = 0; j < listOfPlanes.size(); j++) {
             plane p = listOfPlanes[j];
-            if (s1.intersect(p)) { collide(s1,p); }
+            if (s1.intersect(p)) { collide(s1,p);}
         }
 
 	//applyVectorField(s1);	 
         s1.render();
     }
     
+	for (int j = 0; j < listOfPlanes.size(); j++) {
+        plane p = listOfPlanes[j];
+		if (p.isRect)
+			p.render();
+    }
+	
     if(loadFromFile) {
         if (fDataCounter < fData.size()) {
             vector<Vect3> thisFrame = fData[fDataCounter];
