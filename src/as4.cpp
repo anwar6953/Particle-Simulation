@@ -348,7 +348,8 @@ void collide(sphere& s1, sphere& s2){
     else if (fvz1r < -1) fvz1r = -1;
 
     thetav = acos(fvz1r);
-    phiv = (vx1r==0 && vy1r==0) ? 0 : atan2( vy1r, vx1r );
+    phiv = (vel1r.x == 0 && vel1r.y == 0) ? 
+	0 : atan2( vel1r.y, vel1r.x );
     
     //     **** calculate the normalized impact parameter ***
     dr = d * sin(thetav) / r12;
@@ -380,13 +381,14 @@ void collide(sphere& s1, sphere& s2){
     //  ***  update velocities ***
     
     a = tan(thetav + alpha);
-    dvz2 = 2 * (vz1r + a * (cbeta * vx1r + sbeta * vy1r)) / 
+    dvz2 = 2 * (vel1r.z + a * (cbeta * vel1r.x + sbeta * vel1r.y)) / 
 	((1 + a * a) * (1 + m21));
     
     Vect3 vel2r = dvz2 * Vect3(a * cbeta, a * sbeta, 1.0);
-    vz2r = dvz2;
-    vx2r = a * cbeta * dvz2;
-    vy2r = a * sbeta * dvz2;
+    vx2r = vel2r.x;
+    vy2r = vel2r.y;
+    vz2r = vel2r.z;
+
     vz1r = vz1r - m21 * vz2r;
     vx1r = vx1r - m21 * vx2r;
     vy1r = vy1r - m21 * vy2r;
