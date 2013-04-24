@@ -337,7 +337,8 @@ void collide(sphere& s1, sphere& s2){
     
     //     **** find the polar coordinates of the location of ball 2 ***
     theta2 = (!d) ? 0 : acos( z2 / d );
-    phi2 = (x2 == 0 && y2 == 0) ? 0 : atan2( y2, x2 );
+    phi2 = (displacement.x == 0 && displacement.y == 0) ? 
+	0 : atan2( displacement.y, displacement.x );
 
     st = sin(theta2);
     ct = cos(theta2);
@@ -368,16 +369,20 @@ void collide(sphere& s1, sphere& s2){
     
     
     //     **** calculate time to collision ***
-    t=(d*cos(thetav) -r12*sqrt(1-dr*dr))/v;
+    t = (d * cos(thetav) - r12 * sqrt(1 - dr * dr) ) / v;
     //cout << t << endl;
     //     **** update positions and reverse the coordinate shift ***
-    x2=x2+vx2*t +x1;
-    y2=y2+vy2*t +y1;
-    z2=z2+vz2*t +z1;
-    x1=(vx1+vx2)*t +x1;
-    y1=(vy1+vy2)*t +y1;
-    z1=(vz1+vz2)*t +z1;
-    
+
+    /* //x1, y1, z1, x2, y2, z2 aren't used after this
+    x2 = x2 + vx2 * t + p1.x;
+    y2 = y2 + vy2 * t + p1.y;
+    z2 = z2 + vz2 * t + p1.z;
+
+
+    x1 = (vx1+vx2)*t + x1;
+    y1 = (vy1+vy2)*t + y1;
+    z1 = (vz1+vz2)*t + z1;
+    */
     
     
     //  ***  update velocities ***
