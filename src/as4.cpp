@@ -305,7 +305,7 @@ void collide(sphere& s1, sphere& s2){
 
     float  r12,m21,d,v,theta2,phi2,st,ct,sp,cp,vx1r,vy1r,vz1r,fvz1r,
     thetav,phiv,dr,alpha,beta,sbeta,cbeta,t,a,dvz2,
-	vx2r,vy2r,vz2r,vx21,vy21,vz21,vx_cm,vy_cm,vz_cm, totalMass;
+	vx2r,vy2r,vz2r,vx_cm,vy_cm,vz_cm, totalMass;
     
     //     **** initialize some variables ****
     totalMass = m1 + m2;
@@ -313,11 +313,6 @@ void collide(sphere& s1, sphere& s2){
     m21 = m2 / m1;
     
     //Vect3 posDiff = s2.pos - p1.pos;
-    
-    vx21 = velDiff.x;
-    vy21 = velDiff.y;
-    vz21 = velDiff.z;
-    
     //Vect3 velDiff = s2.vel - s1.vel;
     Vect3 v_cm = ((m1 * v1) + (m2 * v2)) * (1.0f / totalMass);
 
@@ -336,9 +331,9 @@ void collide(sphere& s1, sphere& s2){
     z2 = displacement.z;
     
     //     **** boost coordinate system so that ball 2 is resting ***
-    vx1=-vx21;
-    vy1=-vy21;
-    vz1=-vz21;
+    vx1 = - velDiff.x;
+    vy1 = - velDiff.y;
+    vz1 = - velDiff.z;
     
     //     **** find the polar coordinates of the location of ball 2 ***
     if (!d)
