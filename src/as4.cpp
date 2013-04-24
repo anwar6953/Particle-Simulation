@@ -336,40 +336,35 @@ void collide(sphere& s1, sphere& s2){
     vz1 = - velDiff.z;
     
     //     **** find the polar coordinates of the location of ball 2 ***
-    if (!d)
-        theta2 = 0;
-    else
-        theta2=acos(z2/d);
-    if (x2==0 && y2==0) {phi2=0;} else {phi2=atan2(y2,x2);}
-    st=sin(theta2);
-    ct=cos(theta2);
-    sp=sin(phi2);
-    cp=cos(phi2);
-    
+    theta2 = (!d) ? 0 : acos( z2 / d );
+    phi2 = (x2 == 0 && y2 == 0) ? 0 : atan2( y2, x2 );
+
+    st = sin(theta2);
+    ct = cos(theta2);
+    sp = sin(phi2);
+    cp = cos(phi2);
     
     //     **** express the velocity vector of ball 1 in a rotated coordinate
     //          system where ball 2 lies on the z-axis ******
-    vx1r=ct*cp*vx1+ct*sp*vy1-st*vz1;
-    vy1r=cp*vy1-sp*vx1;
-    vz1r=st*cp*vx1+st*sp*vy1+ct*vz1;
-    if (!v)
-        fvz1r = 0;
-    else
-        fvz1r = vz1r/v ;
-    if (fvz1r>1) {fvz1r=1;}   // fix for possible rounding errors
-    else if (fvz1r<-1) {fvz1r=-1;}
-    thetav=acos(fvz1r);
-    if (vx1r==0 && vy1r==0) {phiv=0;} else {phiv=atan2(vy1r,vx1r);}
-    
+    vx1r = ct * cp * vx1 + ct * sp * vy1 - st * vz1;
+    vy1r = cp * vy1 - sp * vx1;
+    vz1r = st * cp * vx1 + st * sp * vy1 + ct * vz1;
+
+    fvz1r = (!v) ? 0 : vz1r / v;
+    if (fvz1r > 1) fvz1r = 1;   // fix for possible rounding errors
+    else if (fvz1r < -1) fvz1r = -1;
+
+    thetav = acos(fvz1r);
+    phiv = (vx1r==0 && vy1r==0) ? 0 : atan2( vy1r, vx1r );
     
     //     **** calculate the normalized impact parameter ***
-    dr=d*sin(thetav)/r12;
+    dr = d * sin(thetav) / r12;
     
     //     **** calculate impact angles if balls do collide ***
-    alpha=asin(-dr);
-    beta=phiv;
-    sbeta=sin(beta);
-    cbeta=cos(beta);
+    alpha = asin(- dr);
+    beta = phiv;
+    sbeta = sin(beta);
+    cbeta = cos(beta);
     
     
     //     **** calculate time to collision ***
