@@ -79,26 +79,27 @@ void plane::render(){
     
     glEnd();
 }
+int plane::myType() {
+    return 1;
+}
 // *****************************
 // sphere Implementation
 // *****************************
-sphere::sphere(){
-    pos = Vect3();
-    vel = Vect3();
-    r = 0;
-    m = 1;
+sphere::sphere() {
+    init(Vect3(), Vect3(), 0.0f, 1.0f);
 }    
-sphere::sphere(Vect3 posp, Vect3 velp, float rp){
-    pos = posp;
-    vel = velp;
-    r = rp;
-    m = 1;
+sphere::sphere(Vect3 posp, Vect3 velp, float rp) {
+    init(posp, velp, rp, 1.0f);
 }
-sphere::sphere(Vect3 posp, Vect3 velp, float rp, float massp){
-    pos = posp;
-    vel = velp;
-    r = rp;
-    m = massp;
+sphere::sphere(Vect3 posp, Vect3 velp, float rp, float massp) {
+    init(posp, velp, rp, massp);
+}
+void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass) {
+    pos = center;
+    vel = velocity;
+    r = radius;
+    m = mass;
+    collideWithIndex = 0;
 }
 void sphere::render(){
     glTranslatef(pos.x,pos.y,pos.z);
@@ -171,10 +172,10 @@ bool sphere::intersect(sphere s2){
     if (surfaceDistance < thresholdForBounce) { return true; }
     else { return false; }
 }
-void sphere::move(){
+void sphere::move() {
     pos = pos + 1*vel;
 }
-void sphere::drag(){
+void sphere::drag() {
     /*float dragCoef = 2;
     float force = 0.5 * vel * vel * dragCoef;
     float acc = (force / m);
@@ -211,6 +212,9 @@ void sphere::drag(){
         vel.z = min(0.0f, vel.z + accZ);
     }
     
+}
+int sphere::myType() {
+    return 0;
 }
 
 // *****************************

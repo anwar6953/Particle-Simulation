@@ -3,6 +3,7 @@
 #ifndef _Geometry_h
 #define _Geometry_h
 
+#include <vector>
 #include "ColorAndVector.h"
 
 using namespace std;
@@ -11,6 +12,7 @@ using namespace std;
 // forward Declaration
 // *****************************
 class Viewport;
+class Shape;
 class sphere;
 class plane;
 class KDtree;
@@ -24,25 +26,34 @@ class Viewport {
 };
 
 // *****************************
+// Shape prototype
+// *****************************
+class Shape {
+ public:
+    virtual int myType() = 0;
+};
+
+// *****************************
 // plane prototype
 // *****************************
-class plane {
+class plane : public Shape {
  public:
     plane();
     plane(float, float, float, float);
     plane(Vect3, Vect3, Vect3, Vect3);
-	Vect3 center;
+    Vect3 center;
     Vect3 pt1,pt2,pt3,pt4;
     Vect3 n;
     float a,b,c,d;
-	float isRect;
-	void render();
+    float isRect;
+    void render();
+    int myType();
 };
 
 // *****************************
 // sphere prototype
 // *****************************
-class sphere {
+class sphere : public Shape {
  public:
     sphere();
     sphere(Vect3, Vect3, float);
@@ -51,11 +62,16 @@ class sphere {
     Vect3 vel;
     float r;
     float m;
+    int collideWithIndex;
+    vector<Shape *> collideWith;
     void render();
     bool intersect(sphere);
     bool intersect(plane);
     void move();
     void drag();
+    int myType();
+ private:
+    void init(Vect3, Vect3, float, float);
 };
 
 // *****************************

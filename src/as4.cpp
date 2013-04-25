@@ -42,7 +42,7 @@ int fDataCounter = 0;
 bool loadFromFile = 0;
 bool saveToFile = 0;
 bool dragOn = 0;
-bool gravityOn = 0;
+bool gravityOn = 1;
 string fname = "scenes/test1";
 
 float defRadius = 0.2;
@@ -85,6 +85,10 @@ float transZ = -12;
 float rotAmount = 6;  // up, down, left, right
 float transAmt = 0.4;  // shift + [the above]
 float zoomAmt = 1.6;     // +, - 
+//Defaults for Lookat:
+float xLookAt = 0;
+float yLookAt = 0;
+float zLookAt = -1;
 //}
 
 
@@ -244,19 +248,21 @@ void initScene() {
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     
 	float width = 2;
-    listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
-    listOfPlanes.push_back(plane(Vect3(width,1,1),Vect3(width,-1,1),Vect3(width,-1,-1),Vect3(width,1,-1)));
-    listOfPlanes.push_back(plane(Vect3(0,-1,1),Vect3(0,-1,-1),Vect3(width,-1,-1),Vect3(width,-1,1)));
-    listOfPlanes.push_back(plane(Vect3(0,1,-1),Vect3(0,-1,-1),Vect3(width,-1,-1),Vect3(width,1,-1)));
-    listOfPlanes.push_back(plane(Vect3(0,1,1),Vect3(0,-1,1),Vect3(width,-1,1),Vect3(width,1,1)));
-    
+	bool box = 1;
+	if (box){
+		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
+		listOfPlanes.push_back(plane(Vect3(width,1,1),Vect3(width,-1,1),Vect3(width,-1,-1),Vect3(width,1,-1)));
+		listOfPlanes.push_back(plane(Vect3(0,-1,1),Vect3(0,-1,-1),Vect3(width,-1,-1),Vect3(width,-1,1)));
+		listOfPlanes.push_back(plane(Vect3(0,1,-1),Vect3(0,-1,-1),Vect3(width,-1,-1),Vect3(width,1,-1)));
+		listOfPlanes.push_back(plane(Vect3(0,1,1),Vect3(0,-1,1),Vect3(width,-1,1),Vect3(width,1,1)));
+    }
 	
 	// listOfPlanes.push_back(plane(1,0,0,0));
     
-    int numCubed = 4;
+    int numCubed = 0;
     for (int i = 0; i < numCubed; i++) {
         for (int j = 0; j < numCubed; j++){
             for (int k = 0; k < numCubed; k++){
@@ -309,7 +315,7 @@ void collide(sphere& s1, sphere& s2){
     velDiff = -1 * velDiff;
     
     //     **** find the polar coordinates of the location of ball 2 ***
-    float theta2 = (!d) ? 0 : acos( p2.z / d );
+    float theta2 = (!d) ? 0 : acos( displacement.z / d );
     if (displacement.x == 0 && displacement.y == 0) phi2 = 0;
     else phi2 = atan2( displacement.y, displacement.x );
 
@@ -435,7 +441,20 @@ void myDisplay() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();				        // make sure transformation is "zero'd"
     gluPerspective(60.0f,(GLfloat)viewport.w/(GLfloat)viewport.h,0.1f,100.0f);
-    
+	
+	float rradius;
+	if (listOfSpheres.size()){
+		xLookAt = listOfSpheres[0].pos.x;
+		// cout << xLookAt << endl;
+		yLookAt = listOfSpheres[0].pos.y;
+		zLookAt = listOfSpheres[0].pos.z;
+		rradius = listOfSpheres[0].r;
+		
+		gluLookAt( xLookAt, yLookAt, zLookAt+1, /* look from camera XYZ */
+				xLookAt, yLookAt, zLookAt, /* look at the origin */
+				// 0,0, -1, /* look at the origin */
+				0, 1, 0); /* positive Y up vector */
+	}
     
     glMatrixMode(GL_MODELVIEW);			    // indicate we are specifying camera transformations
     glLoadIdentity();				        // make sure transformation is "zero'd"
@@ -468,14 +487,18 @@ void myDisplay() {
                 if (j == k){ continue; }
                 sphere& s2 = listOfSpheres[j];
                 if ((s2.pos-s1.pos).getNorm() < 0.001) continue;
-                else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                // else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                else s1.vel = s1.vel + 0.0000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
             }
         
         //intersection loop
         for (int j = 0; j < listOfSpheres.size(); j++) {
             if (j == k) { continue; }
             sphere& s2 = listOfSpheres[j];
-            if (s1.intersect(s2)) { collide(s1,s2); s1.move();}
+            if (s1.intersect(s2)) { 
+		collide(s1,s2);
+		s1.move();
+	    }
             // collide(s1,s2);
         }
         
