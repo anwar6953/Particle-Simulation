@@ -275,7 +275,7 @@ void collide(sphere& s1, sphere& s2){
 
     Vect3& p1(s1.pos), p2(s2.pos), v1(s1.vel) , v2(s2.vel);
 
-    float vx1,vx2,vy1,vy2,vz1,vz2, m1,m2, r1, r2, R;
+    float vx2,vy2,vz2, m1,m2, r1, r2, R;
     
     R = 1.0f;
     
@@ -284,10 +284,6 @@ void collide(sphere& s1, sphere& s2){
     
     r1 = s1.r;
     r2 = s2.r;
-    
-    vx1 = v1.x;
-    vy1 = v1.y;
-    vz1 = v1.z;
     
     vx2 = v2.x;
     vy2 = v2.y;
@@ -319,9 +315,6 @@ void collide(sphere& s1, sphere& s2){
     
     //     **** boost coordinate system so that ball 2 is resting ***
     velDiff = -1 * velDiff;
-    vx1 = velDiff.x;
-    vy1 = velDiff.y;
-    vz1 = velDiff.z;
     
     //     **** find the polar coordinates of the location of ball 2 ***
     theta2 = (!d) ? 0 : acos( p2.z / d );
