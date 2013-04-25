@@ -41,8 +41,8 @@ int fDataCounter = 0;
 //{ SETTINGS:
 bool loadFromFile = 0;
 bool saveToFile = 0;
-bool dragOn = 1;
-bool gravityOn = 1;
+bool dragOn = 0;
+bool gravityOn = 0;
 string fname = "scenes/test1";
 
 float defRadius = 0.2;
@@ -63,7 +63,8 @@ void appendToFile(string fnameParam, string toAppend){
 //{ Other
 Viewport viewport;
 GLfloat light_diffuse[] = {0.2, 0.1, 1, 1.0};  /* Red diffuse light. */
-GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
+GLfloat light_position[] = {0.0, 0.5, 0.5, 1.0};  /* Infinite light location. */
+// GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
 
 
 vector<sphere> listOfSpheres;
@@ -223,7 +224,7 @@ void myParse(std::string file) {
 
 void applyVectorField(sphere & thisSph) {
     //apply vortex field
-    Vect3 fieldVector = thisSph.pos;
+    // Vect3 fieldVector = thisSph.pos;
     //float denom = pow(fieldVector.x, 2) + pow(fieldVector.y, 2);
     //    fieldVector = Vect3(-1.0f * (1.0f / denom ) * fieldVector.y, (1.0f / denom ) * fieldVector.x, 0.0);
     //    thisSph.vel = thisSph.vel + 0.0001 * fieldVector;
@@ -231,7 +232,6 @@ void applyVectorField(sphere & thisSph) {
     //fieldVector = Vect3(0,sin(thisSph.pos.x),0);
     //float mag = thisSph.vel.getNorm();
     //    thisSph.vel = mag * normalize(thisSph.vel + 0.01 * fieldVector);
-    thisSph.vel.y = 0.01 *  (sin(thisSph.pos.x / 2.0f));
     //    thisSph.vel.y = 0.01 *  (cos(thisSph.pos.y));
     }
 
@@ -244,10 +244,19 @@ void initScene() {
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
+	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     
-    // listOfPlanes.push_back(plane(1,1,1,0));
+	float width = 2;
+    listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
+    listOfPlanes.push_back(plane(Vect3(width,1,1),Vect3(width,-1,1),Vect3(width,-1,-1),Vect3(width,1,-1)));
+    listOfPlanes.push_back(plane(Vect3(0,-1,1),Vect3(0,-1,-1),Vect3(width,-1,-1),Vect3(width,-1,1)));
+    listOfPlanes.push_back(plane(Vect3(0,1,-1),Vect3(0,-1,-1),Vect3(width,-1,-1),Vect3(width,1,-1)));
+    listOfPlanes.push_back(plane(Vect3(0,1,1),Vect3(0,-1,1),Vect3(width,-1,1),Vect3(width,1,1)));
     
-    int numCubed = 0;
+	
+	// listOfPlanes.push_back(plane(1,0,0,0));
+    
+    int numCubed = 4;
     for (int i = 0; i < numCubed; i++) {
         for (int j = 0; j < numCubed; j++){
             for (int k = 0; k < numCubed; k++){
@@ -407,14 +416,14 @@ void collide(sphere& s1, sphere& s2){
     
 }
 void collide(sphere& s1, plane& p1){
-    float mag = s1.vel.getNorm();
-    float d = normalize(-1*s1.vel) * (p1.n);
-    Vect3 normal = p1.n;
-    if (d < 0){
-	normal = normal * -1;
-	d = normalize(-1*s1.vel)*(p1.n*-1);
-    }
-    s1.vel = mag*normalize(normalize(s1.vel) + 2*d*(normal));
+    // float mag = s1.vel.getNorm();
+    // float d = normalize(-1*s1.vel) * (p1.n);
+    // Vect3 normal = p1.n;
+    // if (d < 0){
+	// normal = normal * -1;
+	// d = normalize(-1*s1.vel)*(p1.n*-1);
+    // }
+    // s1.vel = mag*normalize(normalize(s1.vel) + 2*d*(normal));
     //move sphere OUT of plane, if necessary.
 }
 
@@ -439,7 +448,7 @@ void myDisplay() {
     if ((counter % 50)==49){
     time_t finalTime;
     time(&finalTime);
-    // cout << (float) counter/(finalTime - initTime) << endl;
+    cout << (float) counter/(finalTime - initTime) << endl;
     }
     counter++;
     fDataCounter++;
@@ -453,6 +462,7 @@ void myDisplay() {
 
         
         // gravity loop
+		s1.vel.y -= 0.00001;
         if (gravityOn)
             for (int j = 0; j < listOfSpheres.size(); j++){
                 if (j == k){ continue; }
@@ -465,19 +475,25 @@ void myDisplay() {
         for (int j = 0; j < listOfSpheres.size(); j++) {
             if (j == k) { continue; }
             sphere& s2 = listOfSpheres[j];
-            if (s1.intersect(s2)) { collide(s1,s2); }
+            if (s1.intersect(s2)) { collide(s1,s2); s1.move();}
             // collide(s1,s2);
         }
         
         for (int j = 0; j < listOfPlanes.size(); j++) {
             plane p = listOfPlanes[j];
-            if (s1.intersect(p)) { collide(s1,p); }
+            if (s1.intersect(p)) { collide(s1,p);  s1.move();}
         }
 
-	//applyVectorField(s1);	 
+		// applyVectorField(s1);
         s1.render();
     }
     
+	for (int j = 0; j < listOfPlanes.size(); j++) {
+        plane p = listOfPlanes[j];
+		if (p.isRect)
+			p.render();
+    }
+	
     if(loadFromFile) {
         if (fDataCounter < fData.size()) {
             vector<Vect3> thisFrame = fData[fDataCounter];

@@ -13,6 +13,7 @@ using namespace std;
 class Viewport;
 class sphere;
 class plane;
+class KDtree;
 
 // *****************************
 // Viewport prototype
@@ -29,9 +30,13 @@ class plane {
  public:
     plane();
     plane(float, float, float, float);
-    Vect3 pt;
+    plane(Vect3, Vect3, Vect3, Vect3);
+	Vect3 center;
+    Vect3 pt1,pt2,pt3,pt4;
     Vect3 n;
     float a,b,c,d;
+	float isRect;
+	void render();
 };
 
 // *****************************
@@ -53,5 +58,17 @@ class sphere {
     void drag();
 };
 
+// *****************************
+// KDtree prototype
+// *****************************
+class KDtree {
+ public:
+    KDtree();
+    KDtree(Vect3 &, Vect3 &);
+    Vect3 UL;
+    Vect3 LR;
+ private:
+    void init(Vect3, Vect3);
+};
 
 #endif

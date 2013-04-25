@@ -40,17 +40,45 @@ plane::plane(){
     c = 0;
     d = 0;
     n = Vect3();
-    pt = Vect3();
 }    
 plane::plane(float ap, float bp, float cp, float dp){
     a = ap;
     b = bp;
     c = cp;
     d = dp;
-    n = Vect3();
-    pt = Vect3();
+    n = Vect3(a,b,c);
+	isRect = 0;
 }
+plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4){
+	Vect3 tmpNormal = normalize((p2-p1) ^ (p4-p1));
+    a = tmpNormal.x;
+    b = tmpNormal.y;
+    c = tmpNormal.z;
+    n = tmpNormal;
+	isRect = 1;
+    pt1 = p1;
+    pt2 = p2;
+    pt3 = p3;
+    pt4 = p4;
+    d = -a * pt1.x - b*pt1.y - c*pt1.z;
+	center = (pt1 + pt3) * 0.5;
 
+}
+void plane::render(){
+    glBegin(GL_QUADS);
+
+    glVertex3f(pt1.x,pt1.y,pt1.z);
+
+    glVertex3f(pt2.x,pt2.y,pt2.z);
+
+    glVertex3f(pt3.x,pt3.y,pt3.z);
+
+    glVertex3f(pt4.x,pt4.y,pt4.z);
+	
+    glNormal3f(n.x,n.y,n.z);
+    
+    glEnd();
+}
 // *****************************
 // sphere Implementation
 // *****************************
@@ -102,9 +130,39 @@ bool sphere::intersect(plane p){
     float zc = zo - p.c * (firstTerm) / (sumabcsquared);
 
     float d = abs(p.a*xo + p.b*yo + p.c*zo + p.d) / pow(sumabcsquared,0.5f);
-    
+    Vect3 intPt;
     if (r < d){ return false; }
-    else { return true; }
+    else { 
+		if (p.isRect){
+			intPt = Vect3(xc,yc,zc);
+			//
+			float magnitude = sqrt(r*r-(intPt - pos)*(intPt - pos));
+			intPt = intPt + magnitude * normalize(p.center-intPt);
+			//
+			bool b1 = (p.pt2-p.pt1)*(intPt-p.pt1)>0;
+			bool b2 = (p.pt4-p.pt1)*(intPt-p.pt1)>0;
+			bool b3 = (p.pt2-p.pt3)*(intPt-p.pt3)>0;
+			bool b4 = (p.pt4-p.pt3)*(intPt-p.pt3)>0;
+			if (!b1 || !b2 || !b3 || !b4)
+				return false;
+		}
+	}
+	float mag = vel.getNorm();
+    float d2 = normalize(-1*vel) * (p.n);
+    Vect3 normal = p.n;
+    if (d2 < 0){
+		normal = normal * -1;
+		d2 = normalize(-1*vel)*(p.n*-1);
+    }
+    vel = mag*normalize(normalize(vel) + 2*d2*(normal));
+	
+	if (p.isRect){
+		Vect3 diff = pos - Vect3(xc,yc,zc);
+		diff = (r-diff.getNorm()) * normalize(diff);
+		pos = pos + diff;
+	}
+	return true;
+    //move sphere OUT of plane, if necessary.
 }
 bool sphere::intersect(sphere s2){
     float sumOfRadii = r + s2.r;
@@ -127,7 +185,7 @@ void sphere::drag(){
     float selfVelZ = vel.z;
     
     float pi=acos(-1.0E0);
-    float dragCoef = 0.47;
+    float dragCoef = 0.07;
     float force = 0.5 * vel * vel * dragCoef * (1 / (pi * r * r));
     float acc = (force / m);
     
@@ -153,4 +211,18 @@ void sphere::drag(){
         vel.z = min(0.0f, vel.z + accZ);
     }
     
+}
+
+// *****************************
+// KDtree Implementation
+// *****************************
+KDtree::KDtree(void) {
+    KDtree::init(Vect3(1, 1, 1), Vect3(-1, -1, -1)); 
+}
+KDtree::KDtree(Vect3 & upperLeft, Vect3 & lowerRight) {
+    KDtree::init(upperLeft, lowerRight);
+}
+void KDtree::init(Vect3 upperLeft, Vect3 lowerRight) {
+    this->UL = Vect3(upperLeft.x, upperLeft.y, upperLeft.z);
+    this->LR = Vect3(lowerRight.x, lowerRight.y, lowerRight.z);
 }
