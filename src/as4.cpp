@@ -293,7 +293,7 @@ void collide(sphere& s1, sphere& s2){
 
     float  r12,m21,d,v,theta2,phi2,st,ct,sp,cp,fvz1r,
     thetav,phiv,dr,alpha,beta,sbeta,cbeta,t,a,dvz2,
-	vx2r,vy2r,vz2r,vx_cm,vy_cm,vz_cm, totalMass;
+	vx_cm,vy_cm,vz_cm, totalMass;
     
     //     **** initialize some variables ****
     totalMass = m1 + m2;
@@ -375,9 +375,6 @@ void collide(sphere& s1, sphere& s2){
 	((1 + a * a) * (1 + m21));
     
     Vect3 vel2r = dvz2 * Vect3(a * cbeta, a * sbeta, 1.0);
-    vx2r = vel2r.x;
-    vy2r = vel2r.y;
-    vz2r = vel2r.z;
 
     vel1r = vel1r - m21 * vel2r;
     //     **** rotate the velocity vectors back and add the initial velocity
