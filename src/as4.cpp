@@ -320,17 +320,18 @@ void collide(sphere& s1, sphere& s2){
     //     **** express the velocity vector of ball 1 in a rotated coordinate
     //          system where ball 2 lies on the z-axis ******
     Vect3 vel1r;
-    vel1r.x = (ct * cp * velDiff.x) + (ct * sp * velDiff.y) - (st * velDiff.z);
-    vel1r.y =    (- sp * velDiff.x) + (cp * velDiff.y);
-    vel1r.z = (st * cp * velDiff.x) + (st * sp * velDiff.y) + (ct * velDiff.z);
+    vel1r.x = ct * cp * velDiff.x + ct * sp * velDiff.y - st * velDiff.z;
+    vel1r.y =    - sp * velDiff.x      + cp * velDiff.y;
+    vel1r.z = st * cp * velDiff.x + st * sp * velDiff.y + ct * velDiff.z;
 
     fvz1r = (!v) ? 0 : vel1r.z / v;
     if (fvz1r > 1) fvz1r = 1;   // fix for possible rounding errors
     else if (fvz1r < -1) fvz1r = -1;
 
     thetav = acos(fvz1r);
-    phiv = (vel1r.x == 0 && vel1r.y == 0) ? 
-	0 : atan2( vel1r.y, vel1r.x );
+
+    if (vel1r.x == 0 && vel1r.y == 0) phiv = 0; 
+    else phiv = atan2( vel1r.y, vel1r.x );
     
     //     **** calculate the normalized impact parameter ***
     dr = d * sin(thetav) / r12;
