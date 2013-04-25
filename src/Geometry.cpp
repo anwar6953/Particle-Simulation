@@ -50,17 +50,18 @@ plane::plane(float ap, float bp, float cp, float dp){
 	isRect = 0;
 }
 plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4){
-	Vect3 tmpNormal = p1 ^ p2;
+	Vect3 tmpNormal = normalize((p2-p1) ^ (p4-p1));
     a = tmpNormal.x;
     b = tmpNormal.y;
     c = tmpNormal.z;
-    d = 0;
     n = tmpNormal;
 	isRect = 1;
     pt1 = p1;
     pt2 = p2;
     pt3 = p3;
     pt4 = p4;
+    d = -a * pt1.x - b*pt1.y - c*pt1.z;
+	center = (pt1 + pt3) * 0.5;
 
 }
 void plane::render(){
@@ -74,7 +75,7 @@ void plane::render(){
 
     glVertex3f(pt4.x,pt4.y,pt4.z);
 	
-    glNormal3f(1,1,1);
+    glNormal3f(n.x,n.y,n.z);
     
     glEnd();
 }
@@ -129,23 +130,39 @@ bool sphere::intersect(plane p){
     float zc = zo - p.c * (firstTerm) / (sumabcsquared);
 
     float d = abs(p.a*xo + p.b*yo + p.c*zo + p.d) / pow(sumabcsquared,0.5f);
-    
+    Vect3 intPt;
     if (r < d){ return false; }
     else { 
-		if (!p.isRect)
-			return true; 
-		else {
-			Vect3 intPt = Vect3(xc,yc,zc);
+		if (p.isRect){
+			intPt = Vect3(xc,yc,zc);
+			//
+			float magnitude = sqrt(r*r-(intPt - pos)*(intPt - pos));
+			intPt = intPt + magnitude * normalize(p.center-intPt);
+			//
 			bool b1 = (p.pt2-p.pt1)*(intPt-p.pt1)>0;
 			bool b2 = (p.pt4-p.pt1)*(intPt-p.pt1)>0;
 			bool b3 = (p.pt2-p.pt3)*(intPt-p.pt3)>0;
 			bool b4 = (p.pt4-p.pt3)*(intPt-p.pt3)>0;
-			if (b1 && b2 && b3 && b4)
-				return true;
-			else
+			if (!b1 || !b2 || !b3 || !b4)
 				return false;
 		}
 	}
+	float mag = vel.getNorm();
+    float d2 = normalize(-1*vel) * (p.n);
+    Vect3 normal = p.n;
+    if (d2 < 0){
+		normal = normal * -1;
+		d2 = normalize(-1*vel)*(p.n*-1);
+    }
+    vel = mag*normalize(normalize(vel) + 2*d2*(normal));
+	
+	if (p.isRect){
+		Vect3 diff = pos - Vect3(xc,yc,zc);
+		diff = (r-diff.getNorm()) * normalize(diff);
+		pos = pos + diff;
+	}
+	return true;
+    //move sphere OUT of plane, if necessary.
 }
 bool sphere::intersect(sphere s2){
     float sumOfRadii = r + s2.r;

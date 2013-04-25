@@ -31,6 +31,7 @@ class plane {
     plane();
     plane(float, float, float, float);
     plane(Vect3, Vect3, Vect3, Vect3);
+	Vect3 center;
     Vect3 pt1,pt2,pt3,pt4;
     Vect3 n;
     float a,b,c,d;
