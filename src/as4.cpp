@@ -273,49 +273,41 @@ void collide(sphere& s1, sphere& s2){
      double& vx2, double& vy2, double& vz2,
      int& error)     {*/
 
+    float R(1.0f);
+
     Vect3& p1(s1.pos), p2(s2.pos), v1(s1.vel) , v2(s2.vel);
+    float m1(s1.m), m2(s2.m);
+    float r1(s1.r), r2(s2.r);
+    Vect3 displacement(p2 - p1);
+    Vect3 velDiff(v2 - v1);
 
-    float m1,m2, r1, r2, R;
-    
-    R = 1.0f;
-    
-    m1 = s1.m;
-    m2 = s2.m;
-    
-    r1 = s1.r;
-    r2 = s2.r;
-
-    Vect3 displacement(p2 - p1), velDiff(v2 - v1);
-
-    float  r12,m21,d,v,theta2,phi2,st,ct,sp,cp,fvz1r,
-    thetav,phiv,dr,alpha,beta,sbeta,cbeta,t,a,dvz2,totalMass;
+    float phi2, fvz1r, thetav, phiv, dr, alpha, beta, sbeta, cbeta, dvz2;
     
     //     **** initialize some variables ****
-    totalMass = m1 + m2;
-    r12 = r1 + r2;
-    m21 = m2 / m1;
+    float totalRadius(r1 + r2);
+    float massRatio(m2 / m1);
     
     //Vect3 posDiff = s2.pos - p1.pos;
     //Vect3 velDiff = s2.vel - s1.vel;
-    Vect3 v_cm = ((m1 * v1) + (m2 * v2)) * (1.0f / totalMass);
+    Vect3 v_cm = (m1 * v1 + m2 * v2) * (1.0f / (m1 + m2));
     
     //Vect3 centerVect = ((m1 * s1.vel) + (m2 * s2.vel)) * (1 / (m1 + m2));
     //     **** calculate relative distance and relative speed ***
-    d = displacement.getNorm();
-    v = velDiff.getNorm();
-    
+    float d = displacement.getNorm();
+    float v = velDiff.getNorm();
+
     //     **** boost coordinate system so that ball 2 is resting ***
     velDiff = -1 * velDiff;
     
     //     **** find the polar coordinates of the location of ball 2 ***
-    theta2 = (!d) ? 0 : acos( p2.z / d );
+    float theta2 = (!d) ? 0 : acos( p2.z / d );
     if (displacement.x == 0 && displacement.y == 0) phi2 = 0;
     else phi2 = atan2( displacement.y, displacement.x );
 
-    st = sin(theta2);
-    ct = cos(theta2);
-    sp = sin(phi2);
-    cp = cos(phi2);
+    float st(sin(theta2));
+    float ct(cos(theta2));
+    float sp(sin(phi2));
+    float cp(cos(phi2));
     
     //     **** express the velocity vector of ball 1 in a rotated coordinate
     //          system where ball 2 lies on the z-axis ******
@@ -334,7 +326,7 @@ void collide(sphere& s1, sphere& s2){
     else phiv = atan2( vel1r.y, vel1r.x );
     
     //     **** calculate the normalized impact parameter ***
-    dr = d * sin(thetav) / r12;
+    dr = d * sin(thetav) / totalRadius;
     
     //     **** calculate impact angles if balls do collide ***
     alpha = asin(- dr);
@@ -344,7 +336,7 @@ void collide(sphere& s1, sphere& s2){
     
     
     //     **** calculate time to collision ***
-    t = (d * cos(thetav) - r12 * sqrt(1 - dr * dr) ) / v;
+    float t = (d * cos(thetav) - totalRadius * sqrt(1 - dr * dr) ) / v;
     //cout << t << endl;
     //     **** update positions and reverse the coordinate shift ***
 
@@ -362,13 +354,13 @@ void collide(sphere& s1, sphere& s2){
     
     //  ***  update velocities ***
     
-    a = tan(thetav + alpha);
+    float a = tan(thetav + alpha);
     dvz2 = 2 * (vel1r.z + a * (cbeta * vel1r.x + sbeta * vel1r.y)) / 
-	((1 + a * a) * (1 + m21));
+	((1 + a * a) * (1 + massRatio));
     
     Vect3 vel2r = dvz2 * Vect3(a * cbeta, a * sbeta, 1.0);
 
-    vel1r = vel1r - m21 * vel2r;
+    vel1r = vel1r - massRatio * vel2r;
     //     **** rotate the velocity vectors back and add the initial velocity
     //           vector of ball 2 to retrieve the original coordinate system ****
     v1.x = ct * cp * vel1r.x - sp * vel1r.y + st * cp * vel1r.z + v2.x;
