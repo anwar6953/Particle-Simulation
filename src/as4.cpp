@@ -41,7 +41,7 @@ int fDataCounter = 0;
 //{ SETTINGS:
 bool loadFromFile = 0;
 bool saveToFile = 0;
-bool dragOn = 1;
+bool dragOn = 0;
 bool gravityOn = 1;
 string fname = "scenes/test1";
 
@@ -63,7 +63,8 @@ void appendToFile(string fnameParam, string toAppend){
 //{ Other
 Viewport viewport;
 GLfloat light_diffuse[] = {0.2, 0.1, 1, 1.0};  /* Red diffuse light. */
-GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
+GLfloat light_position[] = {0.0, 0.5, 0.5, 1.0};  /* Infinite light location. */
+// GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
 
 
 vector<sphere> listOfSpheres;
@@ -84,6 +85,10 @@ float transZ = -12;
 float rotAmount = 6;  // up, down, left, right
 float transAmt = 0.4;  // shift + [the above]
 float zoomAmt = 1.6;     // +, - 
+//Defaults for Lookat:
+float xLookAt = 0;
+float yLookAt = 0;
+float zLookAt = -1;
 //}
 
 
@@ -223,7 +228,7 @@ void myParse(std::string file) {
 
 void applyVectorField(sphere & thisSph) {
     //apply vortex field
-    Vect3 fieldVector = thisSph.pos;
+    // Vect3 fieldVector = thisSph.pos;
     //float denom = pow(fieldVector.x, 2) + pow(fieldVector.y, 2);
     //    fieldVector = Vect3(-1.0f * (1.0f / denom ) * fieldVector.y, (1.0f / denom ) * fieldVector.x, 0.0);
     //    thisSph.vel = thisSph.vel + 0.0001 * fieldVector;
@@ -231,7 +236,6 @@ void applyVectorField(sphere & thisSph) {
     //fieldVector = Vect3(0,sin(thisSph.pos.x),0);
     //float mag = thisSph.vel.getNorm();
     //    thisSph.vel = mag * normalize(thisSph.vel + 0.01 * fieldVector);
-    thisSph.vel.y = 0.01 *  (sin(thisSph.pos.x / 2.0f));
     //    thisSph.vel.y = 0.01 *  (cos(thisSph.pos.y));
     }
 
@@ -244,8 +248,19 @@ void initScene() {
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
+	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
     
-    // listOfPlanes.push_back(plane(1,1,1,0));
+	float width = 2;
+	bool box = 1;
+	if (box){
+		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
+		listOfPlanes.push_back(plane(Vect3(width,1,1),Vect3(width,-1,1),Vect3(width,-1,-1),Vect3(width,1,-1)));
+		listOfPlanes.push_back(plane(Vect3(0,-1,1),Vect3(0,-1,-1),Vect3(width,-1,-1),Vect3(width,-1,1)));
+		listOfPlanes.push_back(plane(Vect3(0,1,-1),Vect3(0,-1,-1),Vect3(width,-1,-1),Vect3(width,1,-1)));
+		listOfPlanes.push_back(plane(Vect3(0,1,1),Vect3(0,-1,1),Vect3(width,-1,1),Vect3(width,1,1)));
+    }
+	
+	// listOfPlanes.push_back(plane(1,0,0,0));
     
     int numCubed = 0;
     for (int i = 0; i < numCubed; i++) {
@@ -272,161 +287,113 @@ void collide(sphere& s1, sphere& s2){
      double& vx1, double& vy1, double& vz1,
      double& vx2, double& vy2, double& vz2,
      int& error)     {*/
-    
-    float x1, x2, y1, y2, z1, z2, m1, m2, r1, r2, vx1, vx2, vy1, vy2, vz1, vz2, R;
-    
-    R = 1.0f;
-    
-    x1 = s1.pos.x;
-    y1 = s1.pos.y;
-    z1 = s1.pos.z;
-    
-    x2 = s2.pos.x;
-    y2 = s2.pos.y;
-    z2 = s2.pos.z;
-    
-    m1 = s1.m;
-    m2 = s2.m;
-    
-    r1 = s1.r;
-    r2 = s2.r;
-    
-    vx1 = s1.vel.x;
-    vy1 = s1.vel.y;
-    vz1 = s1.vel.z;
-    
-    vx2 = s2.vel.x;
-    vy2 = s2.vel.y;
-    vz2 = s2.vel.z;
-    
-    float  pi,r12,m21,d,v,theta2,phi2,st,ct,sp,cp,vx1r,vy1r,vz1r,fvz1r,
-    thetav,phiv,dr,alpha,beta,sbeta,cbeta,t,a,dvz2,
-    vx2r,vy2r,vz2r,x21,y21,z21,vx21,vy21,vz21,vx_cm,vy_cm,vz_cm;
+
+    float R(1.0f);
+
+    Vect3& p1(s1.pos), p2(s2.pos), v1(s1.vel) , v2(s2.vel);
+    float m1(s1.m), m2(s2.m);
+    float r1(s1.r), r2(s2.r);
+    Vect3 displacement(p2 - p1);
+    Vect3 velDiff(v2 - v1);
+
+    float phi2, fvz1r, thetav, phiv, dr, alpha, beta, sbeta, cbeta, dvz2;
     
     //     **** initialize some variables ****
-    pi=acos(-1.0E0);
-    r12=r1 + r2;
-    m21=m2 / m1;
-    
-    x21=x2-x1;
-    y21=y2-y1;
-    z21=z2-z1;
+    float totalRadius(r1 + r2);
+    float massRatio(m2 / m1);
     
     //Vect3 posDiff = s2.pos - p1.pos;
-    
-    vx21=vx2-vx1;
-    vy21=vy2-vy1;
-    vz21=vz2-vz1;
-    
     //Vect3 velDiff = s2.vel - s1.vel;
-    
-    vx_cm = (m1*vx1+m2*vx2)/(m1+m2) ;
-    vy_cm = (m1*vy1+m2*vy2)/(m1+m2) ;
-    vz_cm = (m1*vz1+m2*vz2)/(m1+m2) ;
+    Vect3 v_cm = (m1 * v1 + m2 * v2) * (1.0f / (m1 + m2));
     
     //Vect3 centerVect = ((m1 * s1.vel) + (m2 * s2.vel)) * (1 / (m1 + m2));
-    
-    
     //     **** calculate relative distance and relative speed ***
-    d=sqrt(x21*x21 +y21*y21 +z21*z21);
-    v=sqrt(vx21*vx21 +vy21*vy21 +vz21*vz21);
-    
-    //     **** shift coordinate system so that ball 1 is at the origin ***
-    x2=x21;
-    y2=y21;
-    z2=z21;
-    
+    float d = displacement.getNorm();
+    float v = velDiff.getNorm();
+
     //     **** boost coordinate system so that ball 2 is resting ***
-    vx1=-vx21;
-    vy1=-vy21;
-    vz1=-vz21;
+    velDiff = -1 * velDiff;
     
     //     **** find the polar coordinates of the location of ball 2 ***
-    if (!d)
-        theta2 = 0;
-    else
-        theta2=acos(z2/d);
-    if (x2==0 && y2==0) {phi2=0;} else {phi2=atan2(y2,x2);}
-    st=sin(theta2);
-    ct=cos(theta2);
-    sp=sin(phi2);
-    cp=cos(phi2);
-    
+    float theta2 = (!d) ? 0 : acos( displacement.z / d );
+    if (displacement.x == 0 && displacement.y == 0) phi2 = 0;
+    else phi2 = atan2( displacement.y, displacement.x );
+
+    float st(sin(theta2));
+    float ct(cos(theta2));
+    float sp(sin(phi2));
+    float cp(cos(phi2));
     
     //     **** express the velocity vector of ball 1 in a rotated coordinate
     //          system where ball 2 lies on the z-axis ******
-    vx1r=ct*cp*vx1+ct*sp*vy1-st*vz1;
-    vy1r=cp*vy1-sp*vx1;
-    vz1r=st*cp*vx1+st*sp*vy1+ct*vz1;
-    if (!v)
-        fvz1r = 0;
-    else
-        fvz1r = vz1r/v ;
-    if (fvz1r>1) {fvz1r=1;}   // fix for possible rounding errors
-    else if (fvz1r<-1) {fvz1r=-1;}
-    thetav=acos(fvz1r);
-    if (vx1r==0 && vy1r==0) {phiv=0;} else {phiv=atan2(vy1r,vx1r);}
-    
+    Vect3 vel1r;
+    vel1r.x = ct * cp * velDiff.x + ct * sp * velDiff.y - st * velDiff.z;
+    vel1r.y =    - sp * velDiff.x      + cp * velDiff.y;
+    vel1r.z = st * cp * velDiff.x + st * sp * velDiff.y + ct * velDiff.z;
+
+    fvz1r = (!v) ? 0 : vel1r.z / v;
+    if (fvz1r > 1) fvz1r = 1;   // fix for possible rounding errors
+    else if (fvz1r < -1) fvz1r = -1;
+
+    thetav = acos(fvz1r);
+
+    if (vel1r.x == 0 && vel1r.y == 0) phiv = 0; 
+    else phiv = atan2( vel1r.y, vel1r.x );
     
     //     **** calculate the normalized impact parameter ***
-    dr=d*sin(thetav)/r12;
+    dr = d * sin(thetav) / totalRadius;
     
     //     **** calculate impact angles if balls do collide ***
-    alpha=asin(-dr);
-    beta=phiv;
-    sbeta=sin(beta);
-    cbeta=cos(beta);
+    alpha = asin(- dr);
+    beta = phiv;
+    sbeta = sin(beta);
+    cbeta = cos(beta);
     
     
     //     **** calculate time to collision ***
-    t=(d*cos(thetav) -r12*sqrt(1-dr*dr))/v;
+    float t = (d * cos(thetav) - totalRadius * sqrt(1 - dr * dr) ) / v;
     //cout << t << endl;
     //     **** update positions and reverse the coordinate shift ***
-    x2=x2+vx2*t +x1;
-    y2=y2+vy2*t +y1;
-    z2=z2+vz2*t +z1;
-    x1=(vx1+vx2)*t +x1;
-    y1=(vy1+vy2)*t +y1;
-    z1=(vz1+vz2)*t +z1;
-    
+
+    /* //x1, y1, z1, x2, y2, z2 aren't used after this
+    x2 = x2 + vx2 * t + p1.x;
+    y2 = y2 + vy2 * t + p1.y;
+    z2 = z2 + vz2 * t + p1.z;
+
+
+    x1 = (vx1+vx2)*t + x1;
+    y1 = (vy1+vy2)*t + y1;
+    z1 = (vz1+vz2)*t + z1;
+    */
     
     
     //  ***  update velocities ***
     
-    a=tan(thetav+alpha);
+    float a = tan(thetav + alpha);
+    dvz2 = 2 * (vel1r.z + a * (cbeta * vel1r.x + sbeta * vel1r.y)) / 
+	((1 + a * a) * (1 + massRatio));
     
-    dvz2=2*(vz1r+a*(cbeta*vx1r+sbeta*vy1r))/((1+a*a)*(1+m21));
-    
-    vz2r=dvz2;
-    vx2r=a*cbeta*dvz2;
-    vy2r=a*sbeta*dvz2;
-    vz1r=vz1r-m21*vz2r;
-    vx1r=vx1r-m21*vx2r;
-    vy1r=vy1r-m21*vy2r;
-    
-    
+    Vect3 vel2r = dvz2 * Vect3(a * cbeta, a * sbeta, 1.0);
+
+    vel1r = vel1r - massRatio * vel2r;
     //     **** rotate the velocity vectors back and add the initial velocity
     //           vector of ball 2 to retrieve the original coordinate system ****
-    
-    vx1=ct*cp*vx1r-sp*vy1r+st*cp*vz1r +vx2;
-    vy1=ct*sp*vx1r+cp*vy1r+st*sp*vz1r +vy2;
-    vz1=ct*vz1r-st*vx1r               +vz2;
-    vx2=ct*cp*vx2r-sp*vy2r+st*cp*vz2r +vx2;
-    vy2=ct*sp*vx2r+cp*vy2r+st*sp*vz2r +vy2;
-    vz2=ct*vz2r-st*vx2r               +vz2;
-    
-    
+    v1.x = ct * cp * vel1r.x - sp * vel1r.y + st * cp * vel1r.z + v2.x;
+    v1.y = ct * sp * vel1r.x + cp * vel1r.y + st * sp * vel1r.z + v2.y; 
+    v1.z =    - st * vel1r.x                     + ct * vel1r.z + v2.z;
+
+    float tmpx(v2.x), tmpy(v2.y), tmpz(v2.z);
+    v2.x = ct * cp * vel2r.x - sp * vel2r.y + st * cp * vel2r.z + tmpx; 
+    v2.y = ct * sp * vel2r.x + cp * vel2r.y + st * sp * vel2r.z + tmpy; 
+    v2.z =    - st * vel2r.x                     + ct * vel2r.z + tmpz;
+
     //     ***  velocity correction for inelastic collisions ***
-    
-    vx1=(vx1-vx_cm)*R + vx_cm;
-    vy1=(vy1-vy_cm)*R + vy_cm;
-    vz1=(vz1-vz_cm)*R + vz_cm;
-    vx2=(vx2-vx_cm)*R + vx_cm;
-    vy2=(vy2-vy_cm)*R + vy_cm;
-    vz2=(vz2-vz_cm)*R + vz_cm;
+    v1 = (v1 - v_cm) * R + v_cm;
+    v2 = (v2 - v_cm) * R + v_cm;
     // if (s1.intersect(s2)){
-    s1.vel = Vect3(vx1, vy1, vz1);
-    s2.vel = Vect3(vx2, vy2, vz2);
+    s1.vel = v1;
+    s2.vel = v2;
+    //s2.vel = Vect3(vx2, vy2, vz2);
     // }
     // return;
     
@@ -446,23 +413,23 @@ void collide(sphere& s1, sphere& s2){
      // s2.vel = (2 * s1.vel)*(1/(s1.m+s2.m));*/
      
     Vect3 pos1 = s1.pos;
-     Vect3 pos2 = s2.pos;
-     float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
+    Vect3 pos2 = s2.pos;
+    float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
     float delta = 0.0001;
     Vect3 deltaVector = Vect3(delta,delta,delta);
-     s1.pos = pos1+(normalize(pos1-pos2+deltaVector))*((diff)/2);
-     s2.pos = pos2+(normalize(pos2-pos1-deltaVector))*((diff)/2);
+    s1.pos = pos1+(normalize(pos1-pos2+deltaVector))*((diff)/2);
+    s2.pos = pos2+(normalize(pos2-pos1-deltaVector))*((diff)/2);
     
 }
 void collide(sphere& s1, plane& p1){
-    float mag = s1.vel.getNorm();
-    float d = normalize(-1*s1.vel) * (p1.n);
-    Vect3 normal = p1.n;
-    if (d < 0){
-	normal = normal * -1;
-	d = normalize(-1*s1.vel)*(p1.n*-1);
-    }
-    s1.vel = mag*normalize(normalize(s1.vel) + 2*d*(normal));
+    // float mag = s1.vel.getNorm();
+    // float d = normalize(-1*s1.vel) * (p1.n);
+    // Vect3 normal = p1.n;
+    // if (d < 0){
+	// normal = normal * -1;
+	// d = normalize(-1*s1.vel)*(p1.n*-1);
+    // }
+    // s1.vel = mag*normalize(normalize(s1.vel) + 2*d*(normal));
     //move sphere OUT of plane, if necessary.
 }
 
@@ -474,7 +441,20 @@ void myDisplay() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();				        // make sure transformation is "zero'd"
     gluPerspective(60.0f,(GLfloat)viewport.w/(GLfloat)viewport.h,0.1f,100.0f);
-    
+	
+	float rradius;
+	if (listOfSpheres.size()){
+		xLookAt = listOfSpheres[0].pos.x;
+		// cout << xLookAt << endl;
+		yLookAt = listOfSpheres[0].pos.y;
+		zLookAt = listOfSpheres[0].pos.z;
+		rradius = listOfSpheres[0].r;
+		
+		gluLookAt( xLookAt, yLookAt, zLookAt+1, /* look from camera XYZ */
+				xLookAt, yLookAt, zLookAt, /* look at the origin */
+				// 0,0, -1, /* look at the origin */
+				0, 1, 0); /* positive Y up vector */
+	}
     
     glMatrixMode(GL_MODELVIEW);			    // indicate we are specifying camera transformations
     glLoadIdentity();				        // make sure transformation is "zero'd"
@@ -487,7 +467,7 @@ void myDisplay() {
     if ((counter % 50)==49){
     time_t finalTime;
     time(&finalTime);
-    // cout << (float) counter/(finalTime - initTime) << endl;
+    cout << (float) counter/(finalTime - initTime) << endl;
     }
     counter++;
     fDataCounter++;
@@ -501,31 +481,42 @@ void myDisplay() {
 
         
         // gravity loop
+		s1.vel.y -= 0.00001;
         if (gravityOn)
             for (int j = 0; j < listOfSpheres.size(); j++){
                 if (j == k){ continue; }
                 sphere& s2 = listOfSpheres[j];
                 if ((s2.pos-s1.pos).getNorm() < 0.001) continue;
-                else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                // else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                else s1.vel = s1.vel + 0.0000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
             }
         
         //intersection loop
         for (int j = 0; j < listOfSpheres.size(); j++) {
             if (j == k) { continue; }
             sphere& s2 = listOfSpheres[j];
-            if (s1.intersect(s2)) { collide(s1,s2); }
+            if (s1.intersect(s2)) { 
+		collide(s1,s2);
+		s1.move();
+	    }
             // collide(s1,s2);
         }
         
         for (int j = 0; j < listOfPlanes.size(); j++) {
             plane p = listOfPlanes[j];
-            if (s1.intersect(p)) { collide(s1,p); }
+            if (s1.intersect(p)) { collide(s1,p);  s1.move();}
         }
 
-	//applyVectorField(s1);	 
+		// applyVectorField(s1);
         s1.render();
     }
     
+	for (int j = 0; j < listOfPlanes.size(); j++) {
+        plane p = listOfPlanes[j];
+		if (p.isRect)
+			p.render();
+    }
+	
     if(loadFromFile) {
         if (fDataCounter < fData.size()) {
             vector<Vect3> thisFrame = fData[fDataCounter];
