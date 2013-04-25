@@ -389,10 +389,10 @@ void collide(sphere& s1, sphere& s2){
     vy2r = vel2r.y;
     vz2r = vel2r.z;
 
-    vz1r = vz1r - m21 * vz2r;
-    vx1r = vx1r - m21 * vx2r;
-    vy1r = vy1r - m21 * vy2r;
-    
+    vel1r = vel1r - m21 * vel2r;
+    vx1r = vel1r.x;
+    vy1r = vel1r.y;
+    vz1r = vel1r.z;    
     
     //     **** rotate the velocity vectors back and add the initial velocity
     //           vector of ball 2 to retrieve the original coordinate system ****
