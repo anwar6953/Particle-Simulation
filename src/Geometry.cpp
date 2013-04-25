@@ -79,6 +79,9 @@ void plane::render(){
     
     glEnd();
 }
+int plane::myType() {
+    return 1;
+}
 // *****************************
 // sphere Implementation
 // *****************************
@@ -171,10 +174,10 @@ bool sphere::intersect(sphere s2){
     if (surfaceDistance < thresholdForBounce) { return true; }
     else { return false; }
 }
-void sphere::move(){
+void sphere::move() {
     pos = pos + 1*vel;
 }
-void sphere::drag(){
+void sphere::drag() {
     /*float dragCoef = 2;
     float force = 0.5 * vel * vel * dragCoef;
     float acc = (force / m);
@@ -211,6 +214,9 @@ void sphere::drag(){
         vel.z = min(0.0f, vel.z + accZ);
     }
     
+}
+int sphere::myType() {
+    return 0;
 }
 
 // *****************************

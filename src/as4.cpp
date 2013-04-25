@@ -475,7 +475,10 @@ void myDisplay() {
         for (int j = 0; j < listOfSpheres.size(); j++) {
             if (j == k) { continue; }
             sphere& s2 = listOfSpheres[j];
-            if (s1.intersect(s2)) { collide(s1,s2); s1.move();}
+            if (s1.intersect(s2)) { 
+		collide(s1,s2);
+		s1.move();
+	    }
             // collide(s1,s2);
         }
         
