@@ -309,7 +309,7 @@ void collide(sphere& s1, sphere& s2){
     velDiff = -1 * velDiff;
     
     //     **** find the polar coordinates of the location of ball 2 ***
-    float theta2 = (!d) ? 0 : acos( p2.z / d );
+    float theta2 = (!d) ? 0 : acos( displacement.z / d );
     if (displacement.x == 0 && displacement.y == 0) phi2 = 0;
     else phi2 = atan2( displacement.y, displacement.x );
 
