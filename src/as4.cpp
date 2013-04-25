@@ -325,8 +325,8 @@ void collide(sphere& s1, sphere& s2){
     
     //     **** find the polar coordinates of the location of ball 2 ***
     theta2 = (!d) ? 0 : acos( p2.z / d );
-    phi2 = (displacement.x == 0 && displacement.y == 0) ? 
-	0 : atan2( displacement.y, displacement.x );
+    if (displacement.x == 0 && displacement.y == 0) phi2 = 0;
+    else phi2 = atan2( displacement.y, displacement.x );
 
     st = sin(theta2);
     ct = cos(theta2);
