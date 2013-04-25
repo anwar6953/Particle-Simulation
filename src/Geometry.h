@@ -3,6 +3,7 @@
 #ifndef _Geometry_h
 #define _Geometry_h
 
+#include <vector>
 #include "ColorAndVector.h"
 
 using namespace std;
@@ -61,12 +62,14 @@ class sphere : public Shape {
     Vect3 vel;
     float r;
     float m;
+    vector<Shape *> collideWith;
     void render();
     bool intersect(sphere);
     bool intersect(plane);
     void move();
     void drag();
     int myType();
+    
 };
 
 // *****************************
