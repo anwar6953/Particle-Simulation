@@ -318,9 +318,10 @@ void collide(sphere& s1, sphere& s2){
     v = velDiff.getNorm();
     
     //     **** boost coordinate system so that ball 2 is resting ***
-    vx1 = - velDiff.x;
-    vy1 = - velDiff.y;
-    vz1 = - velDiff.z;
+    velDiff = -1 * velDiff;
+    vx1 = velDiff.x;
+    vy1 = velDiff.y;
+    vz1 = velDiff.z;
     
     //     **** find the polar coordinates of the location of ball 2 ***
     theta2 = (!d) ? 0 : acos( p2.z / d );
@@ -397,22 +398,23 @@ void collide(sphere& s1, sphere& s2){
     //     **** rotate the velocity vectors back and add the initial velocity
     //           vector of ball 2 to retrieve the original coordinate system ****
     
-    vx1=ct*cp*vx1r-sp*vy1r+st*cp*vz1r +vx2;
-    vy1=ct*sp*vx1r+cp*vy1r+st*sp*vz1r +vy2;
-    vz1=ct*vz1r-st*vx1r               +vz2;
-    vx2=ct*cp*vx2r-sp*vy2r+st*cp*vz2r +vx2;
-    vy2=ct*sp*vx2r+cp*vy2r+st*sp*vz2r +vy2;
-    vz2=ct*vz2r-st*vx2r               +vz2;
+    vx1 = ct * cp * vx1r - sp * vy1r + st * cp * vz1r + vx2;
+    vy1 = ct * sp * vx1r + cp * vy1r + st * sp * vz1r + vy2;
+    vz1 =    - st * vx1r                  + ct * vz1r + vz2;
+    vx2 = ct * cp * vx2r - sp * vy2r + st * cp * vz2r + vx2;
+    vy2 = ct * sp * vx2r + cp * vy2r + st * sp * vz2r + vy2;
+    vz2 =    - st * vx2r                  + ct * vz2r + vz2;
     
     
     //     ***  velocity correction for inelastic collisions ***
     
-    vx1=(vx1-vx_cm)*R + vx_cm;
-    vy1=(vy1-vy_cm)*R + vy_cm;
-    vz1=(vz1-vz_cm)*R + vz_cm;
-    vx2=(vx2-vx_cm)*R + vx_cm;
-    vy2=(vy2-vy_cm)*R + vy_cm;
-    vz2=(vz2-vz_cm)*R + vz_cm;
+    vx1 = (vx1 - vx_cm) * R + vx_cm;
+    vy1 = (vy1 - vy_cm) * R + vy_cm;
+    vz1 = (vz1 - vz_cm) * R + vz_cm;
+
+    vx2 = (vx2 - vx_cm) * R + vx_cm;
+    vy2 = (vy2 - vy_cm) * R + vy_cm;
+    vz2 = (vz2 - vz_cm) * R + vz_cm;
     // if (s1.intersect(s2)){
     s1.vel = Vect3(vx1, vy1, vz1);
     s2.vel = Vect3(vx2, vy2, vz2);
@@ -435,12 +437,12 @@ void collide(sphere& s1, sphere& s2){
      // s2.vel = (2 * s1.vel)*(1/(s1.m+s2.m));*/
      
     Vect3 pos1 = s1.pos;
-     Vect3 pos2 = s2.pos;
-     float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
+    Vect3 pos2 = s2.pos;
+    float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
     float delta = 0.0001;
     Vect3 deltaVector = Vect3(delta,delta,delta);
-     s1.pos = pos1+(normalize(pos1-pos2+deltaVector))*((diff)/2);
-     s2.pos = pos2+(normalize(pos2-pos1-deltaVector))*((diff)/2);
+    s1.pos = pos1+(normalize(pos1-pos2+deltaVector))*((diff)/2);
+    s2.pos = pos2+(normalize(pos2-pos1-deltaVector))*((diff)/2);
     
 }
 void collide(sphere& s1, plane& p1){
