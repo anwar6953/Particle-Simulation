@@ -295,7 +295,7 @@ void collide(sphere& s1, sphere& s2){
 
     Vect3 displacement(p2 - p1), velDiff(v2 - v1);
 
-    float  r12,m21,d,v,theta2,phi2,st,ct,sp,cp,vx1r,vy1r,vz1r,fvz1r,
+    float  r12,m21,d,v,theta2,phi2,st,ct,sp,cp,fvz1r,
     thetav,phiv,dr,alpha,beta,sbeta,cbeta,t,a,dvz2,
 	vx2r,vy2r,vz2r,vx_cm,vy_cm,vz_cm, totalMass;
     
@@ -387,10 +387,6 @@ void collide(sphere& s1, sphere& s2){
     vz2r = vel2r.z;
 
     vel1r = vel1r - m21 * vel2r;
-    vx1r = vel1r.x;
-    vy1r = vel1r.y;
-    vz1r = vel1r.z;    
-    
     //     **** rotate the velocity vectors back and add the initial velocity
     //           vector of ball 2 to retrieve the original coordinate system ****
     
