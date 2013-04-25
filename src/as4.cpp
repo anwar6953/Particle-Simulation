@@ -392,9 +392,6 @@ void collide(sphere& s1, sphere& s2){
     v1.x = ct * cp * vel1r.x - sp * vel1r.y + st * cp * vel1r.z + v2.x;
     v1.y = ct * sp * vel1r.x + cp * vel1r.y + st * sp * vel1r.z + v2.y; 
     v1.z =    - st * vel1r.x                     + ct * vel1r.z + v2.z;
-    vx1 = v1.x;
-    vy1 = v1.y;
-    vz1 = v1.z;
 
     vx2 = ct * cp * vx2r - sp * vy2r + st * cp * vz2r + vx2;
     vy2 = ct * sp * vx2r + cp * vy2r + st * sp * vz2r + vy2;
@@ -402,16 +399,13 @@ void collide(sphere& s1, sphere& s2){
     
     
     //     ***  velocity correction for inelastic collisions ***
-    
-    vx1 = (vx1 - vx_cm) * R + vx_cm;
-    vy1 = (vy1 - vy_cm) * R + vy_cm;
-    vz1 = (vz1 - vz_cm) * R + vz_cm;
+    v1 = (v1 - v_cm) * R + v_cm;
 
     vx2 = (vx2 - vx_cm) * R + vx_cm;
     vy2 = (vy2 - vy_cm) * R + vy_cm;
     vz2 = (vz2 - vz_cm) * R + vz_cm;
     // if (s1.intersect(s2)){
-    s1.vel = Vect3(vx1, vy1, vz1);
+    s1.vel = v1;
     s2.vel = Vect3(vx2, vy2, vz2);
     // }
     // return;
