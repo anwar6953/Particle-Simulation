@@ -386,10 +386,14 @@ void collide(sphere& s1, sphere& s2){
     v1.y = ct * sp * vel1r.x + cp * vel1r.y + st * sp * vel1r.z + v2.y; 
     v1.z =    - st * vel1r.x                     + ct * vel1r.z + v2.z;
 
-    vx2 = ct * cp * vx2r - sp * vy2r + st * cp * vz2r + vx2;
-    vy2 = ct * sp * vx2r + cp * vy2r + st * sp * vz2r + vy2;
-    vz2 =    - st * vx2r                  + ct * vz2r + vz2;
-    
+    float tmpx(v2.x), tmpy(v2.y), tmpz(v2.z);
+    v2.x = ct * cp * vel2r.x - sp * vel2r.y + st * cp * vel2r.z + tmpx; 
+    v2.y = ct * sp * vel2r.x + cp * vel2r.y + st * sp * vel2r.z + tmpy; 
+    v2.z =    - st * vel2r.x                     + ct * vel2r.z + tmpz;
+
+    vx2 = v2.x;
+    vy2 = v2.y;
+    vz2 = v2.z;
     
     //     ***  velocity correction for inelastic collisions ***
     v1 = (v1 - v_cm) * R + v_cm;
