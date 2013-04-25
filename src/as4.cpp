@@ -288,8 +288,7 @@ void collide(sphere& s1, sphere& s2){
     Vect3 displacement(p2 - p1), velDiff(v2 - v1);
 
     float  r12,m21,d,v,theta2,phi2,st,ct,sp,cp,fvz1r,
-    thetav,phiv,dr,alpha,beta,sbeta,cbeta,t,a,dvz2,
-	vx_cm,vy_cm,vz_cm, totalMass;
+    thetav,phiv,dr,alpha,beta,sbeta,cbeta,t,a,dvz2,totalMass;
     
     //     **** initialize some variables ****
     totalMass = m1 + m2;
@@ -299,10 +298,6 @@ void collide(sphere& s1, sphere& s2){
     //Vect3 posDiff = s2.pos - p1.pos;
     //Vect3 velDiff = s2.vel - s1.vel;
     Vect3 v_cm = ((m1 * v1) + (m2 * v2)) * (1.0f / totalMass);
-
-    vx_cm = v_cm.x;
-    vy_cm = v_cm.y;
-    vz_cm = v_cm.z;
     
     //Vect3 centerVect = ((m1 * s1.vel) + (m2 * s2.vel)) * (1 / (m1 + m2));
     //     **** calculate relative distance and relative speed ***
