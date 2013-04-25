@@ -85,23 +85,21 @@ int plane::myType() {
 // *****************************
 // sphere Implementation
 // *****************************
-sphere::sphere(){
-    pos = Vect3();
-    vel = Vect3();
-    r = 0;
-    m = 1;
+sphere::sphere() {
+    init(Vect3(), Vect3(), 0.0f, 1.0f);
 }    
-sphere::sphere(Vect3 posp, Vect3 velp, float rp){
-    pos = posp;
-    vel = velp;
-    r = rp;
-    m = 1;
+sphere::sphere(Vect3 posp, Vect3 velp, float rp) {
+    init(posp, velp, rp, 1.0f);
 }
-sphere::sphere(Vect3 posp, Vect3 velp, float rp, float massp){
-    pos = posp;
-    vel = velp;
-    r = rp;
-    m = massp;
+sphere::sphere(Vect3 posp, Vect3 velp, float rp, float massp) {
+    init(posp, velp, rp, massp);
+}
+void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass) {
+    pos = center;
+    vel = velocity;
+    r = radius;
+    m = mass;
+    collideWithIndex = 0;
 }
 void sphere::render(){
     glTranslatef(pos.x,pos.y,pos.z);
