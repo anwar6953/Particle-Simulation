@@ -14,7 +14,11 @@
 #include <math.h>
 #include <list>
 #include <stdlib.h>
-#include <cstdlib> 
+#include <cstdlib>
+
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #ifdef OSX
 #include <GLUT/glut.h>
@@ -42,7 +46,7 @@ int fDataCounter = 0;
 bool loadFromFile = 0;
 bool saveToFile = 0;
 bool dragOn = 0;
-bool gravityOn = 1;
+bool gravityOn = 0;
 string fname = "scenes/test1";
 
 float defRadius = 0.2;
@@ -53,10 +57,9 @@ void appendToFile(string fnameParam, string toAppend){
     ofstream outfile;
     const char * fname = fnameParam.c_str();
     outfile.open(fname, ios_base::app);
-    outfile << toAppend; 
+    outfile << toAppend;
     outfile.close();
 }
-
 //}
 
 //{ Global Variables
@@ -84,11 +87,16 @@ float transX = 0;
 float transZ = -12;
 float rotAmount = 6;  // up, down, left, right
 float transAmt = 0.4;  // shift + [the above]
-float zoomAmt = 1.6;     // +, - 
+float zoomAmt = 1.6;     // +, -
 //Defaults for Lookat:
+float dxL = 0;
+float dyL = 0;
+float dzL = 1;
 float xLookAt = 0;
 float yLookAt = 0;
 float zLookAt = -1;
+
+
 //}
 
 
@@ -113,8 +121,9 @@ switch (button)
       if (state == 0){prevX = x; prevY = y; return;}
       float r = 1 - 2 *(float) rand() / RAND_MAX;
       float lenOfDrag = sqrt(pow(x-prevX,2.0f)+pow(y-prevY,2.0f)) / 40;
-      float xx = (float)(-300 + prevX)/50;
-      float yy = (float)(-300 + prevY)/-50;
+
+      float xx = (float)(-300 + prevX)/43.4;
+      float yy = (float)(-300 + prevY)/-43.4;
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),Vect3(0.02*r,0.02*r,0),0.2)); //RANDOM vel dir.
       listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
@@ -126,26 +135,25 @@ switch (button)
 
 }
 void myKybdHndlr(int key, int x, int y){
-    // if (key == 27)  //ESC key
-		// exit(0);
+
     if (key == GLUT_KEY_UP)
         if (glutGetModifiers() == GLUT_ACTIVE_SHIFT)
             transY += transAmt;
         else
             rotX -= rotAmount;
-	    
+
     else if (key == GLUT_KEY_DOWN)
         if (glutGetModifiers() == GLUT_ACTIVE_SHIFT)
             transY -= transAmt;
         else
             rotX += rotAmount;
-	
+
     else if (key == GLUT_KEY_LEFT)
         if (glutGetModifiers() == GLUT_ACTIVE_SHIFT)
             transX -= transAmt;
         else
             rotY -= rotAmount;
-	    
+
     else if (key == GLUT_KEY_RIGHT)
         if (glutGetModifiers() == GLUT_ACTIVE_SHIFT)
             transX += transAmt;
@@ -163,23 +171,28 @@ void myKybdHndlr(int key, int x, int y){
         // else
             defMass -= 10;
             defRadius -= 0.2;}
-    else 
+    else
         return;
-    
+
     glutPostRedisplay ();
 }
-void myKybdHndlr(unsigned char key, int x, int y){ 
+void myKybdHndlr(unsigned char key, int x, int y){
+	if (key == '1')
+		dxL -= 0.01;
+	if (key == '2')
+		dxL += 0.01;
+
 	if (key == ' ')  // SPACE key
         exit(0);
-	
+
     else if (key == '+')
         transZ += zoomAmt;
-	
+
     else if (key == '-')
         transZ -= zoomAmt;
-    else 
+    else
         return;
-    
+
     glutPostRedisplay ();
 }
 void myParse(std::string file) {
@@ -205,7 +218,7 @@ void myParse(std::string file) {
       }
       //Ignore comments
       if(splitline[0][0] == '#') {
-        continue; 
+        continue;
       }
       if(splitline[0][0] == 'E') {
         fData.push_back(tmpFrame);
@@ -218,13 +231,12 @@ void myParse(std::string file) {
         std::cerr << "Unknown command: " << splitline[0] << std::endl;
       }
     }
-    
+
     inpfile.close();
   }
 
-} 
+}
 //}
-
 
 void applyVectorField(sphere & thisSph) {
     //apply vortex field
@@ -249,7 +261,7 @@ void initScene() {
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
 	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
-    
+
 	float width = 2;
 	bool box = 1;
 	if (box){
@@ -260,8 +272,9 @@ void initScene() {
 		listOfPlanes.push_back(plane(Vect3(0,1,1),Vect3(0,-1,1),Vect3(width,-1,1),Vect3(width,1,1)));
     }
 	
+
 	// listOfPlanes.push_back(plane(1,0,0,0));
-    
+
     int numCubed = 0;
     for (int i = 0; i < numCubed; i++) {
         for (int j = 0; j < numCubed; j++){
@@ -276,11 +289,11 @@ void initScene() {
 
 }
 
-void collide(sphere& s1, sphere& s2){    
+void collide(sphere& s1, sphere& s2){
     //**************************************************************
     // Exact handler of 3D collisions. Based off of Thomas Smid's implementation from http://www.plasmaphysics.org.uk/programs/coll3d_cpp.htm
     //**************************************************************
-    
+
     /*void collision3D(double R, double m1, double m2, double r1, double r2,
      double& x1, double& y1,double& z1,
      double& x2, double& y2, double& z2,
@@ -297,15 +310,15 @@ void collide(sphere& s1, sphere& s2){
     Vect3 velDiff(v2 - v1);
 
     float phi2, fvz1r, thetav, phiv, dr, alpha, beta, sbeta, cbeta, dvz2;
-    
+
     //     **** initialize some variables ****
     float totalRadius(r1 + r2);
     float massRatio(m2 / m1);
-    
+
     //Vect3 posDiff = s2.pos - p1.pos;
     //Vect3 velDiff = s2.vel - s1.vel;
     Vect3 v_cm = (m1 * v1 + m2 * v2) * (1.0f / (m1 + m2));
-    
+
     //Vect3 centerVect = ((m1 * s1.vel) + (m2 * s2.vel)) * (1 / (m1 + m2));
     //     **** calculate relative distance and relative speed ***
     float d = displacement.getNorm();
@@ -313,7 +326,7 @@ void collide(sphere& s1, sphere& s2){
 
     //     **** boost coordinate system so that ball 2 is resting ***
     velDiff = -1 * velDiff;
-    
+
     //     **** find the polar coordinates of the location of ball 2 ***
     float theta2 = (!d) ? 0 : acos( displacement.z / d );
     if (displacement.x == 0 && displacement.y == 0) phi2 = 0;
@@ -323,7 +336,7 @@ void collide(sphere& s1, sphere& s2){
     float ct(cos(theta2));
     float sp(sin(phi2));
     float cp(cos(phi2));
-    
+
     //     **** express the velocity vector of ball 1 in a rotated coordinate
     //          system where ball 2 lies on the z-axis ******
     Vect3 vel1r;
@@ -337,19 +350,19 @@ void collide(sphere& s1, sphere& s2){
 
     thetav = acos(fvz1r);
 
-    if (vel1r.x == 0 && vel1r.y == 0) phiv = 0; 
+    if (vel1r.x == 0 && vel1r.y == 0) phiv = 0;
     else phiv = atan2( vel1r.y, vel1r.x );
-    
+
     //     **** calculate the normalized impact parameter ***
     dr = d * sin(thetav) / totalRadius;
-    
+
     //     **** calculate impact angles if balls do collide ***
     alpha = asin(- dr);
     beta = phiv;
     sbeta = sin(beta);
     cbeta = cos(beta);
-    
-    
+
+
     //     **** calculate time to collision ***
     float t = (d * cos(thetav) - totalRadius * sqrt(1 - dr * dr) ) / v;
     //cout << t << endl;
@@ -365,26 +378,26 @@ void collide(sphere& s1, sphere& s2){
     y1 = (vy1+vy2)*t + y1;
     z1 = (vz1+vz2)*t + z1;
     */
-    
-    
+
+
     //  ***  update velocities ***
-    
+
     float a = tan(thetav + alpha);
-    dvz2 = 2 * (vel1r.z + a * (cbeta * vel1r.x + sbeta * vel1r.y)) / 
+    dvz2 = 2 * (vel1r.z + a * (cbeta * vel1r.x + sbeta * vel1r.y)) /
 	((1 + a * a) * (1 + massRatio));
-    
+
     Vect3 vel2r = dvz2 * Vect3(a * cbeta, a * sbeta, 1.0);
 
     vel1r = vel1r - massRatio * vel2r;
     //     **** rotate the velocity vectors back and add the initial velocity
     //           vector of ball 2 to retrieve the original coordinate system ****
     v1.x = ct * cp * vel1r.x - sp * vel1r.y + st * cp * vel1r.z + v2.x;
-    v1.y = ct * sp * vel1r.x + cp * vel1r.y + st * sp * vel1r.z + v2.y; 
+    v1.y = ct * sp * vel1r.x + cp * vel1r.y + st * sp * vel1r.z + v2.y;
     v1.z =    - st * vel1r.x                     + ct * vel1r.z + v2.z;
 
     float tmpx(v2.x), tmpy(v2.y), tmpz(v2.z);
-    v2.x = ct * cp * vel2r.x - sp * vel2r.y + st * cp * vel2r.z + tmpx; 
-    v2.y = ct * sp * vel2r.x + cp * vel2r.y + st * sp * vel2r.z + tmpy; 
+    v2.x = ct * cp * vel2r.x - sp * vel2r.y + st * cp * vel2r.z + tmpx;
+    v2.y = ct * sp * vel2r.x + cp * vel2r.y + st * sp * vel2r.z + tmpy;
     v2.z =    - st * vel2r.x                     + ct * vel2r.z + tmpz;
 
     //     ***  velocity correction for inelastic collisions ***
@@ -396,22 +409,22 @@ void collide(sphere& s1, sphere& s2){
     //s2.vel = Vect3(vx2, vy2, vz2);
     // }
     // return;
-    
-    
+
+
     //**************************************************************
-    
+
     /*Vect3 vel1 = s1.vel;
      Vect3 vel2 = s2.vel;
-     
+
      s1.vel = (((s2.m)*(vel2 - vel1)) + (s2.m * vel2) + (s1.m * vel1))*(1/(s1.m+s2.m));
      s2.vel = (((s1.m)*(vel1 - vel2)) + (s2.m * vel2) + (s1.m * vel1))*(1/(s1.m+s2.m));
-     
+
      //s1.vel = ((s1.m-s2.m)*vel1 + 2 * s2.m * vel2)*(1/(s1.m+s2.m));
      //s2.vel = (2*s1.m*vel1 - (s1.m-s2.m)*vel2)*(1/(s1.m+s2.m));
-     
+
      // s1.vel = (2 * s2.vel)*(1/(s1.m+s2.m));
      // s2.vel = (2 * s1.vel)*(1/(s1.m+s2.m));*/
-     
+
     Vect3 pos1 = s1.pos;
     Vect3 pos2 = s2.pos;
     float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
@@ -419,7 +432,7 @@ void collide(sphere& s1, sphere& s2){
     Vect3 deltaVector = Vect3(delta,delta,delta);
     s1.pos = pos1+(normalize(pos1-pos2+deltaVector))*((diff)/2);
     s2.pos = pos2+(normalize(pos2-pos1-deltaVector))*((diff)/2);
-    
+
 }
 void collide(sphere& s1, plane& p1){
     // float mag = s1.vel.getNorm();
@@ -441,37 +454,39 @@ void myDisplay() {
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();				        // make sure transformation is "zero'd"
     gluPerspective(60.0f,(GLfloat)viewport.w/(GLfloat)viewport.h,0.1f,100.0f);
-	
+
 	float rradius;
 	if (listOfSpheres.size()){
 		xLookAt = listOfSpheres[0].pos.x;
-		// cout << xLookAt << endl;
 		yLookAt = listOfSpheres[0].pos.y;
 		zLookAt = listOfSpheres[0].pos.z;
-		rradius = listOfSpheres[0].r;
-		
-		gluLookAt( xLookAt, yLookAt, zLookAt+1, /* look from camera XYZ */
+		// rradius = listOfSpheres[0].r;
+
+		gluLookAt( xLookAt+dxL, yLookAt+dyL, zLookAt+dzL, /* look from camera XYZ */
 				xLookAt, yLookAt, zLookAt, /* look at the origin */
 				// 0,0, -1, /* look at the origin */
 				0, 1, 0); /* positive Y up vector */
 	}
-    
+
     glMatrixMode(GL_MODELVIEW);			    // indicate we are specifying camera transformations
     glLoadIdentity();				        // make sure transformation is "zero'd"
-    
+
     glTranslatef(transX, transY, transZ);
     glRotatef(rotY,0,1,0);  //rotate about y axis
     glRotatef(rotX,1,0,0);  //} rotate about x
-    
+
+
+
     if (firstTime==1){  time(&initTime); firstTime = 0;}
     if ((counter % 50)==49){
-    time_t finalTime;
-    time(&finalTime);
-    cout << (float) counter/(finalTime - initTime) << endl;
+		time_t finalTime;
+		time(&finalTime);
+		// cout << (float) counter/(finalTime - initTime) << endl;
+
     }
     counter++;
     fDataCounter++;
-    
+
     for (int k = 0; k < listOfSpheres.size(); k++) {
         sphere& s1 = listOfSpheres[k];
 
@@ -479,7 +494,7 @@ void myDisplay() {
         if (dragOn)
             s1.drag();
 
-        
+
         // gravity loop
 		s1.vel.y -= 0.00001;
         if (gravityOn)
@@ -488,20 +503,19 @@ void myDisplay() {
                 sphere& s2 = listOfSpheres[j];
                 if ((s2.pos-s1.pos).getNorm() < 0.001) continue;
                 // else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
-                else s1.vel = s1.vel + 0.0000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
             }
-        
+
         //intersection loop
         for (int j = 0; j < listOfSpheres.size(); j++) {
             if (j == k) { continue; }
             sphere& s2 = listOfSpheres[j];
-            if (s1.intersect(s2)) { 
-		collide(s1,s2);
-		s1.move();
-	    }
+            if (s1.intersect(s2)) {
+				collide(s1,s2);
+				s1.move();
+			}
             // collide(s1,s2);
         }
-        
         for (int j = 0; j < listOfPlanes.size(); j++) {
             plane p = listOfPlanes[j];
             if (s1.intersect(p)) { collide(s1,p);  s1.move();}
@@ -510,13 +524,13 @@ void myDisplay() {
 		// applyVectorField(s1);
         s1.render();
     }
-    
+
 	for (int j = 0; j < listOfPlanes.size(); j++) {
         plane p = listOfPlanes[j];
 		if (p.isRect)
 			p.render();
     }
-	
+
     if(loadFromFile) {
         if (fDataCounter < fData.size()) {
             vector<Vect3> thisFrame = fData[fDataCounter];
@@ -528,10 +542,10 @@ void myDisplay() {
             }
         } else {fDataCounter = 0;}
     }
-    
+
     glFlush();
     glutSwapBuffers();					// swap buffers (we earlier set double buffer)
-  
+
 }
 //}
 
@@ -546,7 +560,7 @@ int main(int argc, char *argv[]) {
         // else { adaptive = false; }
     // }
     // if (!adaptive){ //if uniform...
-        // float numDivs = floor(1.0f / stpSize); 
+        // float numDivs = floor(1.0f / stpSize);
         // if (numDivs != 1.0f/stpSize){ numDivs++; }
         // stpSize = 1 / numDivs;
     // }
@@ -555,7 +569,7 @@ int main(int argc, char *argv[]) {
 		printf("Dude, are you passing something at all? We'll just read input from an arbitrary file for now.\n");
     } else {
         int i = 1;
-        
+
         while (i < argc) {
             if ((i == 2) && (*(argv[i]) != '-')) {
                 fname = argv[2];
@@ -563,7 +577,7 @@ int main(int argc, char *argv[]) {
             }
             if (*(argv[i]) == '-') {
                 char *p = argv[i];
-                
+
                 if (*(p+1) == 'g' ) {
                     gravityOn = true;
                 } else if (*(p+1) == 'd' ) {
@@ -579,19 +593,19 @@ int main(int argc, char *argv[]) {
     if (loadFromFile) {
         myParse(fname);  //}
     }
-    
-//{ Initialization of glut and window:  
+
+//{ Initialization of glut and window:
     viewport.w = 600;
     viewport.h = 600;
-    glutInit(&argc, argv);                        // This initializes glut  
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );  // Use a double-buffered window with red, green, and blue channels 
+    glutInit(&argc, argv);                        // This initializes glut
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );  // Use a double-buffered window with red, green, and blue channels
     glutInitWindowSize(viewport.w, viewport.h);   //The size and position of the window
     glutInitWindowPosition(0,0);      // x-,y- coords of the topLeft of new window.
     glutCreateWindow(argv[0]);        //} name of window.
 
 
-    
-//{ initScene() and callBack function:    
+
+//{ initScene() and callBack function:
     initScene();
     glutDisplayFunc(myDisplay);	    // function to run when its time to draw something
     glutIdleFunc(myDisplay);	    // function to run when its time to draw something
@@ -600,6 +614,6 @@ int main(int argc, char *argv[]) {
     glutKeyboardFunc(myKybdHndlr);
     glutSpecialFunc(myKybdHndlr);
     glutMainLoop();				    // infinite loop that will keep drawing and resizing
-    return 0;                       //} never reaches here? 
+    return 0;                       //} never reaches here?
 
 }
