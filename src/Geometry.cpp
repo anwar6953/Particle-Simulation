@@ -145,6 +145,9 @@ bool sphere::intersect(plane p){
     else { 
 		if (p.isRect){
 			//
+			if (t<1 && t > 0)
+			intPt = pos + (t*vel);
+			
 			float magnitude = sqrt(r*r-(intPt - pos)*(intPt - pos));
 			intPt = intPt + magnitude * normalize(p.center-intPt);
 			
@@ -153,7 +156,8 @@ bool sphere::intersect(plane p){
 			bool b2 = (p.pt4-p.pt1)*(intPt-p.pt1)>0;
 			bool b3 = (p.pt2-p.pt3)*(intPt-p.pt3)>0;
 			bool b4 = (p.pt4-p.pt3)*(intPt-p.pt3)>0;
-			if (t>1 || t < 0)
+			
+			// if (t>1 || t < 0)
 				if (!b1 || !b2 || !b3 || !b4)
 					return false;
 		}

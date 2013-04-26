@@ -126,7 +126,10 @@ switch (button)
       float yy = (float)(-300 + prevY)/-43.4;
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),Vect3(0.02*r,0.02*r,0),0.2)); //RANDOM vel dir.
+	  
       listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
+	
+	
     } break;
   default:
     return;
@@ -263,7 +266,7 @@ void initScene() {
 	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
 	float width = 2;
-	bool box = 0;
+	bool box = 1;
 		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
 	if (box){
 		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
@@ -426,6 +429,9 @@ void collide(sphere& s1, sphere& s2){
      // s1.vel = (2 * s2.vel)*(1/(s1.m+s2.m));
      // s2.vel = (2 * s1.vel)*(1/(s1.m+s2.m));*/
 
+	 
+	 
+	 /////////////////////
     Vect3 pos1 = s1.pos;
     Vect3 pos2 = s2.pos;
     float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
@@ -513,13 +519,15 @@ void myDisplay() {
             sphere& s2 = listOfSpheres[j];
             if (s1.intersect(s2)) {
 				collide(s1,s2);
-				s1.move();
+				// s1.move();
 			}
-            // collide(s1,s2);
         }
         for (int j = 0; j < listOfPlanes.size(); j++) {
             plane p = listOfPlanes[j];
-            if (s1.intersect(p)) { collide(s1,p);  s1.move();}
+            if (s1.intersect(p)) {
+				collide(s1,p);  
+				s1.move();
+			}
         }
 
 		// applyVectorField(s1);
