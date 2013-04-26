@@ -131,21 +131,31 @@ bool sphere::intersect(plane p){
     float zc = zo - p.c * (firstTerm) / (sumabcsquared);
 
     float d = abs(p.a*xo + p.b*yo + p.c*zo + p.d) / pow(sumabcsquared,0.5f);
-    Vect3 intPt;
-    if (r < d){ return false; }
+    Vect3 intPt = Vect3(xc,yc,zc);
+	// glTranslatef(xc,yc,zc);
+    // glutSolidSphere(1,sphAcc,sphAcc);
+    // glTranslatef(-xc,-yc,-zc);
+	
+	float dir = normalize(vel)*(normalize(intPt-pos));
+	Vect3 cVel = (dir)*(vel);
+	if (dir < 0) dir = -1;
+	else dir = 1;
+	float t = dir * ((d-r) / cVel.getNorm());	
+    if ((r < d) && (t > 1 || t < 0)){ return false; }
     else { 
 		if (p.isRect){
-			intPt = Vect3(xc,yc,zc);
 			//
 			float magnitude = sqrt(r*r-(intPt - pos)*(intPt - pos));
 			intPt = intPt + magnitude * normalize(p.center-intPt);
+			
 			//
 			bool b1 = (p.pt2-p.pt1)*(intPt-p.pt1)>0;
 			bool b2 = (p.pt4-p.pt1)*(intPt-p.pt1)>0;
 			bool b3 = (p.pt2-p.pt3)*(intPt-p.pt3)>0;
 			bool b4 = (p.pt4-p.pt3)*(intPt-p.pt3)>0;
-			if (!b1 || !b2 || !b3 || !b4)
-				return false;
+			if (t>1 || t < 0)
+				if (!b1 || !b2 || !b3 || !b4)
+					return false;
 		}
 	}
 	float mag = vel.getNorm();

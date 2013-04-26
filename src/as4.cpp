@@ -263,7 +263,8 @@ void initScene() {
 	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
 	float width = 2;
-	bool box = 1;
+	bool box = 0;
+		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
 	if (box){
 		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
 		listOfPlanes.push_back(plane(Vect3(width,1,1),Vect3(width,-1,1),Vect3(width,-1,-1),Vect3(width,1,-1)));
@@ -456,7 +457,7 @@ void myDisplay() {
     gluPerspective(60.0f,(GLfloat)viewport.w/(GLfloat)viewport.h,0.1f,100.0f);
 
 	float rradius;
-	if (listOfSpheres.size()){
+	if (listOfSpheres.size()>1000){
 		xLookAt = listOfSpheres[0].pos.x;
 		yLookAt = listOfSpheres[0].pos.y;
 		zLookAt = listOfSpheres[0].pos.z;
