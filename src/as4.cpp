@@ -47,6 +47,7 @@ bool loadFromFile = 0;
 bool saveToFile = 0;
 bool dragOn = 0;
 bool gravityOn = 0;
+bool downwardGravity = 0;
 string fname = "scenes/test1";
 
 float defRadius = 0.2;
@@ -348,7 +349,7 @@ void initScene() {
 	if(pool){
 		float hwidth = 2;
 		float hlength = 4;
-		float hrails = 0.2;
+		float hrails = 0.9;
 		float r = 0.2;
 		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),  Vect3(-hlength,0,hwidth),  Vect3(hlength,0,hwidth), Vect3(hlength,0,-hwidth)));
 		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),  Vect3(-hlength,0,hwidth),  Vect3(-hlength,hrails,hwidth), Vect3(-hlength,hrails,-hwidth)));
@@ -359,7 +360,7 @@ void initScene() {
 		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r));
 		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r));
 		listOfSpheres.push_back(sphere(Vect3(1,r,1),Vect3(.01,0,0),r));
-		//listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r));
+		// listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r));
 		listOfSpheres.push_back(sphere(Vect3(-2,r,1),Vect3(.01,0,0),r));
 		listOfSpheres.push_back(sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r));
 		listOfSpheres.push_back(sphere(Vect3(2,r,-1),Vect3(.01,0,0),r));
@@ -369,7 +370,6 @@ void initScene() {
 
 
 
-		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
 	if (box){
 		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
 		listOfPlanes.push_back(plane(Vect3(width,1,1),Vect3(width,-1,1),Vect3(width,-1,-1),Vect3(width,1,-1)));
@@ -406,7 +406,7 @@ void collide(sphere& s1, sphere& s2){
      double& vx1, double& vy1, double& vz1,
      double& vx2, double& vy2, double& vz2,
      int& error)     {*/
-
+	
     float R(1.0f);
 
     Vect3& p1(s1.pos), p2(s2.pos), v1(s1.vel) , v2(s2.vel);
@@ -509,9 +509,36 @@ void collide(sphere& s1, sphere& s2){
     //     ***  velocity correction for inelastic collisions ***
     v1 = (v1 - v_cm) * R + v_cm;
     v2 = (v2 - v_cm) * R + v_cm;
-    // if (s1.intersect(s2)){
-    s1.vel = v1;
+	
+	if (v1.y < 0.000001 && v1.y > -0.000001) v1.y = 0;
+	if (v2.y < 0.000001 && v2.y > -0.000001) v2.y = 0;
+	
+	s1.vel = v1;
     s2.vel = v2;
+    // if (s1.intersect(s2)){
+
+	
+	//debugging tool:
+	// appendToFile("this","collision takign place\n");
+	// ostringstream ss2;
+	// if (v1.y != 0){
+        // ss2 << "x velocity component was " << s1.vel.x
+		// << " y velocity component was " << s1.vel.y 
+		// << " z velocity component was " << s1.vel.z 
+		// << " other sphere's x velocity component was " << s2.vel.x
+		// << " other sphere's y velocity component was " << s2.vel.y 
+		// << " other sphere's z velocity component was " << s2.vel.z 
+		// << " x position component was " << s1.pos.x
+		// << " y position component was " << s1.pos.y 
+		// << " z position component was " << s1.pos.z 
+		// << " other sphere's x position component was " << s2.pos.x
+		// << " other sphere's y position component was " << s2.pos.y 
+		// << " other sphere's z position component was " << s2.pos.z 
+		// << " new y vel is " << v1.y
+		// << "\n";
+		// appendToFile("this",ss2.str());
+		// exit(0);
+	// }
     //s2.vel = Vect3(vx2, vy2, vz2);
     // }
     // return;
@@ -537,7 +564,9 @@ void collide(sphere& s1, sphere& s2){
     Vect3 pos1 = s1.pos;
     Vect3 pos2 = s2.pos;
     float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
-    float delta = 0.0001;
+	float delta = 0;
+	if ((s2.pos-s1.pos).getNorm() < ((s1.r+s2.r)))
+		delta = 0.0001;
     Vect3 deltaVector = Vect3(delta,delta,delta);
     s1.pos = pos1+(normalize(pos1-pos2+deltaVector))*((diff)/2);
     s2.pos = pos2+(normalize(pos2-pos1-deltaVector))*((diff)/2);
@@ -605,7 +634,8 @@ void myDisplay() {
 
 
         // gravity loop
-		s1.vel.y -= 0.00001;
+		if (downwardGravity)
+			s1.vel.y -= 0.00001;
         if (gravityOn)
             for (int j = 0; j < listOfSpheres.size(); j++){
                 if (j == k){ continue; }
@@ -624,6 +654,7 @@ void myDisplay() {
 				// s1.move();
 			}
         }
+
         for (int j = 0; j < listOfPlanes.size(); j++) {
             plane p = listOfPlanes[j];
             if (s1.intersect(p)) {

@@ -113,15 +113,12 @@ void sphere::render(){
     
     if(saveToFile){
         if (counter != prevCounter){
-            // appendToFile(fname,"EOF\n");
 			globalToAppend += "EOF\n";
             prevCounter = counter;
         }
-        string str = "";
         ostringstream ss;
         ss << pos.x << " " << pos.y << " " << pos.z << "\n";
 		globalToAppend += ss.str();
-        // appendToFile(fname,ss.str());
     }
 }
 bool sphere::intersect(plane p){
@@ -193,7 +190,7 @@ bool sphere::intersect(sphere s2){
     float sumOfRadii = r + s2.r;
     float distBetweenRadii = (pos - s2.pos).getNorm();
     float surfaceDistance = distBetweenRadii - sumOfRadii;
-    if (surfaceDistance < thresholdForBounce) { return true; }
+    if (surfaceDistance <= thresholdForBounce) { return true; }
     else { return false; }
 }
 void sphere::move() {
@@ -210,7 +207,7 @@ void sphere::drag() {
     float selfVelZ = vel.z;
     
     float pi=acos(-1.0E0);
-    float dragCoef = 0.07;
+    float dragCoef = 0.02;
     float force = 0.5 * vel * vel * dragCoef * (1 / (pi * r * r));
     float acc = (force / m);
     
