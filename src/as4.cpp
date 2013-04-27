@@ -50,6 +50,8 @@ bool gravityOn = 0;
 bool downwardGravity = 0;
 string fname = "scenes/test1";
 
+	bool pool = 1;
+
 float defRadius = 0.2;
 float defMass = 1;
 //}
@@ -345,11 +347,10 @@ void initScene() {
 
 	float width = 2;
 	bool box = 0;
-	bool pool = 1;
 	if(pool){
 		float hwidth = 2;
 		float hlength = 4;
-		float hrails = 0.9;
+		float hrails = 0.2;
 		float r = 0.2;
 		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),  Vect3(-hlength,0,hwidth),  Vect3(hlength,0,hwidth), Vect3(hlength,0,-hwidth)));
 		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),  Vect3(-hlength,0,hwidth),  Vect3(-hlength,hrails,hwidth), Vect3(-hlength,hrails,-hwidth)));
@@ -510,13 +511,11 @@ void collide(sphere& s1, sphere& s2){
     v1 = (v1 - v_cm) * R + v_cm;
     v2 = (v2 - v_cm) * R + v_cm;
 	
-	if (v1.y < 0.000001 && v1.y > -0.000001) v1.y = 0;
-	if (v2.y < 0.000001 && v2.y > -0.000001) v2.y = 0;
-	
-	s1.vel = v1;
-    s2.vel = v2;
-    // if (s1.intersect(s2)){
-
+	if (pool){
+	float thr = 0.01;
+	if (v1.y < thr && v1.y > -thr) v1.y = 0;
+	if (v2.y < thr && v2.y > -thr) v2.y = 0;
+	}
 	
 	//debugging tool:
 	// appendToFile("this","collision takign place\n");
@@ -539,10 +538,9 @@ void collide(sphere& s1, sphere& s2){
 		// appendToFile("this",ss2.str());
 		// exit(0);
 	// }
-    //s2.vel = Vect3(vx2, vy2, vz2);
-    // }
-    // return;
-
+	
+	s1.vel = v1;
+    s2.vel = v2;
 
     //**************************************************************
 
