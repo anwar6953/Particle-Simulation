@@ -343,7 +343,32 @@ void initScene() {
 	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
 	float width = 2;
-	bool box = 1;
+	bool box = 0;
+	bool pool = 1;
+	if(pool){
+		float hwidth = 2;
+		float hlength = 4;
+		float hrails = 0.2;
+		float r = 0.2;
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),  Vect3(-hlength,0,hwidth),  Vect3(hlength,0,hwidth), Vect3(hlength,0,-hwidth)));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),  Vect3(-hlength,0,hwidth),  Vect3(-hlength,hrails,hwidth), Vect3(-hlength,hrails,-hwidth)));
+		listOfPlanes.push_back(plane(Vect3(hlength,0,-hwidth),  Vect3(hlength,0,hwidth),  Vect3(hlength,hrails,hwidth), Vect3(hlength,hrails,-hwidth)));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),  Vect3(-hlength,hrails,-hwidth),  Vect3(hlength,hrails,-hwidth), Vect3(hlength,0,-hwidth)));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,hwidth),  Vect3(-hlength,hrails,hwidth),  Vect3(hlength,hrails,hwidth), Vect3(hlength,0,hwidth)));
+		listOfSpheres.push_back(sphere(Vect3(0,r,0),Vect3(.01,0,0),r));
+		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r));
+		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r));
+		listOfSpheres.push_back(sphere(Vect3(1,r,1),Vect3(.01,0,0),r));
+		//listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r));
+		listOfSpheres.push_back(sphere(Vect3(-2,r,1),Vect3(.01,0,0),r));
+		listOfSpheres.push_back(sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r));
+		listOfSpheres.push_back(sphere(Vect3(2,r,-1),Vect3(.01,0,0),r));
+	}
+
+
+
+
+
 		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
 	if (box){
 		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
