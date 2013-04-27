@@ -43,14 +43,16 @@ int counter = 0;
 int fDataCounter = 0;
 
 //{ SETTINGS:
-bool loadFromFile = 0;
+string fname = "scenes/test1";
+bool loadFromFile = 1;
 bool saveToFile = 0;
+bool openGLrender = 1;
+
 bool dragOn = 0;
 bool gravityOn = 0;
 bool downwardGravity = 0;
-string fname = "scenes/test1";
 
-	bool pool = 1;
+	bool pool = 0;
 
 float defRadius = 0.2;
 float defMass = 1;
@@ -512,9 +514,9 @@ void collide(sphere& s1, sphere& s2){
     v2 = (v2 - v_cm) * R + v_cm;
 	
 	if (pool){
-	float thr = 0.01;
-	if (v1.y < thr && v1.y > -thr) v1.y = 0;
-	if (v2.y < thr && v2.y > -thr) v2.y = 0;
+		float thr = 0.01;
+		if (v1.y < thr && v1.y > -thr) v1.y = 0;
+		if (v2.y < thr && v2.y > -thr) v2.y = 0;
 	}
 	
 	//debugging tool:
@@ -582,6 +584,70 @@ void collide(sphere& s1, plane& p1){
     //move sphere OUT of plane, if necessary.
 }
 
+void preRender(){
+    if (firstTime==1){  time(&initTime); firstTime = 0;}
+    if ((counter % 50)==49){
+		time_t finalTime;
+		time(&finalTime);
+		// cout << (float) counter/(finalTime - initTime) << endl;
+
+    }
+    counter++;
+    fDataCounter++;
+
+    for (int k = 0; k < listOfSpheres.size(); k++) {
+        sphere& s1 = listOfSpheres[k];
+
+        s1.move();
+        if (dragOn)
+            s1.drag();
+
+
+        // gravity loop
+		if (downwardGravity)
+			s1.vel.y -= 0.00001;
+        if (gravityOn)
+            for (int j = 0; j < listOfSpheres.size(); j++){
+                if (j == k){ continue; }
+                sphere& s2 = listOfSpheres[j];
+                if ((s2.pos-s1.pos).getNorm() < 0.001) continue;
+                // else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+            }
+
+        //intersection loop
+        for (int j = 0; j < listOfSpheres.size(); j++) {
+            if (j == k) { continue; }
+            sphere& s2 = listOfSpheres[j];
+            if (s1.intersect(s2)) {
+				collide(s1,s2);
+				// s1.move();
+			}
+        }
+
+        for (int j = 0; j < listOfPlanes.size(); j++) {
+            plane p = listOfPlanes[j];
+            if (s1.intersect(p)) {
+				collide(s1,p);  
+				s1.move();
+			}
+        }
+		
+		if(saveToFile){
+			Vect3 pos = s1.pos;
+			if (counter != prevCounter){
+				globalToAppend += "EOF\n";
+				prevCounter = counter;
+			}
+			ostringstream ss;
+			ss << pos.x << " " << pos.y << " " << pos.z << "\n";
+			globalToAppend += ss.str();
+		}
+    }
+	
+	
+	
+}
 void myDisplay() {
     //{ Buffers and Matrices:
     glClear(GL_COLOR_BUFFER_BIT);		    // clear the color buffer
@@ -734,7 +800,9 @@ int main(int argc, char *argv[]) {
         myParse(fname);  //}
     }
 
+	
 //{ Initialization of glut and window:
+	if (openGLrender){
     viewport.w = 600;
     viewport.h = 600;
     glutInit(&argc, argv);                        // This initializes glut
@@ -742,11 +810,12 @@ int main(int argc, char *argv[]) {
     glutInitWindowSize(viewport.w, viewport.h);   //The size and position of the window
     glutInitWindowPosition(0,0);      // x-,y- coords of the topLeft of new window.
     glutCreateWindow(argv[0]);        //} name of window.
-
+	}
 
 
 //{ initScene() and callBack function:
     initScene();
+	if (openGLrender){
     glutDisplayFunc(myDisplay);	    // function to run when its time to draw something
     glutIdleFunc(myDisplay);	    // function to run when its time to draw something
     glutReshapeFunc(myReshape);	    // function to run when the window gets resized
@@ -754,6 +823,14 @@ int main(int argc, char *argv[]) {
     glutKeyboardFunc(myKybdHndlr);
     glutSpecialFunc(myKybdHndlr);
     glutMainLoop();				    // infinite loop that will keep drawing and resizing
-    return 0;                       //} never reaches here?
+	}
+    else {
+		for (int i = 0; i < 10000; i++){
+			preRender();
+		}
+		appendToFile(fname,globalToAppend);
+        exit(0);
+	}
+	return 0;                       //} never reaches here?
 
 }
