@@ -62,71 +62,72 @@ void appendToFile(string fnameParam, string toAppend){
 }
 
 
-//PERFORMANCE STUFF FOLLOWS:
-struct timezone2 
-{
-  __int32  tz_minuteswest; /* minutes W of Greenwich */
-  bool  tz_dsttime;     /* type of dst correction */
-};
+//PERFORMANCE STUFF FOLLOWS (works only on Windows).:
+// struct timezone2 
+// {
+  // __int32  tz_minuteswest; /* minutes W of Greenwich */
+  // bool  tz_dsttime;     /* type of dst correction */
+// };
 
-struct timeval2 {
-__int32    tv_sec;         /* seconds */
-__int32    tv_usec;        /* microseconds */
-};
+// struct timeval2 {
+// __int32    tv_sec;         /* seconds */
+// __int32    tv_usec;        /* microseconds */
+// };
 
-const __int64 DELTA_EPOCH_IN_MICROSECS= 11644473600000000;
-struct timeval timeStart,timeEnd;
-struct timeval2 tvi;
-struct timeval2 tvf;
-struct timezone2 tz;
-struct tm *tm1; 
-time_t time1;
+// const __int64 DELTA_EPOCH_IN_MICROSECS= 11644473600000000;
+// struct timeval timeStart,timeEnd;
+// struct timeval2 tvi;
+// struct timeval2 tvf;
+// struct timezone2 tz;
+// struct tm *tm1; 
+// time_t time1;
 
-int gettimeofday(struct timeval2 *tv/*in*/, struct timezone2 *tz/*in*/)
-{
-  FILETIME ft;
-  __int64 tmpres = 0;
-  TIME_ZONE_INFORMATION tz_winapi;
-  int rez=0;
+// int gettimeofday(struct timeval2 *tv/*in*/, struct timezone2 *tz/*in*/)
+// {
+  // FILETIME ft;
+  // __int64 tmpres = 0;
+  // TIME_ZONE_INFORMATION tz_winapi;
+  // int rez=0;
 
-   ZeroMemory(&ft,sizeof(ft));
-   ZeroMemory(&tz_winapi,sizeof(tz_winapi));
+   // ZeroMemory(&ft,sizeof(ft));
+   // ZeroMemory(&tz_winapi,sizeof(tz_winapi));
 
-    GetSystemTimeAsFileTime(&ft);
+    // GetSystemTimeAsFileTime(&ft);
 
-    tmpres = ft.dwHighDateTime;
-    tmpres <<= 32;
-    tmpres |= ft.dwLowDateTime;
+    // tmpres = ft.dwHighDateTime;
+    // tmpres <<= 32;
+    // tmpres |= ft.dwLowDateTime;
 
-    /*converting file time to unix epoch*/
-    tmpres /= 10;  /*convert into microseconds*/
-    tmpres -= DELTA_EPOCH_IN_MICROSECS; 
-    tv->tv_sec = (__int32)(tmpres*0.000001);
-    tv->tv_usec =(tmpres%1000000);
+    // /*converting file time to unix epoch*/
+    // tmpres /= 10;  /*convert into microseconds*/
+    // tmpres -= DELTA_EPOCH_IN_MICROSECS; 
+    // tv->tv_sec = (__int32)(tmpres*0.000001);
+    // tv->tv_usec =(tmpres%1000000);
 
 
-    //_tzset(),don't work properly, so we use GetTimeZoneInformation
-    rez=GetTimeZoneInformation(&tz_winapi);
-    tz->tz_dsttime=(rez==2)?true:false;
-    tz->tz_minuteswest = tz_winapi.Bias + ((rez==2)?tz_winapi.DaylightBias:0);
+    _tzset(),don't work properly, so we use GetTimeZoneInformation
+    // rez=GetTimeZoneInformation(&tz_winapi);
+    // tz->tz_dsttime=(rez==2)?true:false;
+    // tz->tz_minuteswest = tz_winapi.Bias + ((rez==2)?tz_winapi.DaylightBias:0);
 
-  return 0;
-}
+  // return 0;
+// }
 
-void resetTimer(){
-	gettimeofday(&tvi, &tz);
-}
-int getTimeSince(int i){
-	gettimeofday(&tvf, &tz); // call gettimeofday()
-	int val = ((tvf.tv_sec - tvi.tv_sec) * 1000000 + tvf.tv_usec - tvi.tv_usec);
-	if (i){
-		std::cout << "This effing slow piece of code took "
-        << val
-        << " us to execute."
-        << std::endl;
-	}
-	return val;
-}
+// void resetTimer(){
+	// gettimeofday(&tvi, &tz);
+// }
+// int getTimeSince(int i){
+	// gettimeofday(&tvf, &tz); // call gettimeofday()
+	// int val = ((tvf.tv_sec - tvi.tv_sec) * 1000000 + tvf.tv_usec - tvi.tv_usec);
+	// if (i){
+		// std::cout << "This effing slow piece of code took "
+        // << val
+        // << " us to execute."
+        // << std::endl;
+	// }
+	// return val;
+// }
+///////PERFORMANCE STUFF ENDS HERE.
 //}
 
 //{ Global Variables
