@@ -23,6 +23,8 @@
 using namespace std;
 
 extern bool saveToFile;
+extern string fname;
+extern string globalToAppend;
 extern int counter;
 extern int prevCounter;
 
@@ -111,13 +113,15 @@ void sphere::render(){
     
     if(saveToFile){
         if (counter != prevCounter){
-            appendToFile("test1","EOF\n");
+            // appendToFile(fname,"EOF\n");
+			globalToAppend += "EOF\n";
             prevCounter = counter;
         }
         string str = "";
         ostringstream ss;
         ss << pos.x << " " << pos.y << " " << pos.z << "\n";
-        appendToFile("test1",ss.str());
+		globalToAppend += ss.str();
+        // appendToFile(fname,ss.str());
     }
 }
 bool sphere::intersect(plane p){
@@ -131,23 +135,43 @@ bool sphere::intersect(plane p){
     float zc = zo - p.c * (firstTerm) / (sumabcsquared);
 
     float d = abs(p.a*xo + p.b*yo + p.c*zo + p.d) / pow(sumabcsquared,0.5f);
-    Vect3 intPt;
-    if (r < d){ return false; }
-    else { 
-		if (p.isRect){
-			intPt = Vect3(xc,yc,zc);
-			//
-			float magnitude = sqrt(r*r-(intPt - pos)*(intPt - pos));
-			intPt = intPt + magnitude * normalize(p.center-intPt);
-			//
-			bool b1 = (p.pt2-p.pt1)*(intPt-p.pt1)>0;
-			bool b2 = (p.pt4-p.pt1)*(intPt-p.pt1)>0;
-			bool b3 = (p.pt2-p.pt3)*(intPt-p.pt3)>0;
-			bool b4 = (p.pt4-p.pt3)*(intPt-p.pt3)>0;
-			if (!b1 || !b2 || !b3 || !b4)
-				return false;
-		}
+    Vect3 intPt = Vect3(xc,yc,zc);
+	// glTranslatef(xc,yc,zc);
+    // glutSolidSphere(1,sphAcc,sphAcc);
+    // glTranslatef(-xc,-yc,-zc);
+	
+	float dir = normalize(vel)*(normalize(intPt-pos));
+	Vect3 cVel = (dir)*(vel);
+	if (dir < 0) dir = -1;
+	else dir = 1;
+	float t = dir * ((d-r) / cVel.getNorm());	
+	bool willIntersect = 0;
+    // if ((r < d) && (t > 1 || t < 0)){ return false; }
+    if (r < d){ 
+		if (t < 1 && t > 0)
+			willIntersect = 1;
+		else
+			return false; 
 	}
+     
+	if (p.isRect){
+		if (willIntersect)
+		intPt = pos + (t*vel);
+		
+		float magnitude = sqrt(r*r-(intPt - pos)*(intPt - pos));
+		intPt = intPt + magnitude * normalize(p.center-intPt);
+		
+		//
+		bool b1 = (p.pt2-p.pt1)*(intPt-p.pt1)>0;
+		bool b2 = (p.pt4-p.pt1)*(intPt-p.pt1)>0;
+		bool b3 = (p.pt2-p.pt3)*(intPt-p.pt3)>0;
+		bool b4 = (p.pt4-p.pt3)*(intPt-p.pt3)>0;
+		
+		// if (!willIntersect)
+		if (!b1 || !b2 || !b3 || !b4)
+			return false;
+	}
+	
 	float mag = vel.getNorm();
     float d2 = normalize(-1*vel) * (p.n);
     Vect3 normal = p.n;
@@ -157,7 +181,7 @@ bool sphere::intersect(plane p){
     }
     vel = mag*normalize(normalize(vel) + 2*d2*(normal));
 	
-	if (p.isRect){
+	if (p.isRect && !willIntersect){
 		Vect3 diff = pos - Vect3(xc,yc,zc);
 		diff = (r-diff.getNorm()) * normalize(diff);
 		pos = pos + diff;
