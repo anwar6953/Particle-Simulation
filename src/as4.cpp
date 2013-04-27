@@ -105,7 +105,7 @@ void appendToFile(string fnameParam, string toAppend){
     // tv->tv_usec =(tmpres%1000000);
 
 
-    _tzset(),don't work properly, so we use GetTimeZoneInformation
+    //_tzset(),don't work properly, so we use GetTimeZoneInformation
     // rez=GetTimeZoneInformation(&tz_winapi);
     // tz->tz_dsttime=(rez==2)?true:false;
     // tz->tz_minuteswest = tz_winapi.Bias + ((rez==2)?tz_winapi.DaylightBias:0);
