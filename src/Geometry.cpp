@@ -23,6 +23,8 @@
 using namespace std;
 
 extern bool saveToFile;
+extern string fname;
+extern string globalToAppend;
 extern int counter;
 extern int prevCounter;
 
@@ -111,13 +113,15 @@ void sphere::render(){
     
     if(saveToFile){
         if (counter != prevCounter){
-            appendToFile("test1","EOF\n");
+            // appendToFile(fname,"EOF\n");
+			globalToAppend += "EOF\n";
             prevCounter = counter;
         }
         string str = "";
         ostringstream ss;
         ss << pos.x << " " << pos.y << " " << pos.z << "\n";
-        appendToFile("test1",ss.str());
+		globalToAppend += ss.str();
+        // appendToFile(fname,ss.str());
     }
 }
 bool sphere::intersect(plane p){

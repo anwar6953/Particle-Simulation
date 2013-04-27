@@ -43,7 +43,7 @@ int counter = 0;
 int fDataCounter = 0;
 
 //{ SETTINGS:
-bool loadFromFile = 0;
+bool loadFromFile = 1;
 bool saveToFile = 0;
 bool dragOn = 0;
 bool gravityOn = 0;
@@ -76,6 +76,7 @@ int prevX, prevY;
 
 time_t initTime;  //for performance uses.
 vector<vector<Vect3> > fData; //The pre-rendered data from file.
+string globalToAppend = "";
 //}
 
 //{ Defaults for rotations, translations, zooms:
@@ -181,9 +182,9 @@ void myKybdHndlr(int key, int x, int y){
 }
 void myKybdHndlr(unsigned char key, int x, int y){
 	if (key == '1')
-		dxL -= 0.01;
-	if (key == '2')
-		dxL += 0.01;
+		appendToFile(fname,globalToAppend);
+	// if (key == '2')
+		// dxL += 0.01;
 
 	if (key == ' ')  // SPACE key
         exit(0);
@@ -278,8 +279,8 @@ void initScene() {
 	
 
 	// listOfPlanes.push_back(plane(1,0,0,0));
-
-    int numCubed = 0;
+    int numCubed = 10;
+	if (loadFromFile) numCubed = 0;
     for (int i = 0; i < numCubed; i++) {
         for (int j = 0; j < numCubed; j++){
             for (int k = 0; k < numCubed; k++){
