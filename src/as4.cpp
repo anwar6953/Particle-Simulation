@@ -36,14 +36,13 @@ inline float sqr(float x) { return x*x; }
 using namespace std;
 void myDisplay();
 
-bool debug = false;
-int firstTime = 1;
+int firstTime = 0;
 int prevCounter = 0;
 int counter = 0;
 int fDataCounter = 0;
 
 //{ SETTINGS:
-bool loadFromFile = 1;
+bool loadFromFile = 0;
 bool saveToFile = 0;
 bool dragOn = 0;
 bool gravityOn = 0;
@@ -279,7 +278,7 @@ void initScene() {
 	
 
 	// listOfPlanes.push_back(plane(1,0,0,0));
-    int numCubed = 10;
+    int numCubed = 0;
 	if (loadFromFile) numCubed = 0;
     for (int i = 0; i < numCubed; i++) {
         for (int j = 0; j < numCubed; j++){
