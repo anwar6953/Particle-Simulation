@@ -9,7 +9,6 @@
 #include <sstream>
 #include <cmath>
 #include <string>
-// #include <unistd.h>
 #include <time.h>
 #include <math.h>
 #include <list>
@@ -18,6 +17,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#else
+#include <sys/time.h>
 #endif
 
 #ifdef OSX
@@ -59,6 +60,73 @@ void appendToFile(string fnameParam, string toAppend){
     outfile << toAppend;
     outfile.close();
 }
+
+
+//PERFORMANCE STUFF FOLLOWS:
+struct timezone2 
+{
+  __int32  tz_minuteswest; /* minutes W of Greenwich */
+  bool  tz_dsttime;     /* type of dst correction */
+};
+
+struct timeval2 {
+__int32    tv_sec;         /* seconds */
+__int32    tv_usec;        /* microseconds */
+};
+
+const __int64 DELTA_EPOCH_IN_MICROSECS= 11644473600000000;
+struct timeval timeStart,timeEnd;
+struct timeval2 tvi;
+struct timeval2 tvf;
+struct timezone2 tz;
+struct tm *tm1; 
+time_t time1;
+
+int gettimeofday(struct timeval2 *tv/*in*/, struct timezone2 *tz/*in*/)
+{
+  FILETIME ft;
+  __int64 tmpres = 0;
+  TIME_ZONE_INFORMATION tz_winapi;
+  int rez=0;
+
+   ZeroMemory(&ft,sizeof(ft));
+   ZeroMemory(&tz_winapi,sizeof(tz_winapi));
+
+    GetSystemTimeAsFileTime(&ft);
+
+    tmpres = ft.dwHighDateTime;
+    tmpres <<= 32;
+    tmpres |= ft.dwLowDateTime;
+
+    /*converting file time to unix epoch*/
+    tmpres /= 10;  /*convert into microseconds*/
+    tmpres -= DELTA_EPOCH_IN_MICROSECS; 
+    tv->tv_sec = (__int32)(tmpres*0.000001);
+    tv->tv_usec =(tmpres%1000000);
+
+
+    //_tzset(),don't work properly, so we use GetTimeZoneInformation
+    rez=GetTimeZoneInformation(&tz_winapi);
+    tz->tz_dsttime=(rez==2)?true:false;
+    tz->tz_minuteswest = tz_winapi.Bias + ((rez==2)?tz_winapi.DaylightBias:0);
+
+  return 0;
+}
+
+void resetTimer(){
+	gettimeofday(&tvi, &tz);
+}
+int getTimeSince(int i){
+	gettimeofday(&tvf, &tz); // call gettimeofday()
+	int val = ((tvf.tv_sec - tvi.tv_sec) * 1000000 + tvf.tv_usec - tvi.tv_usec);
+	if (i){
+		std::cout << "This effing slow piece of code took "
+        << val
+        << " us to execute."
+        << std::endl;
+	}
+	return val;
+}
 //}
 
 //{ Global Variables
@@ -72,6 +140,7 @@ GLfloat light_position[] = {0.0, 0.5, 0.5, 1.0};  /* Infinite light location. */
 vector<sphere> listOfSpheres;
 vector<plane> listOfPlanes;
 int prevX, prevY;
+
 
 time_t initTime;  //for performance uses.
 vector<vector<Vect3> > fData; //The pre-rendered data from file.
@@ -180,14 +249,21 @@ void myKybdHndlr(int key, int x, int y){
     glutPostRedisplay ();
 }
 void myKybdHndlr(unsigned char key, int x, int y){
-	if (key == '1')
-		appendToFile(fname,globalToAppend);
+	// if (key == '1')
+		// resetTimer();
+ 
 	// if (key == '2')
-		// dxL += 0.01;
-
-	if (key == ' ')  // SPACE key
+		// gettimeofday(&timeEnd, NULL);
+	
+	// if (key == '3')
+		// getTimeSince(1);
+	
+	
+	
+	if (key == ' '){  // SPACE key
+		appendToFile(fname,globalToAppend);
         exit(0);
-
+	}
     else if (key == '+')
         transZ += zoomAmt;
 
