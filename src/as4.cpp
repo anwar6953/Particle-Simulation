@@ -138,7 +138,7 @@ void appendToFile(string fnameParam, string toAppend){
 //{ Global Variables
 //{ Other
 Viewport viewport;
-GLfloat light_diffuse[] = {0.2, 0.1, 1, 1.0};  /* Red diffuse light. */
+GLfloat light_diffuse[] = {1, 1, 1, 1.0};  /* white diffuse light. */
 GLfloat light_position[] = {0.0, 0.5, 0.5, 1.0};  /* Infinite light location. */
 // GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
 
@@ -202,7 +202,10 @@ switch (button)
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),Vect3(0.02*r,0.02*r,0),0.2)); //RANDOM vel dir.
 	  
-      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
+	  
+      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
+	  //The following is colorful (random).
+      // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
 	
 	
     } break;
@@ -728,13 +731,22 @@ void myDisplay() {
         }
 
 		// applyVectorField(s1);
+		glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+		glEnable(GL_COLOR_MATERIAL);
+		glColor3f(s1.color.x, s1.color.y, s1.color.z);
+		//glColor3f(1,1,1);
         s1.render();
+		glDisable(GL_COLOR_MATERIAL);
     }
 
 	for (int j = 0; j < listOfPlanes.size(); j++) {
         plane p = listOfPlanes[j];
 		if (p.isRect)
+			glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+			glEnable(GL_COLOR_MATERIAL);
+			glColor3f(p.color.x, p.color.y, p.color.z);
 			p.render();
+			glDisable(GL_COLOR_MATERIAL);
     }
 
     if(loadFromFile) {
