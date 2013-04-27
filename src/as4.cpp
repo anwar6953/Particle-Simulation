@@ -355,21 +355,22 @@ void initScene() {
 	if(pool){
 		float hwidth = 2;
 		float hlength = 4;
-		float hrails = 0.2;
+		float hrails = 0.3;
 		float r = 0.2;
-		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),  Vect3(-hlength,0,hwidth),  Vect3(hlength,0,hwidth), Vect3(hlength,0,-hwidth)));
-		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),  Vect3(-hlength,0,hwidth),  Vect3(-hlength,hrails,hwidth), Vect3(-hlength,hrails,-hwidth)));
-		listOfPlanes.push_back(plane(Vect3(hlength,0,-hwidth),  Vect3(hlength,0,hwidth),  Vect3(hlength,hrails,hwidth), Vect3(hlength,hrails,-hwidth)));
-		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),  Vect3(-hlength,hrails,-hwidth),  Vect3(hlength,hrails,-hwidth), Vect3(hlength,0,-hwidth)));
-		listOfPlanes.push_back(plane(Vect3(-hlength,0,hwidth),  Vect3(-hlength,hrails,hwidth),  Vect3(hlength,hrails,hwidth), Vect3(hlength,0,hwidth)));
-		listOfSpheres.push_back(sphere(Vect3(0,r,0),Vect3(.01,0,0),r));
-		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r));
-		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r));
-		listOfSpheres.push_back(sphere(Vect3(1,r,1),Vect3(.01,0,0),r));
-		// listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r));
-		listOfSpheres.push_back(sphere(Vect3(-2,r,1),Vect3(.01,0,0),r));
-		listOfSpheres.push_back(sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r));
-		listOfSpheres.push_back(sphere(Vect3(2,r,-1),Vect3(.01,0,0),r));
+		Vect3 sC = Vect3(1,0,0);
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,0,-hwidth),Vect3(0.059,0.330,0.157)));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588)));
+		listOfPlanes.push_back(plane(Vect3(hlength,0,-hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588)));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(hlength,hrails,-hwidth),Vect3(hlength,0,-hwidth),Vect3(0.173,0.094,0.0588)));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,0,hwidth),Vect3(0.173,0.094,0.0588)));
+		listOfSpheres.push_back(sphere(Vect3(0,r,0),Vect3(.01,0,0),r,sC));
+		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r,sC));
+		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,sC));
+		listOfSpheres.push_back(sphere(Vect3(1,r,1),Vect3(.01,0,0),r,sC));
+		// listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,sC));
+		listOfSpheres.push_back(sphere(Vect3(-2,r,1),Vect3(.01,0,0),r,sC));
+		listOfSpheres.push_back(sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r,sC));
+		listOfSpheres.push_back(sphere(Vect3(2,r,-1),Vect3(.01,0,0),r,sC));
 	}
 
 
