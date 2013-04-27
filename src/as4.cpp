@@ -44,7 +44,7 @@ int fDataCounter = 0;
 
 //{ SETTINGS:
 string fname = "scenes/test1";
-bool loadFromFile = 1;
+bool loadFromFile = 0;
 bool saveToFile = 0;
 bool openGLrender = 1;
 
