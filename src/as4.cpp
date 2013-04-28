@@ -43,11 +43,16 @@ int counter = 0;
 int fDataCounter = 0;
 
 //{ SETTINGS:
+string fname = "scenes/test1";
 bool loadFromFile = 0;
 bool saveToFile = 0;
+bool openGLrender = 1;
+
 bool dragOn = 0;
 bool gravityOn = 0;
-string fname = "scenes/test1";
+bool downwardGravity = 0;
+
+	bool pool = 0;
 
 float defRadius = 0.2;
 float defMass = 1;
@@ -133,7 +138,7 @@ void appendToFile(string fnameParam, string toAppend){
 //{ Global Variables
 //{ Other
 Viewport viewport;
-GLfloat light_diffuse[] = {0.2, 0.1, 1, 1.0};  /* Red diffuse light. */
+GLfloat light_diffuse[] = {1, 1, 1, 1.0};  /* white diffuse light. */
 GLfloat light_position[] = {0.0, 0.5, 0.5, 1.0};  /* Infinite light location. */
 // GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
 
@@ -197,7 +202,10 @@ switch (button)
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),Vect3(0.02*r,0.02*r,0),0.2)); //RANDOM vel dir.
 	  
-      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
+	  
+      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
+	  //The following is colorful (random).
+      // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
 	
 	
     } break;
@@ -343,8 +351,32 @@ void initScene() {
 	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
 	float width = 2;
-	bool box = 1;
-		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
+	bool box = 0;
+	if(pool){
+		float hwidth = 2;
+		float hlength = 4;
+		float hrails = 0.3;
+		float r = 0.2;
+		Vect3 sC = Vect3(1,0,0);
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,0,-hwidth),Vect3(0.059,0.330,0.157)));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588)));
+		listOfPlanes.push_back(plane(Vect3(hlength,0,-hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588)));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(hlength,hrails,-hwidth),Vect3(hlength,0,-hwidth),Vect3(0.173,0.094,0.0588)));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,0,hwidth),Vect3(0.173,0.094,0.0588)));
+		listOfSpheres.push_back(sphere(Vect3(0,r,0),Vect3(.01,0,0),r,sC));
+		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r,sC));
+		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,sC));
+		listOfSpheres.push_back(sphere(Vect3(1,r,1),Vect3(.01,0,0),r,sC));
+		// listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,sC));
+		listOfSpheres.push_back(sphere(Vect3(-2,r,1),Vect3(.01,0,0),r,sC));
+		listOfSpheres.push_back(sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r,sC));
+		listOfSpheres.push_back(sphere(Vect3(2,r,-1),Vect3(.01,0,0),r,sC));
+	}
+
+
+
+
+
 	if (box){
 		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
 		listOfPlanes.push_back(plane(Vect3(width,1,1),Vect3(width,-1,1),Vect3(width,-1,-1),Vect3(width,1,-1)));
@@ -381,7 +413,7 @@ void collide(sphere& s1, sphere& s2){
      double& vx1, double& vy1, double& vz1,
      double& vx2, double& vy2, double& vz2,
      int& error)     {*/
-
+	
     float R(1.0f);
 
     Vect3& p1(s1.pos), p2(s2.pos), v1(s1.vel) , v2(s2.vel);
@@ -484,13 +516,37 @@ void collide(sphere& s1, sphere& s2){
     //     ***  velocity correction for inelastic collisions ***
     v1 = (v1 - v_cm) * R + v_cm;
     v2 = (v2 - v_cm) * R + v_cm;
-    // if (s1.intersect(s2)){
-    s1.vel = v1;
+	
+	if (pool){
+		float thr = 0.01;
+		if (v1.y < thr && v1.y > -thr) v1.y = 0;
+		if (v2.y < thr && v2.y > -thr) v2.y = 0;
+	}
+	
+	//debugging tool:
+	// appendToFile("this","collision takign place\n");
+	// ostringstream ss2;
+	// if (v1.y != 0){
+        // ss2 << "x velocity component was " << s1.vel.x
+		// << " y velocity component was " << s1.vel.y 
+		// << " z velocity component was " << s1.vel.z 
+		// << " other sphere's x velocity component was " << s2.vel.x
+		// << " other sphere's y velocity component was " << s2.vel.y 
+		// << " other sphere's z velocity component was " << s2.vel.z 
+		// << " x position component was " << s1.pos.x
+		// << " y position component was " << s1.pos.y 
+		// << " z position component was " << s1.pos.z 
+		// << " other sphere's x position component was " << s2.pos.x
+		// << " other sphere's y position component was " << s2.pos.y 
+		// << " other sphere's z position component was " << s2.pos.z 
+		// << " new y vel is " << v1.y
+		// << "\n";
+		// appendToFile("this",ss2.str());
+		// exit(0);
+	// }
+	
+	s1.vel = v1;
     s2.vel = v2;
-    //s2.vel = Vect3(vx2, vy2, vz2);
-    // }
-    // return;
-
 
     //**************************************************************
 
@@ -512,7 +568,9 @@ void collide(sphere& s1, sphere& s2){
     Vect3 pos1 = s1.pos;
     Vect3 pos2 = s2.pos;
     float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
-    float delta = 0.0001;
+	float delta = 0;
+	if ((s2.pos-s1.pos).getNorm() < ((s1.r+s2.r)))
+		delta = 0.0001;
     Vect3 deltaVector = Vect3(delta,delta,delta);
     s1.pos = pos1+(normalize(pos1-pos2+deltaVector))*((diff)/2);
     s2.pos = pos2+(normalize(pos2-pos1-deltaVector))*((diff)/2);
@@ -530,6 +588,70 @@ void collide(sphere& s1, plane& p1){
     //move sphere OUT of plane, if necessary.
 }
 
+void preRender(){
+    if (firstTime==1){  time(&initTime); firstTime = 0;}
+    if ((counter % 50)==49){
+		time_t finalTime;
+		time(&finalTime);
+		// cout << (float) counter/(finalTime - initTime) << endl;
+
+    }
+    counter++;
+    fDataCounter++;
+
+    for (int k = 0; k < listOfSpheres.size(); k++) {
+        sphere& s1 = listOfSpheres[k];
+
+        s1.move();
+        if (dragOn)
+            s1.drag();
+
+
+        // gravity loop
+		if (downwardGravity)
+			s1.vel.y -= 0.00001;
+        if (gravityOn)
+            for (int j = 0; j < listOfSpheres.size(); j++){
+                if (j == k){ continue; }
+                sphere& s2 = listOfSpheres[j];
+                if ((s2.pos-s1.pos).getNorm() < 0.001) continue;
+                // else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+            }
+
+        //intersection loop
+        for (int j = 0; j < listOfSpheres.size(); j++) {
+            if (j == k) { continue; }
+            sphere& s2 = listOfSpheres[j];
+            if (s1.intersect(s2)) {
+				collide(s1,s2);
+				// s1.move();
+			}
+        }
+
+        for (int j = 0; j < listOfPlanes.size(); j++) {
+            plane p = listOfPlanes[j];
+            if (s1.intersect(p)) {
+				collide(s1,p);  
+				s1.move();
+			}
+        }
+		
+		if(saveToFile){
+			Vect3 pos = s1.pos;
+			if (counter != prevCounter){
+				globalToAppend += "EOF\n";
+				prevCounter = counter;
+			}
+			ostringstream ss;
+			ss << pos.x << " " << pos.y << " " << pos.z << "\n";
+			globalToAppend += ss.str();
+		}
+    }
+	
+	
+	
+}
 void myDisplay() {
     //{ Buffers and Matrices:
     glClear(GL_COLOR_BUFFER_BIT);		    // clear the color buffer
@@ -580,7 +702,8 @@ void myDisplay() {
 
 
         // gravity loop
-		s1.vel.y -= 0.00001;
+		if (downwardGravity)
+			s1.vel.y -= 0.00001;
         if (gravityOn)
             for (int j = 0; j < listOfSpheres.size(); j++){
                 if (j == k){ continue; }
@@ -599,6 +722,7 @@ void myDisplay() {
 				// s1.move();
 			}
         }
+
         for (int j = 0; j < listOfPlanes.size(); j++) {
             plane p = listOfPlanes[j];
             if (s1.intersect(p)) {
@@ -608,13 +732,22 @@ void myDisplay() {
         }
 
 		// applyVectorField(s1);
+		glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+		glEnable(GL_COLOR_MATERIAL);
+		glColor3f(s1.color.x, s1.color.y, s1.color.z);
+		//glColor3f(1,1,1);
         s1.render();
+		glDisable(GL_COLOR_MATERIAL);
     }
 
 	for (int j = 0; j < listOfPlanes.size(); j++) {
         plane p = listOfPlanes[j];
 		if (p.isRect)
+			glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+			glEnable(GL_COLOR_MATERIAL);
+			glColor3f(p.color.x, p.color.y, p.color.z);
 			p.render();
+			glDisable(GL_COLOR_MATERIAL);
     }
 
     if(loadFromFile) {
@@ -680,7 +813,9 @@ int main(int argc, char *argv[]) {
         myParse(fname);  //}
     }
 
+	
 //{ Initialization of glut and window:
+	if (openGLrender){
     viewport.w = 600;
     viewport.h = 600;
     glutInit(&argc, argv);                        // This initializes glut
@@ -688,11 +823,12 @@ int main(int argc, char *argv[]) {
     glutInitWindowSize(viewport.w, viewport.h);   //The size and position of the window
     glutInitWindowPosition(0,0);      // x-,y- coords of the topLeft of new window.
     glutCreateWindow(argv[0]);        //} name of window.
-
+	}
 
 
 //{ initScene() and callBack function:
     initScene();
+	if (openGLrender){
     glutDisplayFunc(myDisplay);	    // function to run when its time to draw something
     glutIdleFunc(myDisplay);	    // function to run when its time to draw something
     glutReshapeFunc(myReshape);	    // function to run when the window gets resized
@@ -700,6 +836,14 @@ int main(int argc, char *argv[]) {
     glutKeyboardFunc(myKybdHndlr);
     glutSpecialFunc(myKybdHndlr);
     glutMainLoop();				    // infinite loop that will keep drawing and resizing
-    return 0;                       //} never reaches here?
+	}
+    else {
+		for (int i = 0; i < 10000; i++){
+			preRender();
+		}
+		appendToFile(fname,globalToAppend);
+        exit(0);
+	}
+	return 0;                       //} never reaches here?
 
 }

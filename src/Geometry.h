@@ -41,9 +41,12 @@ class plane : public Shape {
     plane();
     plane(float, float, float, float);
     plane(Vect3, Vect3, Vect3, Vect3);
+	plane(float, float, float, float, Vect3);
+    plane(Vect3, Vect3, Vect3, Vect3, Vect3);
     Vect3 center;
     Vect3 pt1,pt2,pt3,pt4;
     Vect3 n;
+	Vect3 color;
     float a,b,c,d;
     float isRect;
     void render();
@@ -58,11 +61,14 @@ class sphere : public Shape {
     sphere();
     sphere(Vect3, Vect3, float);
     sphere(Vect3, Vect3, float, float);
+	sphere(Vect3, Vect3, float, Vect3);
+    sphere(Vect3, Vect3, float, float, Vect3);
     Vect3 pos;
     Vect3 vel;
     float r;
     float m;
     int collideWithIndex;
+	Vect3 color;
     vector<Shape *> collideWith;
     void render();
     bool intersect(sphere);
@@ -72,6 +78,7 @@ class sphere : public Shape {
     int myType();
  private:
     void init(Vect3, Vect3, float, float);
+	void init(Vect3, Vect3, float, float, Vect3);
 };
 
 // *****************************

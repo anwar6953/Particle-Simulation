@@ -51,6 +51,15 @@ plane::plane(float ap, float bp, float cp, float dp){
     n = Vect3(a,b,c);
 	isRect = 0;
 }
+plane::plane(float ap, float bp, float cp, float dp, Vect3 cl){
+    a = ap;
+    b = bp;
+    c = cp;
+    d = dp;
+    n = Vect3(a,b,c);
+	isRect = 0;
+	color = cl;
+}
 plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4){
 	Vect3 tmpNormal = normalize((p2-p1) ^ (p4-p1));
     a = tmpNormal.x;
@@ -64,7 +73,22 @@ plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4){
     pt4 = p4;
     d = -a * pt1.x - b*pt1.y - c*pt1.z;
 	center = (pt1 + pt3) * 0.5;
+}
+plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4, Vect3 cl){
+	Vect3 tmpNormal = normalize((p2-p1) ^ (p4-p1));
+    a = tmpNormal.x;
+    b = tmpNormal.y;
+    c = tmpNormal.z;
+    n = tmpNormal;
+	isRect = 1;
+    pt1 = p1;
+    pt2 = p2;
+    pt3 = p3;
+    pt4 = p4;
+    d = -a * pt1.x - b*pt1.y - c*pt1.z;
+	center = (pt1 + pt3) * 0.5;
 
+	color = cl;
 }
 void plane::render(){
     glBegin(GL_QUADS);
@@ -96,12 +120,31 @@ sphere::sphere(Vect3 posp, Vect3 velp, float rp) {
 sphere::sphere(Vect3 posp, Vect3 velp, float rp, float massp) {
     init(posp, velp, rp, massp);
 }
+sphere::sphere(Vect3 posp, Vect3 velp, float rp, Vect3 cl) {
+    init(posp, velp, rp, 1.0f, cl);
+}
+sphere::sphere(Vect3 posp, Vect3 velp, float rp, float massp, Vect3 cl) {
+    init(posp, velp, rp, massp, cl);
+}
 void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass) {
     pos = center;
     vel = velocity;
     r = radius;
     m = mass;
     collideWithIndex = 0;
+	float c1 = ((float)rand())/RAND_MAX;
+	float c2 = ((float)rand())/RAND_MAX;
+	float c3 = ((float)rand())/RAND_MAX;
+	color = Vect3(c1,c2,c3);
+	// color = Vect3((rand() / RAND_MAX),(rand() / RAND_MAX),(rand() / RAND_MAX));
+}
+void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass, Vect3 cl) {
+    pos = center;
+    vel = velocity;
+    r = radius;
+    m = mass;
+    collideWithIndex = 0;
+	color = cl;
 }
 void sphere::render(){
     glTranslatef(pos.x,pos.y,pos.z);
@@ -113,15 +156,12 @@ void sphere::render(){
     
     if(saveToFile){
         if (counter != prevCounter){
-            // appendToFile(fname,"EOF\n");
 			globalToAppend += "EOF\n";
             prevCounter = counter;
         }
-        string str = "";
         ostringstream ss;
         ss << pos.x << " " << pos.y << " " << pos.z << "\n";
 		globalToAppend += ss.str();
-        // appendToFile(fname,ss.str());
     }
 }
 bool sphere::intersect(plane p){
@@ -193,7 +233,7 @@ bool sphere::intersect(sphere s2){
     float sumOfRadii = r + s2.r;
     float distBetweenRadii = (pos - s2.pos).getNorm();
     float surfaceDistance = distBetweenRadii - sumOfRadii;
-    if (surfaceDistance < thresholdForBounce) { return true; }
+    if (surfaceDistance <= thresholdForBounce) { return true; }
     else { return false; }
 }
 void sphere::move() {
@@ -210,7 +250,7 @@ void sphere::drag() {
     float selfVelZ = vel.z;
     
     float pi=acos(-1.0E0);
-    float dragCoef = 0.07;
+    float dragCoef = 0.02;
     float force = 0.5 * vel * vel * dragCoef * (1 / (pi * r * r));
     float acc = (force / m);
     
