@@ -50,10 +50,12 @@ bool openGLrender = 1;
 
 bool dragOn = 0;
 bool gravityOn = 0;
-bool downwardGravity = 0;
+bool downwardGravity = 1;
 
 	bool pool = 0;
 
+
+float timeStp = 1;
 float defRadius = 0.2;
 float defMass = 1;
 //}
@@ -202,8 +204,10 @@ switch (button)
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),Vect3(0.02*r,0.02*r,0),0.2)); //RANDOM vel dir.
 	  
-	  
-      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
+	  for (int i = 0; i < 40; i++){
+      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,0.02,defMass,Vect3(1,0,0)));
+	  }
+      // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
 	  //The following is colorful (random).
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
 	
@@ -351,7 +355,7 @@ void initScene() {
 	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
 	float width = 2;
-	bool box = 0;
+	bool box = 1;
 	if(pool){
 		float hwidth = 2;
 		float hlength = 4;
@@ -703,14 +707,14 @@ void myDisplay() {
 
         // gravity loop
 		if (downwardGravity)
-			s1.vel.y -= 0.00001;
+			s1.vel.y -= 0.00001*timeStp;
         if (gravityOn)
             for (int j = 0; j < listOfSpheres.size(); j++){
                 if (j == k){ continue; }
                 sphere& s2 = listOfSpheres[j];
                 if ((s2.pos-s1.pos).getNorm() < 0.001) continue;
                 // else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
-                else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                else s1.vel = s1.vel + 0.00000005*timeStp*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
             }
 
         //intersection loop
@@ -735,6 +739,7 @@ void myDisplay() {
 		glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 		glEnable(GL_COLOR_MATERIAL);
 		glColor3f(s1.color.x, s1.color.y, s1.color.z);
+		//Default color for everything: (comment out previous line and uncomment following line).
 		//glColor3f(1,1,1);
         s1.render();
 		glDisable(GL_COLOR_MATERIAL);

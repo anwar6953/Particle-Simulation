@@ -27,6 +27,7 @@ extern string fname;
 extern string globalToAppend;
 extern int counter;
 extern int prevCounter;
+extern float timeStp;
 
 // *****************************
 // forward Declaration
@@ -50,6 +51,10 @@ plane::plane(float ap, float bp, float cp, float dp){
     d = dp;
     n = Vect3(a,b,c);
 	isRect = 0;
+	float c1 = ((float)rand())/RAND_MAX;
+	float c2 = ((float)rand())/RAND_MAX;
+	float c3 = ((float)rand())/RAND_MAX;
+	color = Vect3(c1,c2,c3);
 }
 plane::plane(float ap, float bp, float cp, float dp, Vect3 cl){
     a = ap;
@@ -73,6 +78,11 @@ plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4){
     pt4 = p4;
     d = -a * pt1.x - b*pt1.y - c*pt1.z;
 	center = (pt1 + pt3) * 0.5;
+	
+	float c1 = ((float)rand())/RAND_MAX;
+	float c2 = ((float)rand())/RAND_MAX;
+	float c3 = ((float)rand())/RAND_MAX;
+	color = Vect3(c1,c2,c3);
 }
 plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4, Vect3 cl){
 	Vect3 tmpNormal = normalize((p2-p1) ^ (p4-p1));
@@ -231,13 +241,13 @@ bool sphere::intersect(plane p){
 }
 bool sphere::intersect(sphere s2){
     float sumOfRadii = r + s2.r;
-    float distBetweenRadii = (pos - s2.pos).getNorm();
-    float surfaceDistance = distBetweenRadii - sumOfRadii;
+    float distBetweenCenters = (pos - s2.pos).getNorm();
+    float surfaceDistance = distBetweenCenters - sumOfRadii;
     if (surfaceDistance <= thresholdForBounce) { return true; }
     else { return false; }
 }
 void sphere::move() {
-    pos = pos + 1*vel;
+    pos = pos + timeStp*vel;
 }
 void sphere::drag() {
     /*float dragCoef = 2;
@@ -259,21 +269,21 @@ void sphere::drag() {
     float accZ = sqrt((vel.z * vel.z) / (vel * vel)) * force;
     
     if (vel.x >= 0) {
-        vel.x = max(0.0f, vel.x - accX);
+        vel.x = max(0.0f, vel.x - accX*timeStp);
     } else {
-        vel.x = min(0.0f, vel.x + accX);
+        vel.x = min(0.0f, vel.x + accX*timeStp);
     }
     
     if (vel.y >= 0) {
-        vel.y = max(0.0f, vel.y - accY);
+        vel.y = max(0.0f, vel.y - accY*timeStp);
     } else {
-        vel.y = min(0.0f, vel.y + accY);
+        vel.y = min(0.0f, vel.y + accY*timeStp);
     }
     
     if (vel.z >= 0) {
-        vel.z = max(0.0f, vel.z - accZ);
+        vel.z = max(0.0f, vel.z - accZ*timeStp);
     } else {
-        vel.z = min(0.0f, vel.z + accZ);
+        vel.z = min(0.0f, vel.z + accZ*timeStp);
     }
     
 }
