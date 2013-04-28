@@ -198,7 +198,7 @@ bool sphere::intersect(plane p){
 	bool willIntersect = 0;
     // if ((r < d) && (t > 1 || t < 0)){ return false; }
     if (r < d){ 
-		if (t < 1 && t > 0)
+		if (t < timeStp && t > 0)
 			willIntersect = 1;
 		else
 			return false; 
