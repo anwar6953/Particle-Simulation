@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <cstdlib>
 
+
 #ifdef _WIN32
 #include <windows.h>
 #else
@@ -52,7 +53,7 @@ bool dragOn = 0;
 bool gravityOn = 0;
 bool downwardGravity = 1;
 
-	bool pool = 0;
+bool pool = 0;
 
 
 float timeStp = 1;
@@ -262,14 +263,15 @@ void myKybdHndlr(int key, int x, int y){
     glutPostRedisplay ();
 }
 void myKybdHndlr(unsigned char key, int x, int y){
-	// if (key == '1')
-		// resetTimer();
+	if (key == '1'){
+		timeStp*=0.5;
+		cout << "timestep is now " << timeStp << endl;
+	}
  
-	// if (key == '2')
-		// gettimeofday(&timeEnd, NULL);
-	
-	// if (key == '3')
-		// getTimeSince(1);
+	if (key == '2'){
+		timeStp*=2;
+		cout << "timestep is now " << timeStp << endl;
+	}
 	
 	
 	
