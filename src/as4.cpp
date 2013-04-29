@@ -77,7 +77,7 @@ void appendToFile(string fnameParam, string toAppend){
 }
 
 
-//PERFORMANCE STUFF FOLLOWS (works only on Windows).:
+//{PERFORMANCE STUFF FOLLOWS (works only on Windows).:
 // struct timezone2 
 // {
   // __int32  tz_minuteswest; /* minutes W of Greenwich */
@@ -142,7 +142,7 @@ void appendToFile(string fnameParam, string toAppend){
 	// }
 	// return val;
 // }
-///////PERFORMANCE STUFF ENDS HERE.
+//} /////PERFORMANCE STUFF ENDS HERE.
 //}
 
 //{ Global Variables
@@ -188,7 +188,8 @@ float zLookAt = -1;
 
 //}
 
-
+// map<int,vector<int> > xMap;
+bool alisCrack = 1;
 //}
 
 //{ Functions.
@@ -216,8 +217,8 @@ switch (button)
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),Vect3(0.02*r,0.02*r,0),0.2)); //RANDOM vel dir.
 	  
-	  cout << xx << " " << yy << endl;
-	  for (int i = 0; i < 100; i++){
+	  // cout << xx << " " << yy << endl;
+	  for (int i = 0; i < 500; i++){
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
       listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
 	  }
@@ -403,7 +404,7 @@ void initScene() {
 		//left box.
 		listOfPlanes.push_back(plane(Vect3(0,1,1 + overlap),  Vect3(0,-1-overlap,1+overlap),  Vect3(0,-1-overlap,-1-overlap),  Vect3(0,1,-1-overlap)       ));
 		//right box.
-		listOfPlanes.push_back(plane(Vect3(width,1,1+overlap),Vect3(width,-1,1+overlap),Vect3(width,-1-overlap,-1-overlap),Vect3(width,1,-1-overlap)));
+		listOfPlanes.push_back(plane(Vect3(width,1,1+overlap),Vect3(width,-1-overlap,1+overlap),Vect3(width,-1-overlap,-1-overlap),Vect3(width,1,-1-overlap)));
 		//bottom box.
 		listOfPlanes.push_back(plane(Vect3(-overlap,-1,1+overlap),Vect3(-overlap,-1,-1-overlap),Vect3(width+overlap,-1,-1-overlap),Vect3(width+overlap,-1,1+overlap)));
 		//far box.
@@ -692,7 +693,8 @@ void myDisplay() {
     gluPerspective(60.0f,(GLfloat)viewport.w/(GLfloat)viewport.h,0.1f,100.0f);
 
 	float rradius;
-	if (listOfSpheres.size()>1000){
+	//following a sphere:
+	if (listOfSpheres.size()>1000000){
 		xLookAt = listOfSpheres[0].pos.x;
 		yLookAt = listOfSpheres[0].pos.y;
 		zLookAt = listOfSpheres[0].pos.z;
@@ -723,6 +725,23 @@ void myDisplay() {
     counter++;
     fDataCounter++;
 
+		
+	map<int,vector<int> > xMap;
+	map<int,vector<int> >::iterator it;
+	if (alisCrack){
+		//first clear the map.
+		//pos.x should range from -6.0f to 6.0f
+		//therefore, val should range from -30.0f to 30.0f.
+		//We are therefore dividing into about 60 sections.
+		//val2 is the sphere's key into the map.
+		for (int k = 0; k < listOfSpheres.size(); k++) {
+			float val = listOfSpheres[k].pos.x;
+			val *= 5;
+			int val2 = floor(val);
+			xMap[val2].push_back(k);
+		}		
+	}
+	
     for (int k = 0; k < listOfSpheres.size(); k++) {
         sphere& s1 = listOfSpheres[k];
 
@@ -744,23 +763,67 @@ void myDisplay() {
             }
 
         //intersection loop
-        for (int j = 0; j < listOfSpheres.size(); j++) {
-            if (j == k) { continue; }
-            sphere& s2 = listOfSpheres[j];
-			if (specialCase){
-				if (s1.intersect(s2,rSqrd)) {
-					collide(s1,s2);
-					// s1.move();
+		if (alisCrack){
+		// if (0){
+			float val = s1.pos.x;
+			val *= 5;
+			int val2 = floor(val);
+			it = xMap.find(val2);
+			if (it != xMap.end()){
+				vector<int> thisVector = it->second;
+				for (int i = 0; i < thisVector.size(); i++){
+					int thisSph = thisVector[i];
+					if (k == thisSph){ continue; }
+					sphere& s2 = listOfSpheres[thisSph];
+					if (s1.intersect(s2)) {
+						collide(s1,s2);
+					}
 				}
 			}
-			else{
-				if (s1.intersect(s2)) {
-					collide(s1,s2);
-					// s1.move();
+			it = xMap.find(val2-1);
+			if (it != xMap.end()){
+				vector<int> thisVector = it->second;
+				for (int i = 0; i < thisVector.size(); i++){
+					int thisSph = thisVector[i];
+					if (k == thisSph){ continue; }
+					sphere& s2 = listOfSpheres[thisSph];
+					if (s1.intersect(s2)) {
+						collide(s1,s2);
+					}
 				}
 			}
-        }
-
+			it = xMap.find(val2+1);
+			if (it != xMap.end()){
+				vector<int> thisVector = it->second;
+				for (int i = 0; i < thisVector.size(); i++){
+					int thisSph = thisVector[i];
+					if (k == thisSph){ continue; }
+					sphere& s2 = listOfSpheres[thisSph];
+					if (s1.intersect(s2)) {
+						collide(s1,s2);
+					}
+				}
+			}
+		}
+		//end of ali's crack.
+		else{
+			for (int j = 0; j < listOfSpheres.size(); j++) {
+				if (j == k) { continue; }
+				sphere& s2 = listOfSpheres[j];
+				if (specialCase){
+					if (s1.intersect(s2,rSqrd)) {
+						collide(s1,s2);
+						// s1.move();
+					}
+				}
+				else{
+					if (s1.intersect(s2)) {
+						collide(s1,s2);
+						// s1.move();
+					}
+				}
+			}
+		}
         for (int j = 0; j < listOfPlanes.size(); j++) {
             plane p = listOfPlanes[j];
             if (s1.intersect(p)) {
@@ -861,6 +924,21 @@ void myDisplay() {
 
 int main(int argc, char *argv[]) {
 
+	// map<int,vector<int> > xMap;
+	
+	
+    // if (it != xMap.end())
+        // it->second.push_back(5);
+	// else
+		// cout << "no" << endl;	
+		
+	// xMap[2].push_back(5);
+	
+
+	// else
+		// cout << "no" << endl;
+	// exit(0);
+	
 	// map<int,string> testMap;
 	// string s1 = "first";
 	// string s2 = "second";
@@ -870,12 +948,8 @@ int main(int argc, char *argv[]) {
 	// testMap.insert(std::pair<int,string>(2,"second"));
 	
 	
-	// map<int,string>::iterator it = testMap.find(2);
-    // if (it != testMap.end())
-        // cout << it->second << " " << it->first << endl;
-	// exit(0);
 
-	// vector< vector< vector<int> > myvec(100, vector<vector<int>>(100, vector<int>(100, 1)));
+	// exit(0);
 
 	
 //{ PARSING:
