@@ -29,7 +29,6 @@
 #include <GL/glu.h>
 #endif
 
-#include <windows.h>
 #define PI 3.14159265  // Should be used from mathlib
 #define sphAcc 20
 
@@ -174,6 +173,19 @@ float zLookAt = -1;
 
 //}
 
+
+bool kdPoint( KDtree & tree, Vect3 & point) {
+    bool xBoolLeft = tree.UL.x < point.x;
+    bool xBoolRight = point.x < tree.LR.x;
+    
+    bool yBoolLeft = tree.UL.y > point.y;
+    bool yBoolRight = point.y > tree.LR.y;
+    
+    bool zBoolLeft = tree.UL.z < point.z;
+    bool zBoolRight = point.z < tree.LR.z;
+    
+    return xBoolLeft && xBoolRight && yBoolLeft && yBoolRight && zBoolLeft & zBoolRight;
+}
 
 //}
 
@@ -762,6 +774,22 @@ void myDisplay() {
         } else {fDataCounter = 0;}
     }
 
+    // test script that happens in myDisplay()
+    Vect3 UL(-1, 1, -1), LR(1, -1, 1);
+    UL = 16 * UL;
+    LR = 16 * LR;
+    KDtree t(UL, LR);
+    t.constructTree(2 * sqrt(3) + 0.1, 'x');
+    t.render();
+    for ( int i = 0; i < listOfSpheres.size(); i++) {
+        sphere local = listOfSpheres[i];
+    	KDtree localNode = t.getNode(local.pos);
+    	//	cout << "ball is here "<<local.pos.printMe() << endl;
+    	//	localNode.printMe(0);
+    	localNode.render();
+    	//	cout << "index: "<< i << endl;
+    }
+    
     glFlush();
     glutSwapBuffers();					// swap buffers (we earlier set double buffer)
 
@@ -817,9 +845,19 @@ int main(int argc, char *argv[]) {
     KDtree t(Vect3(-64, 64, -64), Vect3(64, -64, 64) );
     //    cout << t.UL.printMe() << endl;
     //cout << t.LR.printMe() << endl;
-    t.constructTree( 65.0 * sqrt(3)  , 'x');
+    t.constructTree( 33.0 * sqrt(3)  , 'x');
+    Vect3 test(1,1,1);
+    
+    
+    t = t.getNode(test);
+    
     t.printMe(0);
-    Sleep(5000);
+    
+    if (kdPoint(t, test)) {
+        cout << "Yayifications!" << endl;
+    }
+    //t.printMe(0);
+    //sleep(5);
 //{ Initialization of glut and window:  
 /*
 

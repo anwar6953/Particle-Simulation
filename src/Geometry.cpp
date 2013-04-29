@@ -343,6 +343,38 @@ void KDtree::printMe(int depth) {
     }
 }
 
+KDtree KDtree::getNode(Vect3 point) {
+    KDtree & local = * this;
+    char localAxis = 'x';
+    while (local.isLeaf  == false) {
+        // Start by assuming non-corner case
+        if (localAxis == 'x') {
+            if (point.x < local.rightChild->UL.x ) local = * local.leftChild;
+            else local = * local.rightChild;
+            localAxis = 'y';
+        } else if (localAxis == 'y') {
+            if (point.y < local.rightChild->UL.y) local = * local.rightChild;
+            else local = * local.leftChild;
+            localAxis = 'z';
+        } else if (localAxis == 'z') {
+            if (point.z < local.rightChild->UL.z) local = *  local.leftChild;
+            else local = * local.rightChild;
+            localAxis = 'x';
+        }
+    } //end while
+    return local;
+}
+
+void KDtree::render() {
+    Vect3 center(UL.x + LR.x, UL.y + LR.y, UL.z + LR.z);
+    center = 0.5 * center;
+    glColor3f(0,1,0);
+    float length = abs(UL.x - LR.x);
+    glTranslatef(center.x, center.y, center.z);
+    glutWireCube( (GLdouble) length);
+    glTranslatef(-center.x, -center.y, -center.z);
+}
+
 // *****************************
 // Helper Functions
 // *****************************
