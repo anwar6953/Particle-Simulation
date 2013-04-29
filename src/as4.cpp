@@ -814,11 +814,11 @@ int main(int argc, char *argv[]) {
     }
     */
 
-    KDtree t;
-    cout << t.UL.printMe() << endl;
-    cout << t.LR.printMe() << endl;
+    KDtree t(Vect3(-64, 64, -64), Vect3(64, -64, 64) );
+    //    cout << t.UL.printMe() << endl;
+    //cout << t.LR.printMe() << endl;
     t.constructTree( 65.0 * sqrt(3)  , 'x');
-    t.printMe();
+    t.printMe(0);
     Sleep(5000);
 //{ Initialization of glut and window:  
 /*
