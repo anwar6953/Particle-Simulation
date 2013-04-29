@@ -382,7 +382,22 @@ void KDtree::getDivisions() {
     }
 }
 void KDtree::constructWeb() {
-    
+    getDivisions();
+    int cnt = 0;
+    float startX(UL.x), startY(UL.y), startZ(UL.z);
+    float lenX(abs(LR.x - startX)), lenY(abs(LR.y - startY)), lenZ(abs(LR.z - startZ));
+    float x(this->divX * 1.0f), y(this->divY * 1.0f), z(this->divZ * 1.0f);
+    float incrX(lenX / x), incrY(lenY / y), incrZ(lenZ / z);
+
+    for (float i = 0.5 * incrX; i < lenX; i += incrX)
+	for (float j = 0.5 * incrY; j < lenY; j += incrY)
+	    for (float k = 0.5 * incrZ; k < lenZ; k += incrZ) {
+		Vect3 local(startX + i, startY + j, startZ + k);
+		cnt ++;
+	    }
+    cout << "we got " << cnt << endl;
+    cout << "should have " << leafCount << endl;
+
 }
 void KDtree::printMe(int depth) {
     cout << string(depth, '-') << "leaf? " << isLeaf << 
