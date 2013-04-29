@@ -5,6 +5,7 @@
 #include <limits>
 #include <string>
 #include <sstream>
+#include <cstdlib>
 
 #ifdef OSX
 #include <GLUT/glut.h>
