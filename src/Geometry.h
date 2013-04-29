@@ -72,6 +72,7 @@ class sphere : public Shape {
     vector<Shape *> collideWith;
     void render();
     bool intersect(sphere);
+    bool intersect(sphere, float);
     bool intersect(plane);
     void move();
     void drag();

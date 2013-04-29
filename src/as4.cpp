@@ -14,7 +14,7 @@
 #include <list>
 #include <stdlib.h>
 #include <cstdlib>
-
+#include <map>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -57,12 +57,15 @@ bool pool = 0;
 
 //turn on to remove spheres that go out of bounds.
 bool removeSpheres = 1;
-float bound = 5;
+float bound = 6;
 
 
 float timeStp = 1;
-float defRadius = 0.01;
 float defMass = 1;
+float defRadius = 0.1;
+//special case means all the spheres have same radii value.
+bool specialCase = 1;
+float rSqrd = (2*defRadius)*(2*defRadius);
 //}
 
 void appendToFile(string fnameParam, string toAppend){
@@ -145,14 +148,16 @@ void appendToFile(string fnameParam, string toAppend){
 //{ Global Variables
 //{ Other
 Viewport viewport;
-GLfloat light_diffuse[] = {1, 1, 1, 1.0};  /* white diffuse light. */
-GLfloat light_position[] = {0.0, 0.5, 0.5, 1.0};  /* Infinite light location. */
+GLfloat light_diffuse[] = {1.0, 1.0, 1.0, 1.0};  /* white diffuse light. */
+GLfloat light_ambient[] = {1.0, 1.0, 1.0, 1.0};  /* white ambient light. */
+GLfloat light_specular[] = {1.0, 1.0, 1.0, 1.0};  /* white specular light. */
+GLfloat light_position[] = {0.0, 1.0, 0.0, 1.0};  /* Infinite light location. */
 // GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
-
 
 vector<sphere> listOfSpheres;
 vector<plane> listOfPlanes;
 int prevX, prevY;
+
 
 
 bool paused = 0;
@@ -212,11 +217,11 @@ switch (button)
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),Vect3(0.02*r,0.02*r,0),0.2)); //RANDOM vel dir.
 	  
 	  cout << xx << " " << yy << endl;
-	  for (int i = 0; i < 40; i++){
-      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
+	  for (int i = 0; i < 100; i++){
+      // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
+      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
 	  }
 	  //The following is colorful (random).
-      // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
 	
 	
     } break;
@@ -354,14 +359,17 @@ void applyVectorField(sphere & thisSph) {
 
 void initScene() {
     glLineWidth(0.5);
-    glColor3f(1,1,1);
+    //glColor3f(1,1,1);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-    glLightfv(GL_LIGHT0, GL_AMBIENT, light_diffuse);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	
     glEnable(GL_LIGHT0);
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
 	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+	glShadeModel(GL_SMOOTH);
 
 	float width = 2;
 	bool box = 1;
@@ -420,6 +428,7 @@ void initScene() {
 
 
 }
+
 
 void collide(sphere& s1, sphere& s2){
     //**************************************************************
@@ -738,9 +747,17 @@ void myDisplay() {
         for (int j = 0; j < listOfSpheres.size(); j++) {
             if (j == k) { continue; }
             sphere& s2 = listOfSpheres[j];
-            if (s1.intersect(s2)) {
-				collide(s1,s2);
-				// s1.move();
+			if (specialCase){
+				if (s1.intersect(s2,rSqrd)) {
+					collide(s1,s2);
+					// s1.move();
+				}
+			}
+			else{
+				if (s1.intersect(s2)) {
+					collide(s1,s2);
+					// s1.move();
+				}
 			}
         }
 
@@ -752,24 +769,57 @@ void myDisplay() {
 			}
         }
 
+		//GLfloat light_spec[] = {s1.color.x, s1.color.y, s1.color.z};
+		GLfloat light_spec[] = {1,1,1,1};
+		//GLfloat light_amb[] = {s1.color.x, s1.color.y, s1.color.z, 0.01};
+		GLfloat light_amb[] = {s1.color.x*0.3,s1.color.y*0.3,s1.color.z*0.3};
+		GLfloat light_diff[] = {s1.color.x*0.7, s1.color.y*0.7, s1.color.z*0.7};
 		// applyVectorField(s1);
-		glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-		glEnable(GL_COLOR_MATERIAL);
+		//glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, light_diff);
+		//glMaterialf(GL_FRONT_AND_BACK, GL_DIFFUSE, 1.0);
+		//glMaterialf(GL_FRONT_AND_BACK, GL_AMBIENT, 1.0);
+		//glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, light_spec);
+		//glColor3f(1,1,0);
+		//glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, light_amb);
+		//glMaterialf(GL_FRONT_AND_BACK, GL_SPECULAR, 10.0);
+		//glMaterialf(GL_FRONT_AND_BACK, GL_SPECULAR, 1.0);
+		//glColorMaterial(GL_FRONT_AND_BACK, GL_SPECULAR);
+		
+		//glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+		//glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+		
+		//glEnable(GL_COLOR_MATERIAL);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, light_amb);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, light_diff);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, light_spec);
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 15.0);
 		glColor3f(s1.color.x, s1.color.y, s1.color.z);
-		//Default color for everything: (comment out previous line and uncomment following line).
+
 		//glColor3f(1,1,1);
         s1.render();
-		glDisable(GL_COLOR_MATERIAL);
+		//glDisable(GL_COLOR_MATERIAL);
     }
 
 	for (int j = 0; j < listOfPlanes.size(); j++) {
         plane p = listOfPlanes[j];
-		if (p.isRect)
-			glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-			glEnable(GL_COLOR_MATERIAL);
+		if (p.isRect){
+			GLfloat light_spec[] = {1,1,1,1};
+			GLfloat light_amb[] = {p.color.x*0.3, p.color.y*0.3, p.color.z*0.3};
+			GLfloat light_diff[] = {p.color.x*0.7, p.color.y*0.7, p.color.z*0.7};
+			//GLfloat light_spec[] = {p.color.x, p.color.y, p.color.z};
+			//glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+			//glMaterialf(GL_FRONT_AND_BACK, GL_DIFFUSE, 1.0);
+			//glMaterialf(GL_FRONT_AND_BACK, GL_AMBIENT, 1.0);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, light_diff);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, light_spec);
+			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, light_amb);
+			//glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 1.0);
+			//glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
+			//glEnable(GL_COLOR_MATERIAL);
 			glColor3f(p.color.x, p.color.y, p.color.z);
 			p.render();
 			glDisable(GL_COLOR_MATERIAL);
+		}
     }
 
     if(loadFromFile) {
@@ -778,7 +828,7 @@ void myDisplay() {
             for (int i = 0 ; i < thisFrame.size(); i++) {
                 Vect3 pos = thisFrame[i];
                 glTranslatef(pos.x,pos.y,pos.z);
-                glutSolidSphere(0.2,sphAcc,sphAcc);
+                glutSolidSphere(defRadius,sphAcc,sphAcc);
                 glTranslatef(-pos.x,-pos.y,-pos.z);
             }
         } else {fDataCounter = 0;}
@@ -810,6 +860,24 @@ void myDisplay() {
 //}
 
 int main(int argc, char *argv[]) {
+
+	// map<int,string> testMap;
+	// string s1 = "first";
+	// string s2 = "second";
+	// string s3 = "third";
+	// string s4 = "fourth";
+	// testMap.insert(std::pair<int,string>(2,"first"));
+	// testMap.insert(std::pair<int,string>(2,"second"));
+	
+	
+	// map<int,string>::iterator it = testMap.find(2);
+    // if (it != testMap.end())
+        // cout << it->second << " " << it->first << endl;
+	// exit(0);
+
+	// vector< vector< vector<int> > myvec(100, vector<vector<int>>(100, vector<int>(100, 1)));
+
+	
 //{ PARSING:
     // if (argc < 3) { cout << "Please provide the filename and subdivision_Parameter" << endl; exit(0); }
     //string fname = argv[1];

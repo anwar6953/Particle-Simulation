@@ -242,9 +242,21 @@ bool sphere::intersect(plane p){
     //move sphere OUT of plane, if necessary.
 }
 bool sphere::intersect(sphere s2){
-    float sumOfRadii = r + s2.r;
-    float distBetweenCenters = (pos - s2.pos).getNorm();
+    // float sumOfRadii = (r + s2.r);
+    // float distBetweenCenters = (pos - s2.pos).getNorm();
+	Vect3 diff = (pos - s2.pos);
+    float distBetweenCenters = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
+    float sumOfRadii = (r + s2.r)*(r + s2.r);
     float surfaceDistance = distBetweenCenters - sumOfRadii;
+    if (surfaceDistance <= thresholdForBounce) { return true; }
+    else { return false; }
+}
+bool sphere::intersect(sphere s2, float rSquared){
+    // float sumOfRadii = (r + s2.r);
+    // float distBetweenCenters = (pos - s2.pos).getNorm();
+	Vect3 diff = (pos - s2.pos);
+    float distBetweenCenters = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
+    float surfaceDistance = distBetweenCenters - rSquared;
     if (surfaceDistance <= thresholdForBounce) { return true; }
     else { return false; }
 }
