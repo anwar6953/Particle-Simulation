@@ -88,19 +88,34 @@ class KDtree {
  public:
     KDtree();
     KDtree(Vect3, Vect3);
+    //    ~KDtree();
     Vect3 UL;
     Vect3 LR;
     bool isLeaf;
+    int divX;
+    int divY;
+    int divZ;
+    KDtree * nextX;
+    KDtree * prevX;
+    KDtree * nextY;
+    KDtree * prevY;
+    KDtree * nextZ;
+    KDtree * prevZ;
+    char axisSplit;
     KDtree * leftChild;
     KDtree * rightChild;
+    int leafCount;
     vector<sphere *> localListOfSpheres;
     float getHypotenuse();
-    void constructTree(float baseHypotenuse, char axis);
+    void constructTree(float baseHypotenuse, char axis, KDtree * root);
+    void getDivisions();
+    void constructWeb();
     void printMe(int depth);
     KDtree getNode(Vect3 point);
     void render();
  private:
     void init(Vect3, Vect3);
+    //    void destroy(KDtree * child, int d);
 };
 
 #endif

@@ -290,18 +290,53 @@ KDtree::KDtree(void) {
 KDtree::KDtree(Vect3 upperLeft, Vect3 lowerRight) {
     KDtree::init(upperLeft, lowerRight);
 }
+/*
+KDtree::~KDtree() {
+    if (leftChild != NULL) {
+	destroy(leftChild, 1);
+	destroy(rightChild, 1);
+	//	delete leftChild;
+	//delete rightChild;
+    }
+}
+*/
 void KDtree::init(Vect3 upperLeft, Vect3 lowerRight) {
     this->UL = Vect3(upperLeft.x, upperLeft.y, upperLeft.z);
     this->LR = Vect3(lowerRight.x, lowerRight.y, lowerRight.z);
     this->isLeaf = false;
+    this->axisSplit = 0;
     this->leftChild = NULL;
     this->rightChild = NULL;
+    this->nextX = NULL;
+    this->prevX = NULL;
+    this->nextY = NULL;
+    this->prevY = NULL;
+    this->nextZ = NULL;
+    this->prevZ = NULL;
+    this->divX = 1;
+    this->divY = 1;
+    this->divZ = 1;
+    this->leafCount = 0;
 }
+/*
+void KDtree::destroy(KDtree * child, int d) {
+    if (child != NULL) {
+	destroy(child->rightChild, d + 1);
+	destroy(child->leftChild, d + 1);
+	cout << string(d, '*') << endl;
+	delete child;
+	
+    }
+}
+*/
 float KDtree::getHypotenuse(void) {
     return (LR - UL).getNorm();
 }
-void KDtree::constructTree( float baseHypotenuse, char axis) {
-    if (getHypotenuse() < baseHypotenuse && axis == 'x') {
+void KDtree::constructTree( float baseHypotenuse, char axis, KDtree * rootTree) {
+    
+    axisSplit = axis;
+    if (getHypotenuse() < baseHypotenuse) {
+	rootTree->leafCount += 1;
         isLeaf = true;
         return;
     }
@@ -331,12 +366,28 @@ void KDtree::constructTree( float baseHypotenuse, char axis) {
     }
     rightChild =  new KDtree(rightUL, rightLR);
     leftChild  =  new KDtree(leftUL, leftLR);
-    rightChild -> constructTree (baseHypotenuse, nextAxis);
-    leftChild  -> constructTree (baseHypotenuse, nextAxis);
+    rightChild -> constructTree (baseHypotenuse, nextAxis, rootTree);
+    leftChild  -> constructTree (baseHypotenuse, nextAxis, rootTree);
 }
 
+void KDtree::getDivisions() {
+    KDtree * localTree = this;
+    char localAxis = 0;
+    while( ! localTree->isLeaf ) {
+	localAxis = localTree->axisSplit;
+	if      ( localAxis == 'x' ) this->divX *= 2;
+	else if ( localAxis == 'y' ) this->divY *= 2;
+	else if ( localAxis == 'z' ) this->divZ *= 2;
+	localTree = localTree->leftChild;
+    }
+}
+void KDtree::constructWeb() {
+    
+}
 void KDtree::printMe(int depth) {
-    cout << string(depth, '-') << "upperLeft: " << UL.printMe() << ", lowerRight: " << LR.printMe() << endl;
+    cout << string(depth, '-') << "leaf? " << isLeaf << 
+	"; left,right =  " << (leftChild == NULL) << ", " << (rightChild == NULL) <<
+	"; upperLeft: " << UL.printMe() << ", lowerRight: " << LR.printMe() << endl;
     if (! isLeaf && ( leftChild != NULL )) {
         leftChild->printMe(depth + 1);
         rightChild->printMe(depth + 1);
@@ -344,12 +395,10 @@ void KDtree::printMe(int depth) {
 }
 KDtree KDtree::getNode(Vect3 point) {
     KDtree local = * this;
-    char localAxis = 'x';
-    bool keepGoing = true;
-    while (keepGoing) {
+    char localAxis = local.axisSplit;
+    while (local.isLeaf == false) {
         // Start by assuming non-corner case
         if (localAxis == 'x') {
-	    //cout << "x tuff" << endl;
             if (point.x < (local.UL.x + local.LR.x) / 2.0f ) local = * local.leftChild;
             else local = * local.rightChild;
             localAxis = 'y';
@@ -357,13 +406,10 @@ KDtree KDtree::getNode(Vect3 point) {
             if (point.y < (local.UL.y + local.LR.y) / 2.0f ) local = * local.rightChild;
             else local = * local.leftChild;
             localAxis = 'z';
-	    //cout << "should be z: "<<localAxis;
         } else if (localAxis == 'z') {
-	    //cout << "hi";
             if (point.z < (local.UL.z + local.LR.z) / 2.0f ) local = * local.leftChild;
             else local = * local.rightChild;
             localAxis = 'x';
-	    if (local.isLeaf) keepGoing = false;
         }
     } //end while
     return local;
@@ -372,7 +418,6 @@ void KDtree::render() {
 
     Vect3 pos = 0.5 * (UL + LR);
     float length = abs(UL.x - LR.x);
-    //    cout << "center " << pos.printMe() << endl;
     glTranslatef(pos.x,pos.y,pos.z);
     glutSolidSphere(.05,sphAcc,sphAcc);
     glutWireCube( (GLdouble) length);
