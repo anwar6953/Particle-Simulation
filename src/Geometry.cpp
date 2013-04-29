@@ -195,22 +195,22 @@ bool sphere::intersect(plane p){
 	if (dir < 0) dir = -1;
 	else dir = 1;
 	float t = dir * ((d-r) / cVel.getNorm());	
-	bool willIntersect = 0;
-    // if ((r < d) && (t > 1 || t < 0)){ return false; }
+	bool willIntersect = 0;	
+	
     if (r < d){ 
 		if (t < timeStp && t > 0)
 			willIntersect = 1;
 		else
 			return false; 
 	}
-     
+    
 	if (p.isRect){
-		if (willIntersect)
-		intPt = pos + (t*vel);
-		
-		float magnitude = sqrt(r*r-(intPt - pos)*(intPt - pos));
-		intPt = intPt + magnitude * normalize(p.center-intPt);
-		
+		if (r > 0.08){
+			if (willIntersect)
+				intPt = pos + (t*vel);
+				float magnitude = sqrt(r*r-(intPt - pos)*(intPt - pos));
+				intPt = intPt + magnitude * normalize(p.center-intPt);
+		}
 		//
 		bool b1 = (p.pt2-p.pt1)*(intPt-p.pt1)>0;
 		bool b2 = (p.pt4-p.pt1)*(intPt-p.pt1)>0;
@@ -218,10 +218,12 @@ bool sphere::intersect(plane p){
 		bool b4 = (p.pt4-p.pt3)*(intPt-p.pt3)>0;
 		
 		// if (!willIntersect)
-		if (!b1 || !b2 || !b3 || !b4)
+		if (!b1 || !b2 || !b3 || !b4){
 			return false;
+		}
 	}
-	
+	// if (t < 1 && t > 0)
+		// cout << "changing velocity." << endl;
 	float mag = vel.getNorm();
     float d2 = normalize(-1*vel) * (p.n);
     Vect3 normal = p.n;

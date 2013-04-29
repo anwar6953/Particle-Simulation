@@ -151,6 +151,8 @@ vector<plane> listOfPlanes;
 int prevX, prevY;
 
 
+bool paused = 0;
+
 time_t initTime;  //for performance uses.
 vector<vector<Vect3> > fData; //The pre-rendered data from file.
 string globalToAppend = "";
@@ -273,7 +275,8 @@ void myKybdHndlr(unsigned char key, int x, int y){
 		cout << "timestep is now " << timeStp << endl;
 	}
 	
-	
+	if (key == 'p')
+		paused = !paused;
 	
 	if (key == ' '){  // SPACE key
 		appendToFile(fname,globalToAppend);
@@ -384,11 +387,17 @@ void initScene() {
 
 
 	if (box){
-		listOfPlanes.push_back(plane(Vect3(0,1,1),  Vect3(0,-1,1),  Vect3(0,-1,-1),  Vect3(0,1,-1)       ));
-		listOfPlanes.push_back(plane(Vect3(width,1,1),Vect3(width,-1,1),Vect3(width,-1,-1),Vect3(width,1,-1)));
-		listOfPlanes.push_back(plane(Vect3(0,-1,1),Vect3(0,-1,-1),Vect3(width,-1,-1),Vect3(width,-1,1)));
-		listOfPlanes.push_back(plane(Vect3(0,1,-1),Vect3(0,-1,-1),Vect3(width,-1,-1),Vect3(width,1,-1)));
-		listOfPlanes.push_back(plane(Vect3(0,1,1),Vect3(0,-1,1),Vect3(width,-1,1),Vect3(width,1,1)));
+		float overlap = 0.1;
+		//left box.
+		listOfPlanes.push_back(plane(Vect3(0,1,1 + overlap),  Vect3(0,-1-overlap,1+overlap),  Vect3(0,-1-overlap,-1-overlap),  Vect3(0,1,-1-overlap)       ));
+		//right box.
+		listOfPlanes.push_back(plane(Vect3(width,1,1+overlap),Vect3(width,-1,1+overlap),Vect3(width,-1-overlap,-1-overlap),Vect3(width,1,-1-overlap)));
+		//bottom box.
+		listOfPlanes.push_back(plane(Vect3(-overlap,-1,1+overlap),Vect3(-overlap,-1,-1-overlap),Vect3(width+overlap,-1,-1-overlap),Vect3(width+overlap,-1,1+overlap)));
+		//far box.
+		listOfPlanes.push_back(plane(Vect3(-overlap,1,-1),Vect3(-overlap,-1,-1),Vect3(width+overlap,-1,-1),Vect3(width+overlap,1,-1)));
+		//near box.
+		listOfPlanes.push_back(plane(Vect3(-overlap,1,1),Vect3(-overlap,-1,1),Vect3(width+overlap,-1,1),Vect3(width+overlap,1,1)));
     }
 	
 
@@ -659,6 +668,8 @@ void preRender(){
 	
 }
 void myDisplay() {
+	if (paused)
+		return;
     //{ Buffers and Matrices:
     glClear(GL_COLOR_BUFFER_BIT);		    // clear the color buffer
     glClear(GL_DEPTH_BUFFER_BIT);           // clear the depth buffer
