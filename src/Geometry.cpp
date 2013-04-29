@@ -393,7 +393,7 @@ void KDtree::constructWeb() {
 	for (float j = 0.5 * incrY; j < lenY; j += incrY)
 	    for (float k = 0.5 * incrZ; k < lenZ; k += incrZ) {
 		Vect3 local(startX + i, startY + j, startZ + k);
-		cnt ++;
+		cnt++;
 	    }
     cout << "we got " << cnt << endl;
     cout << "should have " << leafCount << endl;
@@ -408,22 +408,22 @@ void KDtree::printMe(int depth) {
         rightChild->printMe(depth + 1);
     }
 }
-KDtree KDtree::getNode(Vect3 point) {
-    KDtree local = * this;
-    char localAxis = local.axisSplit;
-    while (local.isLeaf == false) {
+KDtree * KDtree::getNode(Vect3 point) {
+    KDtree * local = this;
+    char localAxis = local->axisSplit;
+    while (local->isLeaf == false) {
         // Start by assuming non-corner case
         if (localAxis == 'x') {
-            if (point.x < (local.UL.x + local.LR.x) / 2.0f ) local = * local.leftChild;
-            else local = * local.rightChild;
+            if (point.x < (local->UL.x + local->LR.x) / 2.0f ) local = local->leftChild;
+            else local = local->rightChild;
             localAxis = 'y';
         } else if (localAxis == 'y') {
-            if (point.y < (local.UL.y + local.LR.y) / 2.0f ) local = * local.rightChild;
-            else local = * local.leftChild;
+            if (point.y < (local->UL.y + local->LR.y) / 2.0f ) local = local->rightChild;
+            else local = local->leftChild;
             localAxis = 'z';
         } else if (localAxis == 'z') {
-            if (point.z < (local.UL.z + local.LR.z) / 2.0f ) local = * local.leftChild;
-            else local = * local.rightChild;
+            if (point.z < (local->UL.z + local->LR.z) / 2.0f ) local = local->leftChild;
+            else local = local->rightChild;
             localAxis = 'x';
         }
     } //end while

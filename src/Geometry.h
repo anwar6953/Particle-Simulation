@@ -111,7 +111,7 @@ class KDtree {
     void getDivisions();
     void constructWeb();
     void printMe(int depth);
-    KDtree getNode(Vect3 point);
+    KDtree * getNode(Vect3 point);
     void render();
  private:
     void init(Vect3, Vect3);
