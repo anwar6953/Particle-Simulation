@@ -285,14 +285,62 @@ int sphere::myType() {
 // KDtree Implementation
 // *****************************
 KDtree::KDtree(void) {
-    KDtree::init(Vect3(1, 1, 1), Vect3(-1, -1, -1)); 
+    KDtree::init(Vect3(-300, 300, -300), Vect3(300, -300, 300)); 
 }
-KDtree::KDtree(Vect3 & upperLeft, Vect3 & lowerRight) {
+KDtree::KDtree(Vect3 upperLeft, Vect3 lowerRight) {
     KDtree::init(upperLeft, lowerRight);
 }
 void KDtree::init(Vect3 upperLeft, Vect3 lowerRight) {
     this->UL = Vect3(upperLeft.x, upperLeft.y, upperLeft.z);
     this->LR = Vect3(lowerRight.x, lowerRight.y, lowerRight.z);
+    this->isLeaf = false;
+    this->leftChild = NULL;
+    this->rightChild = NULL;
+}
+float KDtree::getHypotenuse(void) {
+    return (LR - UL).getNorm();
+}
+void KDtree::constructTree( float baseHypotenuse, char axis) {
+    if (getHypotenuse() < baseHypotenuse) {
+        isLeaf = true;
+        return;
+    }
+
+    char nextAxis = 0;
+    Vect3 rightUL, rightLR;
+    Vect3 leftUL , leftLR;
+
+    if ( axis == 'x' ) { // Divide space into 2 along X-axis.
+        rightUL = Vect3((UL.x + LR.x)/2.0f, UL.y, UL.z);
+        rightLR = LR;
+        leftUL = UL;
+        leftLR = Vect3((UL.x + LR.x)/2, LR.y, LR.z);
+        nextAxis = 'y';
+    } else if ( axis == 'y') { // Divide space into 2 along Y-axis. 
+        rightUL = Vect3(UL.x, ((UL.y + LR.y)/2), UL.z);
+        rightLR = LR;
+        leftUL = UL;
+        leftLR = Vect3(LR.x, ((UL.y + LR.y)/2), LR.z);
+        nextAxis = 'z';
+    } else if (axis == 'z') { // Divide space into 2 along Z-axis.
+        rightUL = Vect3(UL.x, UL.y, ((UL.z + LR.z)/2));
+        rightLR = LR;
+        leftUL = UL;
+        leftLR = Vect3(LR.x, LR.y, ((UL.z + LR.z)/2));
+        nextAxis = 'x';
+    }
+    rightChild =  new KDtree(rightUL, rightLR);
+    leftChild  =  new KDtree(leftUL, leftLR);
+    rightChild -> constructTree (baseHypotenuse, nextAxis);
+    leftChild  -> constructTree (baseHypotenuse, nextAxis);
+}
+
+void KDtree::printMe(int depth) {
+    cout << string(depth, '-') << "upperLeft: " << UL.printMe() << ", lowerRight: " << LR.printMe();
+    if (! isLeaf && ( leftChild != NULL ) {
+        leftChild->printMe(depth + 1);
+        rightChild->printMe(depth + 1);
+    }
 }
 
 // *****************************

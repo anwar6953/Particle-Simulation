@@ -87,9 +87,16 @@ class sphere : public Shape {
 class KDtree {
  public:
     KDtree();
-    KDtree(Vect3 &, Vect3 &);
+    KDtree(Vect3, Vect3);
     Vect3 UL;
     Vect3 LR;
+    bool isLeaf;
+    KDtree * leftChild;
+    KDtree * rightChild;
+    vector<sphere *> localListOfSpheres;
+    float getHypotenuse();
+    void constructTree(float baseHypotenuse, char axis);
+    void printMe(int depth);
  private:
     void init(Vect3, Vect3);
 };
