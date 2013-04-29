@@ -336,7 +336,7 @@ void KDtree::constructTree( float baseHypotenuse, char axis) {
 }
 
 void KDtree::printMe(int depth) {
-    cout << string(depth, '-') << "upperLeft: " << UL.printMe() << ", lowerRight: " << LR.printMe();
+    cout << string(depth, '-') << "upperLeft: " << UL.printMe() << ", lowerRight: " << LR.printMe() << endl;
     if (! isLeaf && ( leftChild != NULL )) {
         leftChild->printMe(depth + 1);
         rightChild->printMe(depth + 1);
