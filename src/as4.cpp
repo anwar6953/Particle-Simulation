@@ -62,7 +62,7 @@ float bound = 6;
 
 float timeStp = 1;
 float defMass = 1;
-float defRadius = 0.1;
+float defRadius = 0.02;
 //special case means all the spheres have same radii value.
 bool specialCase = 1;
 float rSqrd = (2*defRadius)*(2*defRadius);
@@ -189,7 +189,7 @@ float zLookAt = -1;
 //}
 
 // map<int,vector<int> > xMap;
-bool alisCrack = 1;
+bool alisCrack = 0;
 //}
 
 //{ Functions.
@@ -218,7 +218,7 @@ switch (button)
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),Vect3(0.02*r,0.02*r,0),0.2)); //RANDOM vel dir.
 	  
 	  // cout << xx << " " << yy << endl;
-	  for (int i = 0; i < 500; i++){
+	  for (int i = 0; i < 10; i++){
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
       listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
 	  }
@@ -726,19 +726,28 @@ void myDisplay() {
     fDataCounter++;
 
 		
-	map<int,vector<int> > xMap;
-	map<int,vector<int> >::iterator it;
+	// vector<vector<vector<int> > > xMap;
+	vector<vector< vector< vector<int> > > > xMap ( 40, vector<vector<vector<int> > >(40, vector<vector<int> >(40, vector<int>(0, 0))));
+	// map<int,vector<int> >::iterator it;
 	if (alisCrack){
 		//first clear the map.
-		//pos.x should range from -6.0f to 6.0f
-		//therefore, val should range from -30.0f to 30.0f.
-		//We are therefore dividing into about 60 sections.
+		//pos.x should range from -7.0f to 7.0f
+		//therefore, val should range from -35.0f to 35.0f.
+		//We are therefore dividing into about 70 sections.
 		//val2 is the sphere's key into the map.
 		for (int k = 0; k < listOfSpheres.size(); k++) {
-			float val = listOfSpheres[k].pos.x;
-			val *= 5;
-			int val2 = floor(val);
-			xMap[val2].push_back(k);
+			float valx = listOfSpheres[k].pos.x;
+			float valy = listOfSpheres[k].pos.y;
+			float valz = listOfSpheres[k].pos.z;
+			valx *= 2.5;
+			valy *= 2.5;
+			valz *= 2.5;
+			int valfx = floor(valx)+20;
+			int valfy = floor(valy)+20;
+			int valfz = floor(valz)+20;
+			// cout << valfx << " " << valfy << endl;
+			xMap.at(valfx).at(valfy).at(valfz).push_back(k);
+			// cout << "didn't get here" << endl;
 		}		
 	}
 	
@@ -764,44 +773,24 @@ void myDisplay() {
 
         //intersection loop
 		if (alisCrack){
-		// if (0){
-			float val = s1.pos.x;
-			val *= 5;
-			int val2 = floor(val);
-			it = xMap.find(val2);
-			if (it != xMap.end()){
-				vector<int> thisVector = it->second;
-				for (int i = 0; i < thisVector.size(); i++){
-					int thisSph = thisVector[i];
-					if (k == thisSph){ continue; }
-					sphere& s2 = listOfSpheres[thisSph];
-					if (s1.intersect(s2)) {
-						collide(s1,s2);
-					}
-				}
-			}
-			it = xMap.find(val2-1);
-			if (it != xMap.end()){
-				vector<int> thisVector = it->second;
-				for (int i = 0; i < thisVector.size(); i++){
-					int thisSph = thisVector[i];
-					if (k == thisSph){ continue; }
-					sphere& s2 = listOfSpheres[thisSph];
-					if (s1.intersect(s2)) {
-						collide(s1,s2);
-					}
-				}
-			}
-			it = xMap.find(val2+1);
-			if (it != xMap.end()){
-				vector<int> thisVector = it->second;
-				for (int i = 0; i < thisVector.size(); i++){
-					int thisSph = thisVector[i];
-					if (k == thisSph){ continue; }
-					sphere& s2 = listOfSpheres[thisSph];
-					if (s1.intersect(s2)) {
-						collide(s1,s2);
-					}
+			float valx = s1.pos.x;
+			float valy = s1.pos.y;
+			float valz = s1.pos.z;
+			valx *= 2.5;
+			valy *= 2.5;
+			valz *= 2.5;
+			int valfx = floor(valx)+20;
+			int valfy = floor(valy)+20;
+			int valfz = floor(valz)+20;
+			// cout << "yes " << valfx << " " << valfy << endl;
+			vector<int> thisVector = xMap.at(valfx).at(valfy).at(valfz);
+			// cout << "no" << endl;
+			for (int i = 0; i < thisVector.size(); i++){
+				int thisSph = thisVector[i];
+				if (k == thisSph){ continue; }
+				sphere& s2 = listOfSpheres[thisSph];
+				if (s1.intersect(s2)) {
+					collide(s1,s2);
 				}
 			}
 		}
