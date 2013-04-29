@@ -97,6 +97,8 @@ class KDtree {
     float getHypotenuse();
     void constructTree(float baseHypotenuse, char axis);
     void printMe(int depth);
+    KDtree getNode(Vect3 point);
+    void render();
  private:
     void init(Vect3, Vect3);
 };

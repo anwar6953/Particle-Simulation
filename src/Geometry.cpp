@@ -301,7 +301,7 @@ float KDtree::getHypotenuse(void) {
     return (LR - UL).getNorm();
 }
 void KDtree::constructTree( float baseHypotenuse, char axis) {
-    if (getHypotenuse() < baseHypotenuse) {
+    if (getHypotenuse() < baseHypotenuse && axis == 'x') {
         isLeaf = true;
         return;
     }
@@ -314,19 +314,19 @@ void KDtree::constructTree( float baseHypotenuse, char axis) {
         rightUL = Vect3((UL.x + LR.x)/2.0f, UL.y, UL.z);
         rightLR = LR;
         leftUL = UL;
-        leftLR = Vect3((UL.x + LR.x)/2, LR.y, LR.z);
+        leftLR = Vect3((UL.x + LR.x)/2.0f, LR.y, LR.z);
         nextAxis = 'y';
     } else if ( axis == 'y') { // Divide space into 2 along Y-axis. 
-        rightUL = Vect3(UL.x, ((UL.y + LR.y)/2), UL.z);
+        rightUL = Vect3(UL.x, ((UL.y + LR.y)/2.0f), UL.z);
         rightLR = LR;
         leftUL = UL;
-        leftLR = Vect3(LR.x, ((UL.y + LR.y)/2), LR.z);
+        leftLR = Vect3(LR.x, ((UL.y + LR.y)/2.0f), LR.z);
         nextAxis = 'z';
     } else if (axis == 'z') { // Divide space into 2 along Z-axis.
-        rightUL = Vect3(UL.x, UL.y, ((UL.z + LR.z)/2));
+        rightUL = Vect3(UL.x, UL.y, ((UL.z + LR.z)/2.0f));
         rightLR = LR;
         leftUL = UL;
-        leftLR = Vect3(LR.x, LR.y, ((UL.z + LR.z)/2));
+        leftLR = Vect3(LR.x, LR.y, ((UL.z + LR.z)/2.0f));
         nextAxis = 'x';
     }
     rightChild =  new KDtree(rightUL, rightLR);
@@ -341,4 +341,41 @@ void KDtree::printMe(int depth) {
         leftChild->printMe(depth + 1);
         rightChild->printMe(depth + 1);
     }
+}
+KDtree KDtree::getNode(Vect3 point) {
+    KDtree local = * this;
+    char localAxis = 'x';
+    bool keepGoing = true;
+    while (keepGoing) {
+        // Start by assuming non-corner case
+        if (localAxis == 'x') {
+	    //cout << "x tuff" << endl;
+            if (point.x < (local.UL.x + local.LR.x) / 2.0f ) local = * local.leftChild;
+            else local = * local.rightChild;
+            localAxis = 'y';
+        } else if (localAxis == 'y') {
+            if (point.y < (local.UL.y + local.LR.y) / 2.0f ) local = * local.rightChild;
+            else local = * local.leftChild;
+            localAxis = 'z';
+	    //cout << "should be z: "<<localAxis;
+        } else if (localAxis == 'z') {
+	    //cout << "hi";
+            if (point.z < (local.UL.z + local.LR.z) / 2.0f ) local = * local.leftChild;
+            else local = * local.rightChild;
+            localAxis = 'x';
+	    if (local.isLeaf) keepGoing = false;
+        }
+    } //end while
+    return local;
+}
+void KDtree::render() {
+
+    Vect3 pos = 0.5 * (UL + LR);
+    float length = abs(UL.x - LR.x);
+    //    cout << "center " << pos.printMe() << endl;
+    glTranslatef(pos.x,pos.y,pos.z);
+    glutSolidSphere(.05,sphAcc,sphAcc);
+    glutWireCube( (GLdouble) length);
+    glTranslatef(-pos.x,-pos.y,-pos.z);
+
 }
