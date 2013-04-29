@@ -55,9 +55,13 @@ bool downwardGravity = 1;
 
 bool pool = 0;
 
+//turn on to remove spheres that go out of bounds.
+bool removeSpheres = 1;
+float bound = 5;
+
 
 float timeStp = 1;
-float defRadius = 0.2;
+float defRadius = 0.01;
 float defMass = 1;
 //}
 
@@ -207,10 +211,10 @@ switch (button)
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),Vect3(0.02*r,0.02*r,0),0.2)); //RANDOM vel dir.
 	  
+	  cout << xx << " " << yy << endl;
 	  for (int i = 0; i < 40; i++){
-      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,0.02,defMass,Vect3(1,0,0)));
+      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
 	  }
-      // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
 	  //The following is colorful (random).
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
 	
@@ -780,6 +784,25 @@ void myDisplay() {
         } else {fDataCounter = 0;}
     }
 
+	if (removeSpheres){
+		for (int j = 0; j < listOfSpheres.size();) {
+			Vect3 pos = listOfSpheres[j].pos;
+			if (pos.x > bound)
+				listOfSpheres.erase(listOfSpheres.begin()+j);
+			else if (pos.x < -bound)
+				listOfSpheres.erase(listOfSpheres.begin()+j);
+			else if (pos.y > bound)
+				listOfSpheres.erase(listOfSpheres.begin()+j);
+			else if (pos.y < -bound)
+				listOfSpheres.erase(listOfSpheres.begin()+j);
+			else if (pos.z > bound)
+				listOfSpheres.erase(listOfSpheres.begin()+j);
+			else if (pos.z < -bound)
+				listOfSpheres.erase(listOfSpheres.begin()+j);
+			else
+				j++;
+		}
+	}
     glFlush();
     glutSwapBuffers();					// swap buffers (we earlier set double buffer)
 
