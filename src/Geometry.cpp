@@ -31,9 +31,14 @@ extern int prevCounter;
 // *****************************
 // forward Declaration
 // *****************************
+/*
 void appendToFile(string fnameParam, string toAppend);
 void bindLeaf(KDtree * primary, KDtree * secondary, char type);
-
+KDtree * turnHandle(KDtree * current, char sign, char axis);
+char flipSign (char sign);
+void renderNode(KDtree * node);
+void visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2, void (*interfaceNode)(KDtree *));
+*/
 // *****************************
 // plane Implementation
 // *****************************
@@ -467,4 +472,67 @@ void KDtree::render() {
     glutWireCube( (GLdouble) length);
     glTranslatef(-pos.x,-pos.y,-pos.z);
 
+}
+
+// *****************************
+// Sphere / KDtree interfacing utilities
+// *****************************
+KDtree * turnHandle(KDtree * current, char sign, char axis) {
+    KDtree * nextVisit = NULL;
+    switch(sign) {
+
+    case '+':
+	if      (axis == 'x') nextVisit = current->nextX;
+	else if (axis == 'y') nextVisit = current->nextY;
+	else if (axis == 'z') nextVisit = current->nextZ;
+	break;
+
+    case '-':
+	if      (axis == 'x') nextVisit = current->prevX;
+	else if (axis == 'y') nextVisit = current->prevY;
+	else if (axis == 'z') nextVisit = current->prevZ;
+	break;
+    }
+    return nextVisit;
+}
+
+char flipSign (char sign) {
+    if (sign == '+') return '-';
+    else             return '+';
+}
+
+void renderNode(KDtree * node) {
+    node->render();
+}
+/*
+struct Navigate {
+    char sign;
+    char axis;
+};
+*/
+void visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2, void (*interfaceNode)(KDtree *)) {
+    // TODO: How to capture all 4 of the Nodes.
+    KDtree * nextVisit = current;
+    (*interfaceNode)(nextVisit);
+    // First Step
+    nextVisit = turnHandle (nextVisit, sign1, axis1);
+    (*interfaceNode)(nextVisit);
+    // Second Step
+    nextVisit = turnHandle (nextVisit, sign2, axis2);
+    (*interfaceNode)(nextVisit);
+    // Third Step
+    nextVisit = turnHandle (nextVisit, flipSign(sign1), axis1);
+    (*interfaceNode)(nextVisit);    
+}
+
+void visitCorner(KDtree * current, char sign1, char axis1, char sign2, char axis2, char sign3, char axis3, void (*interfaceNode)(KDtree *)) {
+    KDtree * edge1 = current;
+    KDtree * edge2 = turnHandle(current, sign3, axis3);
+
+    visitEdge(edge1, sign1, axis1, sign2, axis2, interfaceNode);
+    visitEdge(edge2, sign1, axis1, sign2, axis2, interfaceNode);
+}
+
+void intersectNode(KDtree * node) {
+    
 }

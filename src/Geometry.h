@@ -118,4 +118,15 @@ class KDtree {
     //    void destroy(KDtree * child, int d);
 };
 
+// *****************************
+// function prototypes
+// *****************************
+void appendToFile(string fnameParam, string toAppend);
+void bindLeaf(KDtree * primary, KDtree * secondary, char type);
+KDtree * turnHandle(KDtree * current, char sign, char axis);
+char flipSign (char sign);
+void renderNode(KDtree * node);
+void visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2, void (*intersectNode)(KDtree *));
+void visitCorner(KDtree * current, char sign1, char axis1, char sign2, char axis2, char sign3, char axis3, void (*interfaceNode)(KDtree *) );
+void intersectNode(KDtree * node);
 #endif
