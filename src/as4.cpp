@@ -322,7 +322,7 @@ void myKybdHndlr(unsigned char key, int x, int y){
 	if (key == '1'){
 		timeStp*=0.5;
 		cout << "timestep is now " << timeStp << endl;
-		cout << runningT << endl;
+		//cout << runningT << endl;
 	}
  
 	if (key == '2'){
@@ -493,10 +493,17 @@ void initScene() {
 
 }
 void removeSphere(int x){
-sphere& s = listOfSpheres[x];
+    sphere& s = listOfSpheres[x];
+    KDtree * tNode = s.KDnode;
+    vector<sphere *> * nodeSpheres = & tNode->localSpheres;
+    for (int i = 0; i < nodeSpheres->size(); i++) {
+	if (nodeSpheres->at(i) == & s) {
+	    nodeSpheres->erase(nodeSpheres->begin() + i);
+	    break;
+	}
+    }
 
-
-	listOfSpheres.erase(listOfSpheres.begin()+x);
+    listOfSpheres.erase(listOfSpheres.begin()+x);
 }
 
 void collide(sphere& s1, sphere& s2){

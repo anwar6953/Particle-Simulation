@@ -4,6 +4,7 @@
 #define _Geometry_h
 
 #include <vector>
+#include <list>
 #include "ColorAndVector.h"
 
 using namespace std;
