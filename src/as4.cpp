@@ -59,7 +59,7 @@ bool pool = 0;
 bool removeSpheres = 1;
 float bound = 6;
 
-int numSpheresPerClick = 500;
+int numSpheresPerClick = 1;
 float timeStp = 1;
 float defMass = 1;
 float defRadius = 0.02;
@@ -388,11 +388,12 @@ void initScene() {
 		float hrails = 0.3;
 		float r = 0.2;
 		Vect3 sC = Vect3(1,0,0);
-		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,0,-hwidth),Vect3(0.059,0.330,0.157)));
-		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588)));
-		listOfPlanes.push_back(plane(Vect3(hlength,0,-hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588)));
-		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(hlength,hrails,-hwidth),Vect3(hlength,0,-hwidth),Vect3(0.173,0.094,0.0588)));
-		listOfPlanes.push_back(plane(Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,0,hwidth),Vect3(0.173,0.094,0.0588)));
+		bool apr = 0;
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,0,-hwidth),Vect3(0.059,0.330,0.157),apr));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588),apr));
+		listOfPlanes.push_back(plane(Vect3(hlength,0,-hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588),apr));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(hlength,hrails,-hwidth),Vect3(hlength,0,-hwidth),Vect3(0.173,0.094,0.0588),apr));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,0,hwidth),Vect3(0.173,0.094,0.0588),apr));
 		listOfSpheres.push_back(sphere(Vect3(0,r,0),Vect3(.01,0,0),r,sC));
 		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r,sC));
 		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,sC));
@@ -409,16 +410,17 @@ void initScene() {
 
 	if (box){
 		float overlap = 0.1;
+		bool apr2 = 1;
 		//left box.
-		listOfPlanes.push_back(plane(Vect3(0,1,1 + overlap),  Vect3(0,-1-overlap,1+overlap),  Vect3(0,-1-overlap,-1-overlap),  Vect3(0,1,-1-overlap)       ));
+		listOfPlanes.push_back(plane(Vect3(0,1,1 + overlap),  Vect3(0,-1-overlap,1+overlap),  Vect3(0,-1-overlap,-1-overlap),  Vect3(0,1,-1-overlap)       ,apr2));
 		//right box.
-		listOfPlanes.push_back(plane(Vect3(width,1,1+overlap),Vect3(width,-1-overlap,1+overlap),Vect3(width,-1-overlap,-1-overlap),Vect3(width,1,-1-overlap)));
+		listOfPlanes.push_back(plane(Vect3(width,1,1+overlap),Vect3(width,-1-overlap,1+overlap),Vect3(width,-1-overlap,-1-overlap),Vect3(width,1,-1-overlap),apr2));
 		//bottom box.
-		listOfPlanes.push_back(plane(Vect3(-overlap,-1,1+overlap),Vect3(-overlap,-1,-1-overlap),Vect3(width+overlap,-1,-1-overlap),Vect3(width+overlap,-1,1+overlap)));
+		listOfPlanes.push_back(plane(Vect3(-overlap,-1,1+overlap),Vect3(-overlap,-1,-1-overlap),Vect3(width+overlap,-1,-1-overlap),Vect3(width+overlap,-1,1+overlap),apr2));
 		//far box.
-		listOfPlanes.push_back(plane(Vect3(-overlap,1,-1),Vect3(-overlap,-1,-1),Vect3(width+overlap,-1,-1),Vect3(width+overlap,1,-1)));
+		listOfPlanes.push_back(plane(Vect3(-overlap,1,-1),Vect3(-overlap,-1,-1),Vect3(width+overlap,-1,-1),Vect3(width+overlap,1,-1),apr2));
 		//near box.
-		listOfPlanes.push_back(plane(Vect3(-overlap,1,1),Vect3(-overlap,-1,1),Vect3(width+overlap,-1,1),Vect3(width+overlap,1,1)));
+		listOfPlanes.push_back(plane(Vect3(-overlap,1,1),Vect3(-overlap,-1,1),Vect3(width+overlap,-1,1),Vect3(width+overlap,1,1),apr2));
     }
 	
 
