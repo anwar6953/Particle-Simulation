@@ -565,37 +565,50 @@ void nodeNeighborTest(sphere * sph) {
     KDtree * myNode = sph->KDnode;
     Vect3 & center = sph->pos;
     float radius = sph->r;
-    bool wallIntersect [6]; // [ negX, posX, negY, posY, negZ, posZ ];
+    bool wallIntersect [] = {false, false, false, false, false, false}; // [ negX, posX, negY, posY, negZ, posZ ];
 
     float margin = center.x - radius;
     bool nextWall = margin < myNode->UL.x;
-    wallIntersect[0] = nextWall;
-    cnt += nextWall;
 
-    margin = center.x + radius;
-    nextWall = margin > myNode->LR.x;
-    wallIntersect[1] = nextWall;
-    cnt += nextWall;
+    if (myNode->prevX != NULL) {
+	wallIntersect[0] = nextWall;
+	cnt += nextWall;
+    }
 
-    margin = center.y - radius;
-    nextWall = margin < myNode->LR.y;
-    wallIntersect[2] = nextWall;
-    cnt += nextWall;
+    if (myNode->nextX != NULL) {    
+	margin = center.x + radius;
+	nextWall = margin > myNode->LR.x;
+	wallIntersect[1] = nextWall;
+	cnt += nextWall;
+    }
 
-    margin = center.y + radius;
-    nextWall = margin > myNode->UL.y;
-    wallIntersect[3] = nextWall;
-    cnt += nextWall;
+    if (myNode->prevY != NULL) {
+	margin = center.y - radius;
+	nextWall = margin < myNode->LR.y;
+	wallIntersect[2] = nextWall;
+	cnt += nextWall;
+    }
 
-    margin = center.z - radius;
-    nextWall = margin < myNode->UL.z;
-    wallIntersect[4] = nextWall;
-    cnt += nextWall;
+    if (myNode->nextY != NULL) {
+	margin = center.y + radius;
+	nextWall = margin > myNode->UL.y;
+	wallIntersect[3] = nextWall;
+	cnt += nextWall;
+    }
 
-    margin = center.z + radius;
-    nextWall = margin > myNode->LR.z;
-    wallIntersect[5] = nextWall;
-    cnt += nextWall;
+    if (myNode->prevZ != NULL) {
+	margin = center.z - radius;
+	nextWall = margin < myNode->UL.z;
+	wallIntersect[4] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (myNode->nextZ != NULL) {
+	margin = center.z + radius;
+	nextWall = margin > myNode->LR.z;
+	wallIntersect[5] = nextWall;
+	cnt += nextWall;
+    }
     
     if (cnt == 0) intersectNode(myNode); 
     else {
@@ -621,7 +634,6 @@ void intersectNode(KDtree * node) {
 void recoverNav(bool * wallIntersect, char * sign, char * axis) {
     int index = 0;
     for (int i = 0; i < 6; i++ ) {
-	cout << wallIntersect[i] << endl;
 	if (wallIntersect[i]) {
 	    sign[index] = (i % 2 == 0) ? '-' : '+';
 
