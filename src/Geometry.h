@@ -67,9 +67,7 @@ class sphere : public Shape {
     Vect3 vel;
     float r;
     float m;
-    int collideWithIndex;
     Vect3 color;
-    vector<Shape *> collideWith;
     void render();
     bool intersect(sphere);
     bool intersect(sphere, float);
@@ -107,7 +105,7 @@ class KDtree {
     KDtree * leftChild;
     KDtree * rightChild;
     int leafCount;
-    vector<sphere *> localListOfSpheres;
+    vector<sphere *> localSpheres;
     float getHypotenuse();
     void constructTree(float baseHypotenuse, char axis, KDtree * root);
     void getDivisions();

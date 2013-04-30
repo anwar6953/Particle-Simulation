@@ -145,25 +145,20 @@ sphere::sphere(Vect3 posp, Vect3 velp, float rp, float massp, Vect3 cl) {
     init(posp, velp, rp, massp, cl);
 }
 void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass) {
-    pos = center;
-    vel = velocity;
-    r = radius;
-    m = mass;
-    collideWithIndex = 0;
     float c1 = ((float)rand())/RAND_MAX;
     float c2 = ((float)rand())/RAND_MAX;
     float c3 = ((float)rand())/RAND_MAX;
     color = Vect3(c1,c2,c3);
-    // color = Vect3((rand() / RAND_MAX),(rand() / RAND_MAX),(rand() / RAND_MAX));
-    KDnode = mainTree->getNode(center);
+    init(center, velocity, radius, mass, color);
 }
 void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass, Vect3 cl) {
     pos = center;
     vel = velocity;
     r = radius;
     m = mass;
-    collideWithIndex = 0;
-	color = cl;
+    color = cl;
+    KDnode = mainTree->getNode(center);
+    KDnode->localSpheres.push_back(this);
 }
 void sphere::render(){
     glTranslatef(pos.x,pos.y,pos.z);
@@ -610,7 +605,7 @@ void nodeNeighborTest(sphere * sph) {
 	cnt += nextWall;
     }
     
-    if (cnt == 0) intersectNode(myNode); 
+    if (cnt == 0) intersectNode(myNode);
     else {
 	char sign [3];
 	char axis [3];
@@ -618,7 +613,7 @@ void nodeNeighborTest(sphere * sph) {
 	if (cnt == 1) {
 	    intersectNode(myNode);
 	    intersectNode(turnHandle(myNode, sign[0], axis[0]));
-	} else if (cnt == 2)  { 
+	} else if (cnt == 2) {
 	    visitEdge(myNode, sign[0], axis[0], sign[1], axis[1], intersectNode);
 	} else if (cnt == 3) {
 	    visitCorner(myNode, sign[0], axis[0], sign[1], axis[1], sign[2], axis[2], intersectNode);
