@@ -61,14 +61,14 @@ class sphere : public Shape {
     sphere();
     sphere(Vect3, Vect3, float);
     sphere(Vect3, Vect3, float, float);
-	sphere(Vect3, Vect3, float, Vect3);
+    sphere(Vect3, Vect3, float, Vect3);
     sphere(Vect3, Vect3, float, float, Vect3);
     Vect3 pos;
     Vect3 vel;
     float r;
     float m;
     int collideWithIndex;
-	Vect3 color;
+    Vect3 color;
     vector<Shape *> collideWith;
     void render();
     bool intersect(sphere);
@@ -77,9 +77,10 @@ class sphere : public Shape {
     void move();
     void drag();
     int myType();
+    KDtree * KDnode;
  private:
     void init(Vect3, Vect3, float, float);
-	void init(Vect3, Vect3, float, float, Vect3);
+    void init(Vect3, Vect3, float, float, Vect3);
 };
 
 // *****************************
@@ -129,5 +130,7 @@ char flipSign (char sign);
 void renderNode(KDtree * node);
 void visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2, void (*intersectNode)(KDtree *));
 void visitCorner(KDtree * current, char sign1, char axis1, char sign2, char axis2, char sign3, char axis3, void (*interfaceNode)(KDtree *) );
+void nodeNeighborTest(sphere * sph);
+void recoverNav(bool * , char *, char * );
 void intersectNode(KDtree * node);
 #endif

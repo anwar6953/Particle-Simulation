@@ -29,6 +29,7 @@ extern string globalToAppend;
 extern int counter;
 extern int prevCounter;
 extern float timeStp;
+extern KDtree * mainTree;
 
 // *****************************
 // forward Declaration
@@ -149,11 +150,12 @@ void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass) {
     r = radius;
     m = mass;
     collideWithIndex = 0;
-	float c1 = ((float)rand())/RAND_MAX;
-	float c2 = ((float)rand())/RAND_MAX;
-	float c3 = ((float)rand())/RAND_MAX;
-	color = Vect3(c1,c2,c3);
-	// color = Vect3((rand() / RAND_MAX),(rand() / RAND_MAX),(rand() / RAND_MAX));
+    float c1 = ((float)rand())/RAND_MAX;
+    float c2 = ((float)rand())/RAND_MAX;
+    float c3 = ((float)rand())/RAND_MAX;
+    color = Vect3(c1,c2,c3);
+    // color = Vect3((rand() / RAND_MAX),(rand() / RAND_MAX),(rand() / RAND_MAX));
+    KDnode = mainTree->getNode(center);
 }
 void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass, Vect3 cl) {
     pos = center;
@@ -558,6 +560,82 @@ void visitCorner(KDtree * current, char sign1, char axis1, char sign2, char axis
     visitEdge(edge2, sign1, axis1, sign2, axis2, interfaceNode);
 }
 
-void intersectNode(KDtree * node) {
+void nodeNeighborTest(sphere * sph) {
+    char cnt = 0;
+    KDtree * myNode = sph->KDnode;
+    Vect3 & center = sph->pos;
+    float radius = sph->r;
+    bool wallIntersect [6]; // [ negX, posX, negY, posY, negZ, posZ ];
+
+    float margin = center.x - radius;
+    bool nextWall = margin < myNode->UL.x;
+    wallIntersect[0] = nextWall;
+    cnt += nextWall;
+
+    margin = center.x + radius;
+    nextWall = margin > myNode->LR.x;
+    wallIntersect[1] = nextWall;
+    cnt += nextWall;
+
+    margin = center.y - radius;
+    nextWall = margin < myNode->LR.y;
+    wallIntersect[2] = nextWall;
+    cnt += nextWall;
+
+    margin = center.y + radius;
+    nextWall = margin > myNode->UL.y;
+    wallIntersect[3] = nextWall;
+    cnt += nextWall;
+
+    margin = center.z - radius;
+    nextWall = margin < myNode->UL.z;
+    wallIntersect[4] = nextWall;
+    cnt += nextWall;
+
+    margin = center.z + radius;
+    wallIntersect[5] = margin > myNode->LR.z;
+    cnt += nextWall;
     
+    if (cnt == 0) intersectNode(myNode); 
+    else {
+	char sign [3];
+	char axis [3];
+	recoverNav(&wallIntersect[0], &sign[0], &axis[0]);
+	if (cnt == 1) {
+	    intersectNode(myNode);
+	    intersectNode(turnHandle(myNode, sign[0], axis[0]));
+	} else if (cnt == 2)  { 
+	    visitEdge(myNode, sign[0], axis[0], sign[1], axis[1], intersectNode);
+	} else if (cnt == 3) {
+	    visitCorner(myNode, sign[0], axis[0], sign[1], axis[1], sign[2], axis[2], intersectNode);
+	} else cout << "sound ze alarm!" << endl;
+    }
+}
+
+void intersectNode(KDtree * node) {
+    node->render();
+}
+
+void recoverNav(bool * wallIntersect, char * sign, char * axis) {
+    int index = 0;
+    for (int i = 0; i < 6; i++ ) {
+	cout << wallIntersect[i] << endl;
+	if (wallIntersect[i]) {
+	    sign[index] = (i % 2 == 0) ? '-' : '+';
+
+	    i = i / 2;
+	    switch(i) {
+	    case 0:
+		axis[index] = 'x';
+		break;
+	    case 1:
+		axis[index] = 'y';
+		break;
+	    case 2:
+		axis[index] = 'z';
+		break;
+	    }
+	    index++;
+	}
+    }
 }
