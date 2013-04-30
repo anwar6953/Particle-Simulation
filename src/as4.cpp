@@ -155,6 +155,7 @@ GLfloat light_specular[] = {1.0, 1.0, 1.0, 1.0};  /* white specular light. */
 GLfloat light_position[] = {0.0, 1.0, 0.0, 1.0};  /* Infinite light location. */
 // GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
 
+KDtree * mainTree = NULL;
 vector<sphere> listOfSpheres;
 vector<plane> listOfPlanes;
 int prevX, prevY;
@@ -359,6 +360,13 @@ void applyVectorField(sphere & thisSph) {
     }
 
 void initScene() {
+    Vect3 UL(-1, 1, -1), LR(1, -1, 1);
+    UL = 16 * UL;
+    LR = 16 * LR;
+    mainTree = new KDtree(UL, LR);
+    mainTree->constructTree(2 * sqrt(3) + 0.1, 'x', mainTree);
+    mainTree->constructWeb();
+
     glLineWidth(0.5);
     //glColor3f(1,1,1);
     glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
