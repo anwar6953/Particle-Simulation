@@ -62,8 +62,8 @@ float bound = 6;
 int numSpheresPerClick = 1;
 float timeStp = 1;
 float defMass = 1;
-float defRadius = 0.02;
-//float defRadius = 0.2;
+// float defRadius = 0.02;
+float defRadius = 0.2;
 //special case means all the spheres have same radii value.
 bool specialCase = 1;
 float rSqrd = (2*defRadius)*(2*defRadius);
@@ -149,11 +149,10 @@ void appendToFile(string fnameParam, string toAppend){
 //{ Global Variables
 //{ Other
 Viewport viewport;
-GLfloat light_diffuse[] = {1.0, 1.0, 1.0, 1.0};  /* white diffuse light. */
-GLfloat light_ambient[] = {1.0, 1.0, 1.0, 1.0};  /* white ambient light. */
-GLfloat light_specular[] = {1.0, 1.0, 1.0, 1.0};  /* white specular light. */
-GLfloat light_position[] = {0.0, 1.0, 0.0, 1.0};  /* Infinite light location. */
-// GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
+GLfloat light_diffuse[] = {1.0, 1.0, 1.0};  /* white diffuse light. */
+GLfloat light_ambient[] = {0.1, 0.1, 0.1};  /* white ambient light. */
+GLfloat light_specular[] = {1.0, 1.0, 1.0};  /* white specular light. */
+GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
 
 KDtree * mainTree = NULL;
 vector<sphere> listOfSpheres;
@@ -190,7 +189,7 @@ float zLookAt = -1;
 
 //}
 
-bool alisCrack = 0;
+bool alisCrack = 1;
 //}
 
 //{ Functions.
@@ -262,14 +261,16 @@ void myKybdHndlr(int key, int x, int y){
         // if (glutGetModifiers() == GLUT_ACTIVE_SHIFT)
             // transX += transAmt;
         // elsedefRadius,defMass
+			if (!specialCase){
             defMass += 10;
-            defRadius += 0.2;}
+            defRadius += 0.2;}}
     else if (key == GLUT_KEY_PAGE_DOWN){
         // if (glutGetModifiers() == GLUT_ACTIVE_SHIFT)
             // transX += transAmt;
         // else
+			if (!specialCase){
             defMass -= 10;
-            defRadius -= 0.2;}
+            defRadius -= 0.2;}}
     else
         return;
 
@@ -424,7 +425,6 @@ void initScene() {
     }
 	
 
-	// listOfPlanes.push_back(plane(1,0,0,0));
     int numCubed = 0;
 	if (loadFromFile) numCubed = 0;
     for (int i = 0; i < numCubed; i++) {
@@ -736,8 +736,8 @@ void myDisplay() {
     fDataCounter++;
 
 		
-	vector<vector<vector<vector<int> > > > xMap;
-	//vector<vector< vector< vector<int> > > > xMap ( 40, vector<vector<vector<int> > >(40, vector<vector<int> >(40, vector<int>(0, 0))));
+	// vector<vector<vector<vector<int> > > > xMap;
+	vector<vector< vector< vector<int> > > > xMap ( 40, vector<vector<vector<int> > >(40, vector<vector<int> >(40, vector<int>(0, 0))));
 	
 	if (alisCrack){
 		//first clear the map.
@@ -755,9 +755,7 @@ void myDisplay() {
 			int valfx = floor(valx)+20;
 			int valfy = floor(valy)+20;
 			int valfz = floor(valz)+20;
-			// cout << valfx << " " << valfy << endl;
 			xMap.at(valfx).at(valfy).at(valfz).push_back(k);
-			// cout << "didn't get here" << endl;
 		}		
 	}
 	

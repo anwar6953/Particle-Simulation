@@ -101,7 +101,6 @@ plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4, bool approx){
     pt2 = p2;
     pt3 = p3;
     pt4 = p4;
-	cout << approx << endl;
 	if (approx){
 	apt1 = floorPt(pt1);
 	apt2 = floorPt(pt2);
