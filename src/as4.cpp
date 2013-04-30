@@ -148,6 +148,40 @@ void appendToFile(string fnameParam, string toAppend){
 
 //{ Global Variables
 //{ Other
+#include <sys/timeb.h>
+int startTime;
+void resetTimer(){
+	timeb tb;
+	ftime(&tb);
+	startTime = tb.millitm + (tb.time & 0xfffff) * 1000;
+}
+int getMilliCount2(){
+	timeb tb;
+	ftime(&tb);
+	return tb.millitm + (tb.time & 0xfffff) * 1000;
+}
+void getTimer(){
+	int nSpan = getMilliCount2()-startTime;
+	if(nSpan < 0)
+		nSpan += 0x100000 * 1000;
+	printf("Elapsed time = %u milliseconds\n", nSpan);
+}
+struct timeval tvi;
+struct timeval tvf;
+struct timezone tz;
+void rT()
+{
+     gettimeofday(&tvi, &tz);
+     localtime(&tvi.tv_sec);
+}	
+void gT(){
+     gettimeofday(&tvf, &tz);
+     localtime(&tvf.tv_sec);
+     cout << 1000000*(tvf.tv_sec - tvi.tv_sec)+(tvf.tv_usec-tvi.tv_usec) << endl;
+}
+
+void globals(){
+}
 Viewport viewport;
 GLfloat light_diffuse[] = {1.0, 1.0, 1.0};  /* white diffuse light. */
 GLfloat light_ambient[] = {0.1, 0.1, 0.1};  /* white ambient light. */
@@ -221,9 +255,10 @@ switch (button)
 	  // cout << xx << " " << yy << endl;
 	  for (int i = 0; i < numSpheresPerClick; i++){
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
+      //The following is colorful (random).
       listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
 	  }
-	  //The following is colorful (random).
+	  
 	
 	
     } break;
@@ -279,8 +314,6 @@ void myKybdHndlr(int key, int x, int y){
 void sparse(string s){
 	if (s == "clear")
 		listOfSpheres.clear();
-		
-	
 }
 void myKybdHndlr(unsigned char key, int x, int y){
 	//cout << (int) key << endl;
@@ -288,6 +321,7 @@ void myKybdHndlr(unsigned char key, int x, int y){
 	if (key == '1'){
 		timeStp*=0.5;
 		cout << "timestep is now " << timeStp << endl;
+
 	}
  
 	if (key == '2'){
@@ -399,7 +433,7 @@ void initScene() {
 	glShadeModel(GL_SMOOTH);
 
 	float width = 2;
-	bool box = 1;
+	bool box = 0;
 	if(pool){
 		float hwidth = 2;
 		float hlength = 4;
@@ -442,12 +476,13 @@ void initScene() {
     }
 	
 
-    int numCubed = 0;
+    int numCubed = 12;
+    float dist = 0.2;
 	if (loadFromFile) numCubed = 0;
     for (int i = 0; i < numCubed; i++) {
         for (int j = 0; j < numCubed; j++){
             for (int k = 0; k < numCubed; k++){
-                listOfSpheres.push_back(sphere(Vect3(i,j,k),Vect3(0,0,0),0.2));
+                listOfSpheres.push_back(sphere(Vect3(i*dist,j*dist,k*dist),Vect3(0,0,0),0.05));
             }
         }
     }
@@ -709,6 +744,7 @@ void preRender(){
 	
 }
 void myDisplay() {
+	rT();
 	if (paused)
 		return;
     //{ Buffers and Matrices:
@@ -746,7 +782,7 @@ void myDisplay() {
     if ((counter % 50)==49){
 		time_t finalTime;
 		time(&finalTime);
-		 cout << (float) counter/(finalTime - initTime) << endl;
+		 //cout << (float) counter/(finalTime - initTime) << endl;
 
     }
     counter++;
@@ -754,8 +790,9 @@ void myDisplay() {
 
 		
 	// vector<vector<vector<vector<int> > > > xMap;
-	float numDivs = 4;
+	float numDivs = 20;
 	vector<vector< vector< vector<int> > > > xMap ( numDivs+1, vector<vector<vector<int> > >(numDivs+1, vector<vector<int> >(numDivs+1, vector<int>(0, 0))));
+
 	float range = 7;
 	if (alisCrack){
 		for (int k = 0; k < listOfSpheres.size(); k++) {
@@ -768,11 +805,10 @@ void myDisplay() {
 			int valfx = floor(valx)+numDivs/2;
 			int valfy = floor(valy)+numDivs/2;
 			int valfz = floor(valz)+numDivs/2;
-			cout << valfx << " " << valfy << " " << valfz << endl;
+			//cout << valfx << " " << valfy << " " << valfz << endl;
 			xMap.at(valfx).at(valfy).at(valfz).push_back(k);
 		}		
 	}
-	
     for (int k = 0; k < listOfSpheres.size(); k++) {
         sphere& s1 = listOfSpheres[k];
 
@@ -873,7 +909,6 @@ void myDisplay() {
         s1.render();
 		//glDisable(GL_COLOR_MATERIAL);
     }
-
 	for (int j = 0; j < listOfPlanes.size(); j++) {
         plane p = listOfPlanes[j];
 		if (p.isRect){
