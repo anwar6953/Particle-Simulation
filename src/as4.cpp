@@ -52,6 +52,7 @@ bool openGLrender = 1;
 bool dragOn = 0;
 bool gravityOn = 0;
 bool downwardGravity = 1;
+float downwardC = 0.00001;
 
 bool pool = 0;
 
@@ -148,38 +149,45 @@ void appendToFile(string fnameParam, string toAppend){
 
 //{ Global Variables
 //{ Other
-//#include <sys/timeb.h>
+#include <sys/timeb.h>
 int startTime;
-//void resetTimer(){
-//	timeb tb;
-//	ftime(&tb);
-//	startTime = tb.millitm + (tb.time & 0xfffff) * 1000;
-//}
-//int getMilliCount2(){
-//	timeb tb;
-//	ftime(&tb);
-//	return tb.millitm + (tb.time & 0xfffff) * 1000;
-//}
-//void getTimer(){
-//	int nSpan = getMilliCount2()-startTime;
-//	if(nSpan < 0)
-//		nSpan += 0x100000 * 1000;
-//	printf("Elapsed time = %u milliseconds\n", nSpan);
-//}
-//struct timeval tvi;
-//struct timeval tvf;
-//struct timezone tz;
-//long runningT = 0;
-//void rT()
-//{
-//     gettimeofday(&tvi, &tz);
-//     localtime(&tvi.tv_sec);
-//}	
-//long gT(){
-//     gettimeofday(&tvf, &tz);
-//     localtime(&tvf.tv_sec);
-//	return 1000000*(tvf.tv_sec - tvi.tv_sec)+(tvf.tv_usec-tvi.tv_usec);
-//}
+void resetTimer(){
+	timeb tb;
+	ftime(&tb);
+	startTime = tb.millitm + (tb.time & 0xfffff) * 1000;
+}
+int getMilliCount2(){
+	timeb tb;
+	ftime(&tb);
+	return tb.millitm + (tb.time & 0xfffff) * 1000;
+}
+void getTimer(){
+	int nSpan = getMilliCount2()-startTime;
+	if(nSpan < 0)
+		nSpan += 0x100000 * 1000;
+	printf("Elapsed time = %u milliseconds\n", nSpan);
+}
+struct timeval tvi1;
+struct timeval tvi2;
+struct timeval tvi3;
+struct timeval tvi4;
+struct timeval tvi5;
+struct timeval tvf;
+struct timezone tz;
+int running1 = 0;
+int running2 = 0;
+int running3 = 0;
+int running4 = 0;
+int running5 = 0;
+void rT(timeval & t){
+    gettimeofday(&t, &tz);
+    localtime(&t.tv_sec);
+}	
+int gT(timeval & t){
+    gettimeofday(&tvf, &tz);
+    localtime(&tvf.tv_sec);
+	return (int)(1000000*(tvf.tv_sec - t.tv_sec)+(tvf.tv_usec-t.tv_usec));
+}
 
 void globals(){
 }
@@ -320,9 +328,11 @@ void myKybdHndlr(unsigned char key, int x, int y){
 	//cout << (int) key << endl;
 
 	if (key == '1'){
-		timeStp*=0.5;
-		cout << "timestep is now " << timeStp << endl;
-		cout << runningT << endl;
+		// timeStp*=0.5;
+		// cout << "timestep is now " << timeStp << endl;
+		cout << running1 << endl;
+		cout << running2 << endl;
+		cout << counter << endl;
 	}
  
 	if (key == '2'){
@@ -477,7 +487,7 @@ void initScene() {
     }
 	
 
-    int numCubed = 0;
+    int numCubed = 10;
     float dist = 0.2;
 	if (loadFromFile) numCubed = 0;
     for (int i = 0; i < numCubed; i++) {
@@ -706,7 +716,7 @@ void preRender(){
 
         // gravity loop
 		if (downwardGravity)
-			s1.vel.y -= 0.00001;
+			s1.vel.y -= downwardC;
         if (gravityOn)
             for (int j = 0; j < listOfSpheres.size(); j++){
                 if (j == k){ continue; }
@@ -750,6 +760,11 @@ void preRender(){
 	
 }
 void myDisplay() {
+	// rT(tvi2);
+	// rT(tvi1);
+	// running1 += gT(tvi1);
+	// running2 += gT(tvi2);
+
 	if (paused)
 		return;
     //{ Buffers and Matrices:
@@ -795,7 +810,7 @@ void myDisplay() {
 
 		
 	// vector<vector<vector<vector<int> > > > xMap;
-	float numDivs = 1;
+	float numDivs = 70;
 	vector<vector< vector< vector<int> > > > xMap ( numDivs+1, vector<vector<vector<int> > >(numDivs+1, vector<vector<int> >(numDivs+1, vector<int>(0, 0))));
 
 	float range = 7;
@@ -823,10 +838,8 @@ void myDisplay() {
 
 
         // gravity loop
-	//rT();
 		if (downwardGravity)
-			s1.vel.y -= 0.00001*timeStp;
-	//runningT += gT();
+			s1.vel.y -= downwardC*timeStp;
 
         if (gravityOn)
             for (int j = 0; j < listOfSpheres.size(); j++){
@@ -967,7 +980,6 @@ void myDisplay() {
 	}
     glFlush();
     glutSwapBuffers();					// swap buffers (we earlier set double buffer)
-
 }
 //}
 
