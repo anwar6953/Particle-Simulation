@@ -148,39 +148,38 @@ void appendToFile(string fnameParam, string toAppend){
 
 //{ Global Variables
 //{ Other
-#include <sys/timeb.h>
+//#include <sys/timeb.h>
 int startTime;
-void resetTimer(){
-	timeb tb;
-	ftime(&tb);
-	startTime = tb.millitm + (tb.time & 0xfffff) * 1000;
-}
-int getMilliCount2(){
-	timeb tb;
-	ftime(&tb);
-	return tb.millitm + (tb.time & 0xfffff) * 1000;
-}
-void getTimer(){
-	int nSpan = getMilliCount2()-startTime;
-	if(nSpan < 0)
-		nSpan += 0x100000 * 1000;
-	printf("Elapsed time = %u milliseconds\n", nSpan);
-}
-struct timeval tvi;
-struct timeval tvf;
-struct timezone tz;
-long runningT = 0;
-void rT()
-{
-     gettimeofday(&tvi, &tz);
-     localtime(&tvi.tv_sec);
-}	
-long gT(){
-     gettimeofday(&tvf, &tz);
-     localtime(&tvf.tv_sec);
-//     cout << 1000000*(tvf.tv_sec - tvi.tv_sec)+(tvf.tv_usec-tvi.tv_usec) << endl;
-	return 1000000*(tvf.tv_sec - tvi.tv_sec)+(tvf.tv_usec-tvi.tv_usec);
-}
+//void resetTimer(){
+//	timeb tb;
+//	ftime(&tb);
+//	startTime = tb.millitm + (tb.time & 0xfffff) * 1000;
+//}
+//int getMilliCount2(){
+//	timeb tb;
+//	ftime(&tb);
+//	return tb.millitm + (tb.time & 0xfffff) * 1000;
+//}
+//void getTimer(){
+//	int nSpan = getMilliCount2()-startTime;
+//	if(nSpan < 0)
+//		nSpan += 0x100000 * 1000;
+//	printf("Elapsed time = %u milliseconds\n", nSpan);
+//}
+//struct timeval tvi;
+//struct timeval tvf;
+//struct timezone tz;
+//long runningT = 0;
+//void rT()
+//{
+//     gettimeofday(&tvi, &tz);
+//     localtime(&tvi.tv_sec);
+//}	
+//long gT(){
+//     gettimeofday(&tvf, &tz);
+//     localtime(&tvf.tv_sec);
+//	return 1000000*(tvf.tv_sec - tvi.tv_sec)+(tvf.tv_usec-tvi.tv_usec);
+//}
 
 void globals(){
 }
@@ -824,10 +823,10 @@ void myDisplay() {
 
 
         // gravity loop
-	rT();
+	//rT();
 		if (downwardGravity)
 			s1.vel.y -= 0.00001*timeStp;
-	runningT += gT();
+	//runningT += gT();
 
         if (gravityOn)
             for (int j = 0; j < listOfSpheres.size(); j++){
