@@ -40,15 +40,17 @@ class plane : public Shape {
  public:
     plane();
     plane(float, float, float, float);
-    plane(Vect3, Vect3, Vect3, Vect3);
+    plane(Vect3, Vect3, Vect3, Vect3, bool);
 	plane(float, float, float, float, Vect3);
-    plane(Vect3, Vect3, Vect3, Vect3, Vect3);
+    plane(Vect3, Vect3, Vect3, Vect3, Vect3, bool);
     Vect3 center;
     Vect3 pt1,pt2,pt3,pt4;
+    Vect3 apt1,apt2,apt3,apt4;
     Vect3 n;
 	Vect3 color;
     float a,b,c,d;
     float isRect;
+	bool approx;
     void render();
     int myType();
 };

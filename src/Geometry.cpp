@@ -73,7 +73,25 @@ plane::plane(float ap, float bp, float cp, float dp, Vect3 cl){
 	isRect = 0;
 	color = cl;
 }
-plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4){
+Vect3 floorPt(Vect3 pt){
+	float newx;
+	float newy;
+	float newz;
+	if (pt.x < 0)
+		newx = -floor(-pt.x);
+	else
+		newx = floor(pt.x);
+	if (pt.y < 0)
+		newy = -floor(-pt.y);
+	else
+		newy = floor(pt.y);
+	if (pt.z < 0)
+		newz = -floor(-pt.z);
+	else
+		newz = floor(pt.z);
+	return Vect3(newx,newy,newz);
+}
+plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4, bool approx){
 	Vect3 tmpNormal = normalize((p2-p1) ^ (p4-p1));
     a = tmpNormal.x;
     b = tmpNormal.y;
@@ -84,6 +102,18 @@ plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4){
     pt2 = p2;
     pt3 = p3;
     pt4 = p4;
+	if (approx){
+	apt1 = floorPt(pt1);
+	apt2 = floorPt(pt2);
+	apt3 = floorPt(pt3);
+	apt4 = floorPt(pt4);
+	}
+	else {
+	apt1 = pt1;
+	apt2 = pt2;
+	apt3 = pt3;
+	apt4 = pt4;
+	}
     d = -a * pt1.x - b*pt1.y - c*pt1.z;
 	center = (pt1 + pt3) * 0.5;
 	
@@ -92,7 +122,7 @@ plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4){
 	float c3 = ((float)rand())/RAND_MAX;
 	color = Vect3(c1,c2,c3);
 }
-plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4, Vect3 cl){
+plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4, Vect3 cl, bool approx){
 	Vect3 tmpNormal = normalize((p2-p1) ^ (p4-p1));
     a = tmpNormal.x;
     b = tmpNormal.y;
@@ -103,25 +133,39 @@ plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4, Vect3 cl){
     pt2 = p2;
     pt3 = p3;
     pt4 = p4;
+	if (approx){
+	apt1 = floorPt(pt1);
+	apt2 = floorPt(pt2);
+	apt3 = floorPt(pt3);
+	apt4 = floorPt(pt4);
+	}
+	else {
+	apt1 = pt1;
+	apt2 = pt2;
+	apt3 = pt3;
+	apt4 = pt4;
+	}
     d = -a * pt1.x - b*pt1.y - c*pt1.z;
 	center = (pt1 + pt3) * 0.5;
 
 	color = cl;
 }
 void plane::render(){
-    glBegin(GL_QUADS);
-
-    glVertex3f(pt1.x,pt1.y,pt1.z);
-
-    glVertex3f(pt2.x,pt2.y,pt2.z);
-
-    glVertex3f(pt3.x,pt3.y,pt3.z);
-
-    glVertex3f(pt4.x,pt4.y,pt4.z);
+	if (isRect){
+		glBegin(GL_QUADS);
 	
-    glNormal3f(n.x,n.y,n.z);
-    
-    glEnd();
+		glVertex3f(apt1.x,apt1.y,apt1.z);
+	
+		glVertex3f(apt2.x,apt2.y,apt2.z);
+	
+		glVertex3f(apt3.x,apt3.y,apt3.z);
+	
+		glVertex3f(apt4.x,apt4.y,apt4.z);
+		
+		glNormal3f(n.x,n.y,n.z);
+		
+		glEnd();
+	}
 }
 int plane::myType() {
     return 1;
