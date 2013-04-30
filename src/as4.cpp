@@ -59,10 +59,11 @@ bool pool = 0;
 bool removeSpheres = 1;
 float bound = 6;
 
-
+int numSpheresPerClick = 500;
 float timeStp = 1;
 float defMass = 1;
 float defRadius = 0.02;
+//float defRadius = 0.2;
 //special case means all the spheres have same radii value.
 bool specialCase = 1;
 float rSqrd = (2*defRadius)*(2*defRadius);
@@ -188,7 +189,6 @@ float zLookAt = -1;
 
 //}
 
-// map<int,vector<int> > xMap;
 bool alisCrack = 0;
 //}
 
@@ -218,7 +218,7 @@ switch (button)
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),Vect3(0.02*r,0.02*r,0),0.2)); //RANDOM vel dir.
 	  
 	  // cout << xx << " " << yy << endl;
-	  for (int i = 0; i < 10; i++){
+	  for (int i = 0; i < numSpheresPerClick; i++){
       // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
       listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
 	  }
@@ -726,9 +726,9 @@ void myDisplay() {
     fDataCounter++;
 
 		
-	// vector<vector<vector<int> > > xMap;
-	vector<vector< vector< vector<int> > > > xMap ( 40, vector<vector<vector<int> > >(40, vector<vector<int> >(40, vector<int>(0, 0))));
-	// map<int,vector<int> >::iterator it;
+	vector<vector<vector<vector<int> > > > xMap;
+	//vector<vector< vector< vector<int> > > > xMap ( 40, vector<vector<vector<int> > >(40, vector<vector<int> >(40, vector<int>(0, 0))));
+	
 	if (alisCrack){
 		//first clear the map.
 		//pos.x should range from -7.0f to 7.0f
