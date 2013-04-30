@@ -593,7 +593,8 @@ void nodeNeighborTest(sphere * sph) {
     cnt += nextWall;
 
     margin = center.z + radius;
-    wallIntersect[5] = margin > myNode->LR.z;
+    nextWall = margin > myNode->LR.z;
+    wallIntersect[5] = nextWall;
     cnt += nextWall;
     
     if (cnt == 0) intersectNode(myNode); 
@@ -613,6 +614,7 @@ void nodeNeighborTest(sphere * sph) {
 }
 
 void intersectNode(KDtree * node) {
+    //TODO: apply collide over all the spheres in the node. default is to render for debugging.
     node->render();
 }
 
@@ -623,8 +625,8 @@ void recoverNav(bool * wallIntersect, char * sign, char * axis) {
 	if (wallIntersect[i]) {
 	    sign[index] = (i % 2 == 0) ? '-' : '+';
 
-	    i = i / 2;
-	    switch(i) {
+	    int j = i / 2;
+	    switch(j) {
 	    case 0:
 		axis[index] = 'x';
 		break;
