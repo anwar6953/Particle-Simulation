@@ -59,7 +59,7 @@ bool pool = 0;
 bool removeSpheres = 1;
 float bound = 6;
 
-int numSpheresPerClick = 100;
+int numSpheresPerClick = 10;
 float timeStp = 1;
 float defMass = 0.1;
 float defRadius = 0.06;
@@ -169,15 +169,17 @@ void getTimer(){
 struct timeval tvi;
 struct timeval tvf;
 struct timezone tz;
+long runningT = 0;
 void rT()
 {
      gettimeofday(&tvi, &tz);
      localtime(&tvi.tv_sec);
 }	
-void gT(){
+long gT(){
      gettimeofday(&tvf, &tz);
      localtime(&tvf.tv_sec);
-     cout << 1000000*(tvf.tv_sec - tvi.tv_sec)+(tvf.tv_usec-tvi.tv_usec) << endl;
+//     cout << 1000000*(tvf.tv_sec - tvi.tv_sec)+(tvf.tv_usec-tvi.tv_usec) << endl;
+	return 1000000*(tvf.tv_sec - tvi.tv_sec)+(tvf.tv_usec-tvi.tv_usec);
 }
 
 void globals(){
@@ -321,7 +323,7 @@ void myKybdHndlr(unsigned char key, int x, int y){
 	if (key == '1'){
 		timeStp*=0.5;
 		cout << "timestep is now " << timeStp << endl;
-
+		cout << runningT << endl;
 	}
  
 	if (key == '2'){
@@ -476,7 +478,7 @@ void initScene() {
     }
 	
 
-    int numCubed = 12;
+    int numCubed = 0;
     float dist = 0.2;
 	if (loadFromFile) numCubed = 0;
     for (int i = 0; i < numCubed; i++) {
@@ -491,7 +493,12 @@ void initScene() {
 
 
 }
+void removeSphere(int x){
+sphere& s = listOfSpheres[x];
 
+
+	listOfSpheres.erase(listOfSpheres.begin()+x);
+}
 
 void collide(sphere& s1, sphere& s2){
     //**************************************************************
@@ -744,7 +751,6 @@ void preRender(){
 	
 }
 void myDisplay() {
-	rT();
 	if (paused)
 		return;
     //{ Buffers and Matrices:
@@ -790,7 +796,7 @@ void myDisplay() {
 
 		
 	// vector<vector<vector<vector<int> > > > xMap;
-	float numDivs = 20;
+	float numDivs = 1;
 	vector<vector< vector< vector<int> > > > xMap ( numDivs+1, vector<vector<vector<int> > >(numDivs+1, vector<vector<int> >(numDivs+1, vector<int>(0, 0))));
 
 	float range = 7;
@@ -818,8 +824,11 @@ void myDisplay() {
 
 
         // gravity loop
+	rT();
 		if (downwardGravity)
 			s1.vel.y -= 0.00001*timeStp;
+	runningT += gT();
+
         if (gravityOn)
             for (int j = 0; j < listOfSpheres.size(); j++){
                 if (j == k){ continue; }
@@ -944,22 +953,17 @@ void myDisplay() {
     }
 
 	if (removeSpheres){
+		bool erase;
 		for (int j = 0; j < listOfSpheres.size();) {
 			Vect3 pos = listOfSpheres[j].pos;
-			if (pos.x > bound)
-				listOfSpheres.erase(listOfSpheres.begin()+j);
-			else if (pos.x < -bound)
-				listOfSpheres.erase(listOfSpheres.begin()+j);
-			else if (pos.y > bound)
-				listOfSpheres.erase(listOfSpheres.begin()+j);
-			else if (pos.y < -bound)
-				listOfSpheres.erase(listOfSpheres.begin()+j);
-			else if (pos.z > bound)
-				listOfSpheres.erase(listOfSpheres.begin()+j);
-			else if (pos.z < -bound)
-				listOfSpheres.erase(listOfSpheres.begin()+j);
+			erase = 0;
+			if ((pos.x > bound)||(pos.x < -bound)||(pos.y > bound)
+			||(pos.y < -bound)||(pos.z > bound)||(pos.z < -bound))
+				erase = 1;
 			else
 				j++;
+			if (erase)
+				removeSphere(j);
 		}
 	}
     glFlush();
