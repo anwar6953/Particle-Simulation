@@ -59,13 +59,13 @@ bool pool = 0;
 bool removeSpheres = 1;
 float bound = 6;
 
-int numSpheresPerClick = 1;
+int numSpheresPerClick = 100;
 float timeStp = 1;
-float defMass = 1;
-// float defRadius = 0.02;
-float defRadius = 0.2;
+float defMass = 0.1;
+float defRadius = 0.06;
+//float defRadius = 0.2;
 //special case means all the spheres have same radii value.
-bool specialCase = 1;
+bool specialCase = 0;
 float rSqrd = (2*defRadius)*(2*defRadius);
 //}
 
@@ -166,6 +166,7 @@ bool paused = 0;
 time_t initTime;  //for performance uses.
 vector<vector<Vect3> > fData; //The pre-rendered data from file.
 string globalToAppend = "";
+string globalTyping = "";
 //}
 
 //{ Defaults for rotations, translations, zooms:
@@ -233,7 +234,6 @@ switch (button)
 
 }
 void myKybdHndlr(int key, int x, int y){
-
     if (key == GLUT_KEY_UP)
         if (glutGetModifiers() == GLUT_ACTIVE_SHIFT)
             transY += transAmt;
@@ -276,7 +276,15 @@ void myKybdHndlr(int key, int x, int y){
 
     glutPostRedisplay ();
 }
+void sparse(string s){
+	if (s == "clear")
+		listOfSpheres.clear();
+		
+	
+}
 void myKybdHndlr(unsigned char key, int x, int y){
+	//cout << (int) key << endl;
+
 	if (key == '1'){
 		timeStp*=0.5;
 		cout << "timestep is now " << timeStp << endl;
@@ -290,7 +298,7 @@ void myKybdHndlr(unsigned char key, int x, int y){
 	if (key == 'p')
 		paused = !paused;
 	
-	if (key == ' '){  // SPACE key
+	if ((int) key == 27){  // ESC key.
 		appendToFile(fname,globalToAppend);
         exit(0);
 	}
@@ -299,8 +307,17 @@ void myKybdHndlr(unsigned char key, int x, int y){
 
     else if (key == '-')
         transZ -= zoomAmt;
-    else
+        
+    else if ((int) key == 13){
+		//cout << "enter pressed. The globalTyping var was: "<< globalTyping << endl;
+		sparse(globalTyping);
+		globalTyping = "";
+	}
+    else{
+		globalTyping += key;
         return;
+        
+	}
 
     glutPostRedisplay ();
 }
@@ -729,7 +746,7 @@ void myDisplay() {
     if ((counter % 50)==49){
 		time_t finalTime;
 		time(&finalTime);
-		// cout << (float) counter/(finalTime - initTime) << endl;
+		 cout << (float) counter/(finalTime - initTime) << endl;
 
     }
     counter++;
@@ -737,24 +754,21 @@ void myDisplay() {
 
 		
 	// vector<vector<vector<vector<int> > > > xMap;
-	vector<vector< vector< vector<int> > > > xMap ( 40, vector<vector<vector<int> > >(40, vector<vector<int> >(40, vector<int>(0, 0))));
-	
+	float numDivs = 4;
+	vector<vector< vector< vector<int> > > > xMap ( numDivs+1, vector<vector<vector<int> > >(numDivs+1, vector<vector<int> >(numDivs+1, vector<int>(0, 0))));
+	float range = 7;
 	if (alisCrack){
-		//first clear the map.
-		//pos.x should range from -7.0f to 7.0f
-		//therefore, val should range from -35.0f to 35.0f.
-		//We are therefore dividing into about 70 sections.
-		//val2 is the sphere's key into the map.
 		for (int k = 0; k < listOfSpheres.size(); k++) {
 			float valx = listOfSpheres[k].pos.x;
 			float valy = listOfSpheres[k].pos.y;
 			float valz = listOfSpheres[k].pos.z;
-			valx *= 2.5;
-			valy *= 2.5;
-			valz *= 2.5;
-			int valfx = floor(valx)+20;
-			int valfy = floor(valy)+20;
-			int valfz = floor(valz)+20;
+			valx *= (numDivs) / (range*2);
+			valy *= (numDivs) / (range*2);
+			valz *= (numDivs) / (range*2);
+			int valfx = floor(valx)+numDivs/2;
+			int valfy = floor(valy)+numDivs/2;
+			int valfz = floor(valz)+numDivs/2;
+			cout << valfx << " " << valfy << " " << valfz << endl;
 			xMap.at(valfx).at(valfy).at(valfz).push_back(k);
 		}		
 	}
@@ -784,12 +798,12 @@ void myDisplay() {
 			float valx = s1.pos.x;
 			float valy = s1.pos.y;
 			float valz = s1.pos.z;
-			valx *= 2.5;
-			valy *= 2.5;
-			valz *= 2.5;
-			int valfx = floor(valx)+20;
-			int valfy = floor(valy)+20;
-			int valfz = floor(valz)+20;
+			valx *= (numDivs) / (range*2);
+			valy *= (numDivs) / (range*2);
+			valz *= (numDivs) / (range*2);
+			int valfx = floor(valx)+numDivs/2;
+			int valfy = floor(valy)+numDivs/2;
+			int valfz = floor(valz)+numDivs/2;
 			// cout << "yes " << valfx << " " << valfy << endl;
 			vector<int> thisVector = xMap.at(valfx).at(valfy).at(valfz);
 			// cout << "no" << endl;
