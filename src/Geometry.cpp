@@ -32,6 +32,7 @@ extern int prevCounter;
 // forward Declaration
 // *****************************
 void appendToFile(string fnameParam, string toAppend);
+void bindLeaf(KDtree * primary, KDtree * secondary, char type);
 
 // *****************************
 // plane Implementation
@@ -381,6 +382,26 @@ void KDtree::getDivisions() {
 	localTree = localTree->leftChild;
     }
 }
+
+void bindLeaf(KDtree * primary, KDtree * secondary, char type) {
+    switch(type) {
+    case 'd':
+	primary->prevY = secondary;
+	secondary->nextY = primary;
+	break;
+    case 'r':
+	//	cout << primary->UL.printMe() << ", " << primary->LR.printMe() << endl;
+	//	cout << secondary->UL.printMe() << ", " << secondary->LR.printMe() << endl << endl;
+	primary->nextX = secondary;
+	secondary->prevX = primary;
+	break;
+    case 'b':
+	primary->nextZ = secondary;
+	secondary->prevZ = primary;
+	break;
+    }
+}
+
 void KDtree::constructWeb() {
     getDivisions();
     int cnt = 0;
@@ -392,12 +413,26 @@ void KDtree::constructWeb() {
     for (float i = 0.5 * incrX; i < lenX; i += incrX)
 	for (float j = 0.5 * incrY; j < lenY; j += incrY)
 	    for (float k = 0.5 * incrZ; k < lenZ; k += incrZ) {
-		Vect3 local(startX + i, startY + j, startZ + k);
+
+		Vect3 posOrig  (startX + i        , startY - j        , startZ + k         );
+		Vect3 posBack  (startX + i        , startY - j        , startZ + k + incrZ );
+		Vect3 posRight (startX + i + incrX, startY - j        , startZ + k         );
+		Vect3 posDown  (startX + i        , startY - j - incrY, startZ + k         );
+
+		KDtree * localOrig = getNode(posOrig);
+		//cout << localOrig->UL.printMe() << ", " << localOrig->LR.printMe();
+		KDtree * localBack = getNode(posBack);
+		KDtree * localRight = getNode(posRight);
+		KDtree * localDown = getNode(posDown);
+
+		if (k < lenZ - incrZ) bindLeaf(localOrig, localBack, 'b');
+		if (i < lenX - incrX) bindLeaf(localOrig, localRight, 'r');
+		if (j < lenY - incrY) bindLeaf(localOrig, localDown, 'd');
+
 		cnt++;
-	    }
+	    } //end loop
     cout << "we got " << cnt << endl;
     cout << "should have " << leafCount << endl;
-
 }
 void KDtree::printMe(int depth) {
     cout << string(depth, '-') << "leaf? " << isLeaf << 
@@ -408,7 +443,7 @@ void KDtree::printMe(int depth) {
         rightChild->printMe(depth + 1);
     }
 }
-KDtree * KDtree::getNode(Vect3 point) {
+KDtree * KDtree::getNode(Vect3 & point) {
     KDtree * local = this;
     char localAxis = local->axisSplit;
     while (local->isLeaf == false) {
