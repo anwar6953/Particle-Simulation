@@ -390,8 +390,6 @@ void bindLeaf(KDtree * primary, KDtree * secondary, char type) {
 	secondary->nextY = primary;
 	break;
     case 'r':
-	//	cout << primary->UL.printMe() << ", " << primary->LR.printMe() << endl;
-	//	cout << secondary->UL.printMe() << ", " << secondary->LR.printMe() << endl << endl;
 	primary->nextX = secondary;
 	secondary->prevX = primary;
 	break;
@@ -403,8 +401,9 @@ void bindLeaf(KDtree * primary, KDtree * secondary, char type) {
 }
 
 void KDtree::constructWeb() {
+
     getDivisions();
-    int cnt = 0;
+
     float startX(UL.x), startY(UL.y), startZ(UL.z);
     float lenX(abs(LR.x - startX)), lenY(abs(LR.y - startY)), lenZ(abs(LR.z - startZ));
     float x(this->divX * 1.0f), y(this->divY * 1.0f), z(this->divZ * 1.0f);
@@ -420,7 +419,6 @@ void KDtree::constructWeb() {
 		Vect3 posDown  (startX + i        , startY - j - incrY, startZ + k         );
 
 		KDtree * localOrig = getNode(posOrig);
-		//cout << localOrig->UL.printMe() << ", " << localOrig->LR.printMe();
 		KDtree * localBack = getNode(posBack);
 		KDtree * localRight = getNode(posRight);
 		KDtree * localDown = getNode(posDown);
@@ -428,11 +426,7 @@ void KDtree::constructWeb() {
 		if (k < lenZ - incrZ) bindLeaf(localOrig, localBack, 'b');
 		if (i < lenX - incrX) bindLeaf(localOrig, localRight, 'r');
 		if (j < lenY - incrY) bindLeaf(localOrig, localDown, 'd');
-
-		cnt++;
 	    } //end loop
-    cout << "we got " << cnt << endl;
-    cout << "should have " << leafCount << endl;
 }
 void KDtree::printMe(int depth) {
     cout << string(depth, '-') << "leaf? " << isLeaf << 
