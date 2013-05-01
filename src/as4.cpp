@@ -60,10 +60,10 @@ bool pool = 0;
 bool removeSpheres = 1;
 float bound = 6;
 
-int numSpheresPerClick = 10;
+int numSpheresPerClick = 500;
 float timeStp = 1;
 float defMass = 0.1;
-float defRadius = 0.06;
+float defRadius = 0.08;
 //float defRadius = 0.2;
 //special case means all the spheres have same radii value.
 bool specialCase = 0;
@@ -149,48 +149,46 @@ void appendToFile(string fnameParam, string toAppend){
 
 //{ Global Variables
 //{ Other
-#include <sys/timeb.h>
-int startTime;
-void resetTimer(){
-	timeb tb;
-	ftime(&tb);
-	startTime = tb.millitm + (tb.time & 0xfffff) * 1000;
-}
-int getMilliCount2(){
-	timeb tb;
-	ftime(&tb);
-	return tb.millitm + (tb.time & 0xfffff) * 1000;
-}
-void getTimer(){
-	int nSpan = getMilliCount2()-startTime;
-	if(nSpan < 0)
-		nSpan += 0x100000 * 1000;
-	printf("Elapsed time = %u milliseconds\n", nSpan);
-}
-struct timeval tvi1;
-struct timeval tvi2;
-struct timeval tvi3;
-struct timeval tvi4;
-struct timeval tvi5;
-struct timeval tvf;
-struct timezone tz;
-int running1 = 0;
-int running2 = 0;
-int running3 = 0;
-int running4 = 0;
-int running5 = 0;
-void rT(timeval & t){
-    gettimeofday(&t, &tz);
-    localtime(&t.tv_sec);
-}	
-int gT(timeval & t){
-    gettimeofday(&tvf, &tz);
-    localtime(&tvf.tv_sec);
-	return (int)(1000000*(tvf.tv_sec - t.tv_sec)+(tvf.tv_usec-t.tv_usec));
-}
+// #include <sys/timeb.h>
+// int startTime;
+// void resetTimer(){
+	// timeb tb;
+	// ftime(&tb);
+	// startTime = tb.millitm + (tb.time & 0xfffff) * 1000;
+// }
+// int getMilliCount2(){
+	// timeb tb;
+	// ftime(&tb);
+	// return tb.millitm + (tb.time & 0xfffff) * 1000;
+// }
+// void getTimer(){
+	// int nSpan = getMilliCount2()-startTime;
+	// if(nSpan < 0)
+		// nSpan += 0x100000 * 1000;
+	// printf("Elapsed time = %u milliseconds\n", nSpan);
+// }
+// struct timeval tvi1;
+// struct timeval tvi2;
+// struct timeval tvi3;
+// struct timeval tvi4;
+// struct timeval tvi5;
+// struct timeval tvf;
+// struct timezone tz;
+// int running1 = 0;
+// int running2 = 0;
+// int running3 = 0;
+// int running4 = 0;
+// int running5 = 0;
+// void rT(timeval & t){
+    // gettimeofday(&t, &tz);
+    // localtime(&t.tv_sec);
+// }	
+// int gT(timeval & t){
+    // gettimeofday(&tvf, &tz);
+    // localtime(&tvf.tv_sec);
+	// return (int)(1000000*(tvf.tv_sec - t.tv_sec)+(tvf.tv_usec-t.tv_usec));
+// }
 
-void globals(){
-}
 Viewport viewport;
 GLfloat light_diffuse[] = {1.0, 1.0, 1.0};  /* white diffuse light. */
 GLfloat light_ambient[] = {0.1, 0.1, 0.1};  /* white ambient light. */
@@ -324,15 +322,16 @@ void sparse(string s){
 	if (s == "clear")
 		listOfSpheres.clear();
 }
+
 void myKybdHndlr(unsigned char key, int x, int y){
 	//cout << (int) key << endl;
 
 	if (key == '1'){
 		// timeStp*=0.5;
 		// cout << "timestep is now " << timeStp << endl;
-		cout << running1 << endl;
+		cout << (float)running1/running2 << endl;
 		cout << running2 << endl;
-		cout << counter << endl;
+		// cout << counter << endl;
 	}
  
 	if (key == '2'){
@@ -488,12 +487,12 @@ void initScene() {
 	
 
     int numCubed = 10;
-    float dist = 0.2;
+    float dist = 0.4;
 	if (loadFromFile) numCubed = 0;
     for (int i = 0; i < numCubed; i++) {
         for (int j = 0; j < numCubed; j++){
             for (int k = 0; k < numCubed; k++){
-                listOfSpheres.push_back(sphere(Vect3(i*dist,j*dist,k*dist),Vect3(0,0,0),0.05));
+                listOfSpheres.push_back(sphere(Vect3(i*dist-2,j*dist-2,k*dist-2),Vect3(0,0,0),0.05));
             }
         }
     }
@@ -759,11 +758,18 @@ void preRender(){
 	
 	
 }
+	struct mykey{
+		int a;
+		int b;
+		int c;
+	};		
+	bool operator < (const mykey &l, const mykey &r) { 
+		return l.a < r.a || (l.a == r.a && l.b < r.b) || (l.a == r.a && l.b == r.b && l.c < r.c ); 
+	}
 void myDisplay() {
 	// rT(tvi2);
-	// rT(tvi1);
-	// running1 += gT(tvi1);
-	// running2 += gT(tvi2);
+// rT(tvi1);
+			// running1 += gT(tvi1);		
 
 	if (paused)
 		return;
@@ -810,9 +816,13 @@ void myDisplay() {
 
 		
 	// vector<vector<vector<vector<int> > > > xMap;
-	float numDivs = 70;
-	vector<vector< vector< vector<int> > > > xMap ( numDivs+1, vector<vector<vector<int> > >(numDivs+1, vector<vector<int> >(numDivs+1, vector<int>(0, 0))));
+	float numDivs = 500;
+	// vector<vector< vector< vector<int> > > > xMap ( numDivs+1, vector<vector<vector<int> > >(numDivs+1, vector<vector<int> >(numDivs+1, vector<int>(0, 0))));
 
+
+	map<mykey, vector<int> > zMap;
+	map<mykey, vector<int> >::iterator it;
+	
 	float range = 7;
 	if (alisCrack){
 		for (int k = 0; k < listOfSpheres.size(); k++) {
@@ -826,8 +836,13 @@ void myDisplay() {
 			int valfy = floor(valy)+numDivs/2;
 			int valfz = floor(valz)+numDivs/2;
 			//cout << valfx << " " << valfy << " " << valfz << endl;
-			xMap.at(valfx).at(valfy).at(valfz).push_back(k);
-		}		
+			mykey tmp;
+			tmp.a = valfx;
+			tmp.b = valfy;
+			tmp.c = valfz;
+			// xMap.at(valfx).at(valfy).at(valfz).push_back(k);
+			zMap[tmp].push_back(k);
+		}
 	}
     for (int k = 0; k < listOfSpheres.size(); k++) {
         sphere& s1 = listOfSpheres[k];
@@ -861,9 +876,18 @@ void myDisplay() {
 			int valfx = floor(valx)+numDivs/2;
 			int valfy = floor(valy)+numDivs/2;
 			int valfz = floor(valz)+numDivs/2;
-			// cout << "yes " << valfx << " " << valfy << endl;
-			vector<int> thisVector = xMap.at(valfx).at(valfy).at(valfz);
-			// cout << "no" << endl;
+			
+			
+			vector<int> thisVector;
+			// thisVector = xMap.at(valfx).at(valfy).at(valfz);
+			mykey tmp;
+			tmp.a = valfx;
+			tmp.b = valfy;
+			tmp.c = valfz;
+			it = zMap.find(tmp);
+			if (it != zMap.end()){
+				thisVector = it->second;
+			}
 			for (int i = 0; i < thisVector.size(); i++){
 				int thisSph = thisVector[i];
 				if (k == thisSph){ continue; }
@@ -872,6 +896,7 @@ void myDisplay() {
 					collide(s1,s2);
 				}
 			}
+			
 		}
 		//end of ali's crack.
 		else{
@@ -980,6 +1005,7 @@ void myDisplay() {
 	}
     glFlush();
     glutSwapBuffers();					// swap buffers (we earlier set double buffer)
+	// running2 += gT(tvi2);
 }
 //}
 
