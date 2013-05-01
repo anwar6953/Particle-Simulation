@@ -29,6 +29,7 @@ extern string globalToAppend;
 extern int counter;
 extern int prevCounter;
 extern float timeStp;
+extern float R;
 
 // *****************************
 // forward Declaration
@@ -221,7 +222,7 @@ void sphere::render(){
             prevCounter = counter;
         }
         ostringstream ss;
-        ss << pos.x << " " << pos.y << " " << pos.z << "\n";
+        ss << pos.x << " " << pos.y << " " << pos.z << " " << r << " " << color.x << " " << color.y << " " << color.z << "\n";
 		globalToAppend += ss.str();
     }
 }
@@ -263,15 +264,31 @@ bool sphere::intersect(plane p){
 				intPt = intPt + magnitude * normalize(p.center-intPt);
 		}
 		//
-		bool b1 = (p.pt2-p.pt1)*(intPt-p.pt1)>0;
-		bool b2 = (p.pt4-p.pt1)*(intPt-p.pt1)>0;
-		bool b3 = (p.pt2-p.pt3)*(intPt-p.pt3)>0;
-		bool b4 = (p.pt4-p.pt3)*(intPt-p.pt3)>0;
-		
-		// if (!willIntersect)
-		if (!b1 || !b2 || !b3 || !b4){
-			return false;
+	if (p.isRect){
+		if (r > 0.08){
+			if (willIntersect)
+				intPt = pos + (t*vel);
+				float magnitude = sqrt(r*r-(intPt - pos)*(intPt - pos));
+				intPt = intPt + magnitude * normalize(p.center-intPt);
 		}
+		
+		// (1 -> 2)
+		Vect3 crossB1 = ((p.pt1-p.pt2)^(p.pt4-p.pt2))^(p.pt1-p.pt2);
+		// (2 -> 3)
+		Vect3 crossB2 = ((p.pt2-p.pt3)^(p.pt1-p.pt3))^(p.pt2-p.pt3);
+		// (3 -> 4)
+		Vect3 crossB3 = ((p.pt3-p.pt4)^(p.pt2-p.pt4))^(p.pt3-p.pt4);
+		// (4 -> 1)
+		Vect3 crossB4 = ((p.pt4-p.pt1)^(p.pt3-p.pt1))^(p.pt4-p.pt1);
+		
+		bool b1 = crossB1 * (intPt-p.pt1)>0;
+		bool b2 = crossB2 * (intPt-p.pt3)>0;
+		bool b3 = crossB3 * (intPt-p.pt3)>0;
+		bool b4 = crossB4 * (intPt-p.pt1)>0;
+		
+		if (!b1 || !b2 || !b3 || !b4)
+			return false;
+	}
 	}
 	// if (t < 1 && t > 0)
 		// cout << "changing velocity." << endl;
@@ -282,7 +299,7 @@ bool sphere::intersect(plane p){
 		normal = normal * -1;
 		d2 = normalize(-1*vel)*(p.n*-1);
     }
-    vel = mag*normalize(normalize(vel) + 2*d2*(normal));
+    vel = (max(1.0*R,1.0d))*mag*normalize(normalize(vel) + 2*d2*(normal));
 	
 	if (p.isRect && !willIntersect){
 		Vect3 diff = pos - Vect3(xc,yc,zc);
