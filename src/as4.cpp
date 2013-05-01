@@ -62,7 +62,8 @@ float downwardC = 0.0008;
 //SCENES
 bool pool = 0;
 bool box = 0;
-bool jeromiesScene = 1;
+bool jeromiesScene = 0;
+bool jeromieScene2 = 1;
 	float incrAmtJeromie = 0.3;
 		float jx = -3.5;
 		float jy = 4.5;
@@ -339,7 +340,12 @@ void myKybdHndlr(int key, int x, int y){
 }
 void sparse(string s){
 	if (s == "clear")
-		listOfSpheres.clear();
+		listOfSpheres.clear();	
+	if (s == "numspheres")
+		cout << "There are " << listOfSpheres.size() + listOfLargeSpheres.size() << " currently." << endl;
+	if (s == "pause")
+		paused = !paused;
+
 }
 
 void myKybdHndlr(unsigned char key, int x, int y){
@@ -357,9 +363,6 @@ void myKybdHndlr(unsigned char key, int x, int y){
 		timeStp*=2;
 		cout << "timestep is now " << timeStp << endl;
 	}
-	
-	if (key == 'p')
-		paused = !paused;
 	
 	if ((int) key == 27){  // ESC key.
 		infile.close();
@@ -471,6 +474,34 @@ void initScene() {
 
 	float width = 2;
 
+	if (jeromieScene2){
+        bool apr2 = 0;
+	 dragOn = 1;
+ gravityOn = 0;
+ downwardGravity = 1;
+ downwardC = 0.002;
+ originalRadius = 0.05;
+ defRadius = originalRadius;
+ removeSpheres = 1;
+ bound = 6; numSpheresPerClick = 100;
+ R=0.6;
+        
+		float width = 1;
+		//plane 3
+        listOfPlanes.push_back(plane(Vect3(-1,3,-width), Vect3(1,2,-width), Vect3(1,2,width), Vect3(-1,3,width), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(0.1,4,-width), Vect3(0.1,4,width), Vect3(4,5,width), Vect3(4,5,-width), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-0.1,4,-width), Vect3(-0.1,4,width), Vect3(-4,5,width), Vect3(-4,5,-width), apr2));
+        
+		//5th plane
+        listOfPlanes.push_back(plane(Vect3(0.1,0,-width), Vect3(0.1,0,width), Vect3(4,1.5,width), Vect3(4,1.5,-width), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-0.1,-1,-width), Vect3(-0.1,-1,width), Vect3(-4,0.5,width), Vect3(-4,0.5,-width), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-1,-2,-width), Vect3(1,-2,-width), Vect3(1,-3,width), Vect3(-1,-3,width), apr2));
+        
+   	}
 	if(pool){
 		float hwidth = 2;
 		float hlength = 4;
@@ -495,6 +526,16 @@ void initScene() {
 
 
 	if (jeromiesScene) {
+	dragOn = 0;
+gravityOn = 0;
+downwardGravity = 1;
+ downwardC = 0.0008;
+ originalRadius = 0.05;
+ defRadius = originalRadius;
+removeSpheres = 1;
+ bound = 6;
+numSpheresPerClick = 100;
+ R=0.6;
         bool apr2 = 0;
 		//lower box depth
 		float lBD = -1;
@@ -804,7 +845,10 @@ void preRender(){
 			jx-=incrAmtJeromie;
 		}
 	}
-	
+void jeromiesSphereInit2(){
+		listOfSpheres.push_back(sphere(Vect3(-2.5,5.5,0),Vect3(0,0,0),originalRadius,defMass,Vect3(1,0,0)));
+		listOfSpheres.push_back(sphere(Vect3(2.5,5.5,0),Vect3(0,0,0),originalRadius,defMass,Vect3(0,0,1)));
+	}
 void myDisplay() {
 	rT(tvi2);
 	
@@ -855,7 +899,8 @@ void myDisplay() {
 		
 	if (jeromiesScene)
 		jeromiesSphereInit();
-	
+	if (jeromieScene2)
+		jeromiesSphereInit2();
 	//move all the spheres before doing any calculations.
 	for (int k = 0; k < listOfSpheres.size(); k++) {
 		rT(tvi1);
