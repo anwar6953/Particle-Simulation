@@ -49,21 +49,20 @@ int lineNo = 0;
 //{ SETTINGS:
 string fname = "scenes/test1";
 bool loadFromFile = 0;
-// bool loadFromFile = 1;
 bool saveToFile = 0;
-// bool saveToFile = 1;
 bool openGLrender = 1;
 
 bool dragOn = 0;
 bool gravityOn = 0;
-bool downwardGravity = 1;
+bool gConst = 0.0000000000005;
+bool downwardGravity = 0;
 float downwardC = 0.0008;
 
 //SCENES
 bool pool = 0;
 bool box = 0;
 bool jeromiesScene = 0;
-bool jeromieScene2 = 1;
+bool jeromieScene2 = 0;
 	float incrAmtJeromie = 0.3;
 		float jx = -3.5;
 		float jy = 4.5;
@@ -72,9 +71,9 @@ bool jeromieScene2 = 1;
 bool removeSpheres = 1;
 float bound = 6;
 
-int numSpheresPerClick = 100;
+int numSpheresPerClick = 8;
 float timeStp = 1;
-float defMass = 0.01;
+float defMass = 0.001;
 // float originalRadius = 0.04;
 float originalRadius = 0.05;
 float defRadius = originalRadius;
@@ -277,8 +276,6 @@ switch (button)
 	  
 	  // cout << xx << " " << yy << endl;
 	  for (int i = 0; i < numSpheresPerClick; i++){
-      // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
-      //The following is colorful (random).
 	  if (alisCrack && defRadius > originalRadius){
 		listOfLargeSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));}
 	  else{
@@ -472,8 +469,8 @@ void initScene() {
 	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 	glShadeModel(GL_SMOOTH);
 
-	float width = 2;
 
+	float width = 2;
 	if (jeromieScene2){
         bool apr2 = 0;
 	 dragOn = 1;
@@ -956,7 +953,7 @@ void myDisplay() {
                 sphere& s2 = listOfSpheres[j];
                 if ((s2.pos-s1.pos).getNorm() < 0.001) continue;
                 // else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
-                else s1.vel = s1.vel + 0.00000005*timeStp*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                else s1.vel = s1.vel + gConst*timeStp*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
             }
 
         //intersection loop
