@@ -309,7 +309,83 @@ bool sphere::intersect(sphere s2, float rSquared){
     else { return false; }
 }
 void sphere::move() {
-    pos = pos + timeStp*vel;
+    pos = pos + timeStp*vel; //update pos
+    /*
+    sphere * moveMe = removeSpherePtr(this);
+    KDtree * nextNode = mainTree->getNode(pos);
+    nextNode->localSpheres.push_back(moveMe);
+    KDnode = nextNode;
+    renderNode(KDnode);
+    */
+
+    char cnt = 0;
+    KDtree * myNode = KDnode;
+    Vect3 & center = pos;
+    float radius = r;
+    bool wallIntersect [] = {false, false, false, false, false, false}; // [ negX, posX, negY, posY, negZ, posZ ];
+
+    float margin = center.x - radius;
+    bool nextWall = margin < myNode->UL.x;
+
+    if (myNode->prevX != NULL) {
+	wallIntersect[0] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (myNode->nextX != NULL) {    
+	margin = center.x + radius;
+	nextWall = margin > myNode->LR.x;
+	wallIntersect[1] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (myNode->prevY != NULL) {
+	margin = center.y - radius;
+	nextWall = margin < myNode->LR.y;
+	wallIntersect[2] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (myNode->nextY != NULL) {
+	margin = center.y + radius;
+	nextWall = margin > myNode->UL.y;
+	wallIntersect[3] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (myNode->prevZ != NULL) {
+	margin = center.z - radius;
+	nextWall = margin < myNode->UL.z;
+	wallIntersect[4] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (myNode->nextZ != NULL) {
+	margin = center.z + radius;
+	nextWall = margin > myNode->LR.z;
+	wallIntersect[5] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (cnt == 0) ; //no need to update node
+    else {
+	sphere * moveMe = removeSpherePtr(this);
+	KDtree * nextNode = NULL;
+	char sign [3];
+	char axis [3];
+	recoverNav(&wallIntersect[0], &sign[0], &axis[0]);
+	if (cnt == 1) {
+	    nextNode = turnHandle(myNode, sign[0], axis[0]);
+	} else if (cnt == 2) {
+	    nextNode = visitEdge(myNode, sign[0], axis[0], sign[1], axis[1], doNothing, true);
+	} else if (cnt == 3) {
+	    KDtree * edge2 = turnHandle(myNode, sign[2], axis[2]);
+	    nextNode = visitEdge(edge2, sign[0], axis[0], sign[1], axis[1], doNothing, true);
+	} else cout << "Ve need reinforcements!" << endl;
+	//	renderNode(nextNode); //for testing
+	nextNode->localSpheres.push_back(moveMe);
+	KDnode = nextNode;
+    }
 }
 void sphere::drag() {
     /*float dragCoef = 2;
@@ -576,7 +652,7 @@ struct Navigate {
     char axis;
 };
 */
-void visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2, void (*interfaceNode)(KDtree *)) {
+KDtree * visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2, void (*interfaceNode)(KDtree *), bool moveCall) {
     // TODO: How to capture all 4 of the Nodes.
     KDtree * nextVisit = current;
     (*interfaceNode)(nextVisit);
@@ -585,6 +661,7 @@ void visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2,
     (*interfaceNode)(nextVisit);
     // Second Step
     nextVisit = turnHandle (nextVisit, sign2, axis2);
+    if (moveCall) return nextVisit;
     (*interfaceNode)(nextVisit);
     // Third Step
     nextVisit = turnHandle (nextVisit, flipSign(sign1), axis1);
@@ -595,8 +672,8 @@ void visitCorner(KDtree * current, char sign1, char axis1, char sign2, char axis
     KDtree * edge1 = current;
     KDtree * edge2 = turnHandle(current, sign3, axis3);
 
-    visitEdge(edge1, sign1, axis1, sign2, axis2, interfaceNode);
-    visitEdge(edge2, sign1, axis1, sign2, axis2, interfaceNode);
+    visitEdge(edge1, sign1, axis1, sign2, axis2, interfaceNode, false);
+    visitEdge(edge2, sign1, axis1, sign2, axis2, interfaceNode, false);
 }
 
 void nodeNeighborTest(sphere * sph) {
@@ -658,7 +735,7 @@ void nodeNeighborTest(sphere * sph) {
 	    intersectNode(myNode);
 	    intersectNode(turnHandle(myNode, sign[0], axis[0]));
 	} else if (cnt == 2) {
-	    visitEdge(myNode, sign[0], axis[0], sign[1], axis[1], intersectNode);
+	    visitEdge(myNode, sign[0], axis[0], sign[1], axis[1], intersectNode, false);
 	} else if (cnt == 3) {
 	    visitCorner(myNode, sign[0], axis[0], sign[1], axis[1], sign[2], axis[2], intersectNode);
 	} else cout << "sound ze alarm!" << endl;
@@ -669,7 +746,9 @@ void intersectNode(KDtree * node) {
     //TODO: apply collide over all the spheres in the node. default is to render for debugging.
     node->render();
 }
-
+void doNothing(KDtree * node) {
+    ;
+}
 void recoverNav(bool * wallIntersect, char * sign, char * axis) {
     int index = 0;
     for (int i = 0; i < 6; i++ ) {
@@ -691,4 +770,19 @@ void recoverNav(bool * wallIntersect, char * sign, char * axis) {
 	    index++;
 	}
     }
+}
+
+sphere * removeSpherePtr(sphere * sph) {
+    sphere * compareMe = NULL;
+    KDtree * oldNode = sph->KDnode;
+
+    vector<sphere *> * nodeSpheres = & oldNode->localSpheres;
+    for (int i = 0; i < nodeSpheres->size(); i++) {
+	compareMe = nodeSpheres->at(i);
+	if (compareMe == sph) {
+	    nodeSpheres->erase(nodeSpheres->begin() + i);
+	    break;
+	}
+    }
+    return compareMe;
 }
