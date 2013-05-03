@@ -30,6 +30,7 @@ extern int counter;
 extern int prevCounter;
 extern float timeStp;
 extern float R;
+extern float dragCoef;
 
 // *****************************
 // forward Declaration
@@ -342,7 +343,7 @@ void sphere::drag() {
     float selfVelZ = vel.z;
     
     float pi=acos(-1.0E0);
-    float dragCoef = 0.02;
+    
     float force = 0.5 * vel * vel * dragCoef * (1 / (pi * r * r));
     float acc = (force / m);
     

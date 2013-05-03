@@ -1,7 +1,7 @@
 //{ Includes, Declarations of functions/classes:
 #include "ColorAndVector.h"
 #include "Geometry.h"
-
+#include <omp.h>
 #include <ctime>
 #include <vector>
 #include <iostream>
@@ -54,7 +54,7 @@ bool openGLrender = 1;
 
 bool dragOn = 0;
 bool gravityOn = 0;
-bool gConst = 0.0000000000005;
+float gConst = 0.00000005;
 bool downwardGravity = 0;
 float downwardC = 0.0008;
 
@@ -67,20 +67,27 @@ bool jeromieScene2 = 0;
 		float jx = -3.5;
 		float jy = 4.5;
 		float jz = 1;
+
+float defZ = 0;
 //turn on to remove spheres that go out of bounds.
 bool removeSpheres = 1;
 float bound = 6;
 
-int numSpheresPerClick = 8;
+
+int numSpheresPerClick = 1;
 float timeStp = 1;
-float defMass = 0.001;
+float defMass = 0.00001;
 // float originalRadius = 0.04;
 float originalRadius = 0.05;
 float defRadius = originalRadius;
-float R(0.6);
+
+float dragCoef = 0.01;
 //special case means all the spheres have same radii value.
 bool specialCase = 0;
 float rSqrd = (2*defRadius)*(2*defRadius);
+int numCubed = 0;
+	float numDivs = 100;
+	float cameraTracking = 0;
 //}
 
 void appendToFile(string fnameParam, string toAppend){
@@ -157,6 +164,8 @@ void appendToFile(string fnameParam, string toAppend){
 	// }
 	// return val;
 // }
+
+/*
 #include <sys/timeb.h>
 int startTime;
 void resetTimer(){
@@ -196,6 +205,8 @@ int gT(timeval & t){
     localtime(&tvf.tv_sec);
 	return (int)(1000000*(tvf.tv_sec - t.tv_sec)+(tvf.tv_usec-t.tv_usec));
 }
+
+* */
 //} /////PERFORMANCE STUFF ENDS HERE.
 //}
 
@@ -247,7 +258,7 @@ float zLookAt = -1;
 
 //}
 
-bool alisCrack = 1;
+bool alisCrack = 0;
 //}
 
 //{ Functions.
@@ -269,17 +280,27 @@ switch (button)
       if (state == 0){prevX = x; prevY = y; return;}
       float r = 1 - 2 *(float) rand() / RAND_MAX;
       float lenOfDrag = sqrt(pow(x-prevX,2.0f)+pow(y-prevY,2.0f)) / 40;
-
-      float xx = (float)(-300 + prevX)/43.4;
-      float yy = (float)(-300 + prevY)/-43.4;
+	//43.4
+      float xx = (float)(-viewport.w*0.5 + prevX)/65.4;
+      float yy = (float)(-viewport.h*0.5 + prevY)/-65.4;
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
 	  
 	  // cout << xx << " " << yy << endl;
 	  for (int i = 0; i < numSpheresPerClick; i++){
 	  if (alisCrack && defRadius > originalRadius){
-		listOfLargeSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));}
+		  if (pool){
+		listOfLargeSpheres.push_back(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass));}
+		else{
+		listOfLargeSpheres.push_back(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass));
+	}
+		}
 	  else{
-		listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
+		  if (pool){
+			  listOfSpheres.push_back(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass));
+		  }
+		else{
+		listOfSpheres.push_back(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass));
+	}
 		}
 	  }
 	  
@@ -321,15 +342,15 @@ void myKybdHndlr(int key, int x, int y){
             // transX += transAmt;
         // elsedefRadius,defMass
 			if (!specialCase){
-            defMass += 10;
-            defRadius += 0.2;}}
+            defMass *= 2;
+            defRadius *= 1.5;}}
     else if (key == GLUT_KEY_PAGE_DOWN){
         // if (glutGetModifiers() == GLUT_ACTIVE_SHIFT)
             // transX += transAmt;
         // else
 			if (!specialCase){
-            defMass -= 10;
-            defRadius -= 0.2;}}
+            defMass /= 2;
+            defRadius /= 1.5;}}
     else
         return;
 
@@ -343,16 +364,19 @@ void sparse(string s){
 	if (s == "pause")
 		paused = !paused;
 
+	if (s == "gravity")
+		downwardGravity = !downwardGravity;
 }
 
 void myKybdHndlr(unsigned char key, int x, int y){
 	//cout << (int) key << endl;
 
 	if (key == '1'){
-		// timeStp*=0.5;
-		// cout << "timestep is now " << timeStp << endl;
-		cout << running1 << endl;
-		cout << running2 << endl;
+		//cout << alisCrack << endl;
+		 timeStp*=0.5;
+		 cout << "timestep is now " << timeStp << endl;
+		//cout << running1 << endl;
+		//cout << running2 << endl;
 		// cout << counter << endl;
 	}
  
@@ -360,7 +384,24 @@ void myKybdHndlr(unsigned char key, int x, int y){
 		timeStp*=2;
 		cout << "timestep is now " << timeStp << endl;
 	}
-	
+
+	if (key == '3'){
+		numSpheresPerClick /= 2;
+		cout << "numspheresperclick is now " << numSpheresPerClick << endl;
+	}
+	if (key == '4'){
+		
+		numSpheresPerClick = max(numSpheresPerClick*2,1);
+		cout << "numspheresperclick is now " << numSpheresPerClick << endl;
+	}
+	if (key == '5'){
+		defZ += 0.2;
+		cout << "defZ is now " << defZ << endl;
+	}
+	if (key == '6'){
+		defZ -= 0.2;
+		cout << "defZ is now " << defZ << endl;
+	}
 	if ((int) key == 27){  // ESC key.
 		infile.close();
 		if (saveToFile)
@@ -410,19 +451,60 @@ void myParse(std::string file) {
       //Ignore comments
       if(splitline[0][0] == '#') {
         continue;
-      }
-      if(splitline[0][0] == 'E') {
-        fData.push_back(tmpFrame);
-        tmpFrame.clear();
-        continue;
-      }
-      if(splitline.size() == 3){
-        tmpFrame.push_back(Vect3(atof(splitline[0].c_str()),atof(splitline[1].c_str()),atof(splitline[2].c_str())));
-      } else {
+      } 
+      if(splitline[0]=="subdivs") {
+		alisCrack = 1;
+        numDivs = atof(splitline[1].c_str());
+      } 
+      else if(splitline[0]=="numSpheresPerClick") {
+        numSpheresPerClick = atof(splitline[1].c_str());
+      } 
+      else if(splitline[0]=="scene1") {
+        pool = 1;
+        alisCrack = 0;
+      } 
+      else if(splitline[0]=="scene4") {
+		box = 1;
+	  }
+      else if(splitline[0]=="scene2") {
+        jeromiesScene = 1;
+      } 
+      else if(splitline[0]=="scene3") {
+        jeromieScene2 = 1;
+      } 
+      else if(splitline[0]=="scene5") {
+        gravityOn=1;
+        gConst=0.000005;
+        alisCrack=0;
+        defMass=1;
+        bound = 30;
+      } 
+      else if(splitline[0]=="numcubed") {
+        numCubed = atof(splitline[1].c_str());
+      } 
+      else if (splitline[0]=="dragOn"){
+		dragOn = 1;
+	  }
+	  else if (splitline[0]=="dragoff"){
+		dragOn = 0;
+	  }
+	  else if (splitline[0]=="gravity"){
+		gravityOn = atof(splitline[1].c_str());
+	  }
+	  else if (splitline[0]=="gravityC"){
+		gConst = atof(splitline[1].c_str());
+	  }
+	  else if (splitline[0]=="R"){
+		R = atof(splitline[1].c_str());
+	  }
+	  else if (splitline[0]=="defRadius"){
+		  originalRadius = atof(splitline[1].c_str());
+		defRadius = originalRadius;
+		  
+		  }else {
         std::cerr << "Unknown command: " << splitline[0] << std::endl;
       }
     }
-
     inpfile.close();
   }
 
@@ -504,6 +586,7 @@ void initScene() {
 		float hlength = 4;
 		float hrails = 0.3;
 		float r = 0.2;
+		defRadius = r;
 		Vect3 sC = Vect3(1,0,0);
 		bool apr = 0;
 		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,0,-hwidth),Vect3(0.059,0.330,0.157),apr));
@@ -511,14 +594,15 @@ void initScene() {
 		listOfPlanes.push_back(plane(Vect3(hlength,0,-hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588),apr));
 		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(hlength,hrails,-hwidth),Vect3(hlength,0,-hwidth),Vect3(0.173,0.094,0.0588),apr));
 		listOfPlanes.push_back(plane(Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,0,hwidth),Vect3(0.173,0.094,0.0588),apr));
-		listOfSpheres.push_back(sphere(Vect3(0,r,0),Vect3(.01,0,0),r,sC));
-		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r,sC));
-		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,sC));
-		listOfSpheres.push_back(sphere(Vect3(1,r,1),Vect3(.01,0,0),r,sC));
-		// listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,sC));
-		listOfSpheres.push_back(sphere(Vect3(-2,r,1),Vect3(.01,0,0),r,sC));
-		listOfSpheres.push_back(sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r,sC));
-		listOfSpheres.push_back(sphere(Vect3(2,r,-1),Vect3(.01,0,0),r,sC));
+
+		listOfSpheres.push_back(sphere(Vect3(0,r,0),Vect3(.01,0,0),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(1,r,1),Vect3(.01,0,0),r,defMass,sC));
+		// listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(-2,r,1),Vect3(.01,0,0),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(2,r,-1),Vect3(.01,0,0),r,defMass,sC));
 	}
 
 
@@ -569,14 +653,13 @@ numSpheresPerClick = 100;
 		listOfPlanes.push_back(plane(Vect3(-overlap,1,1),Vect3(-overlap,-1,1),Vect3(width+overlap,-1,1),Vect3(width+overlap,1,1),apr2));
     }
 	
-
-    int numCubed = 0;
-    float dist = 0.12;
+    float dist = 0.16;
 	if (loadFromFile) numCubed = 0;
     for (int i = 0; i < numCubed; i++) {
         for (int j = 0; j < numCubed; j++){
             for (int k = 0; k < numCubed; k++){
-                listOfSpheres.push_back(sphere(Vect3(i*dist+0.2,j*dist,k*dist-0.8),Vect3(0,0,0),0.05,0.01));
+                listOfSpheres.push_back(sphere(Vect3(i*dist+0.2,j*dist,k*dist-0.8),Vect3(0,0,0),0.05,0.00001));
+
             }
         }
     }
@@ -719,7 +802,7 @@ void collide(sphere& s1, sphere& s2){
      // s2.vel = (2 * s1.vel)*(1/(s1.m+s2.m));*/
 
 	 /////////////////////
-	 if (s2.r < 1){
+	 if (s2.r < 1 && s1.r < 1){
 	 // if (0){
 		Vect3 pos1 = s1.pos;
 		Vect3 pos2 = s2.pos;
@@ -843,11 +926,15 @@ void preRender(){
 		}
 	}
 void jeromiesSphereInit2(){
+
+		float r = (float)rand()/RAND_MAX;
+		if (r < timeStp){
 		listOfSpheres.push_back(sphere(Vect3(-2.5,5.5,0),Vect3(0,0,0),originalRadius,defMass,Vect3(1,0,0)));
 		listOfSpheres.push_back(sphere(Vect3(2.5,5.5,0),Vect3(0,0,0),originalRadius,defMass,Vect3(0,0,1)));
 	}
+	}
 void myDisplay() {
-	rT(tvi2);
+	//rT(tvi2);
 	
 
 	if (paused)
@@ -900,13 +987,13 @@ void myDisplay() {
 		jeromiesSphereInit2();
 	//move all the spheres before doing any calculations.
 	for (int k = 0; k < listOfSpheres.size(); k++) {
-		rT(tvi1);
+		//rT(tvi1);
         sphere& s1 = listOfSpheres[k];
         s1.move();
-		running1 += gT(tvi1);
+		//running1 += gT(tvi1);
 	}
 	// vector<vector<vector<vector<int> > > > xMap;
-	float numDivs = 100;
+
 	// vector<vector< vector< vector<int> > > > xMap ( numDivs+1, vector<vector<vector<int> > >(numDivs+1, vector<vector<int> >(numDivs+1, vector<int>(0, 0))));
 
 
@@ -935,6 +1022,7 @@ void myDisplay() {
 			zMap[tmp].push_back(k);
 		}
 	}
+	//#pragma omp parallel for
     for (int k = 0; k < listOfSpheres.size(); k++) {
         sphere& s1 = listOfSpheres[k];
 
@@ -1169,7 +1257,8 @@ void myDisplay() {
 	}
     glFlush();
     glutSwapBuffers();					// swap buffers (we earlier set double buffer)
-	running2 += gT(tvi2);
+
+	//running2 += gT(tvi2);
 }
 //}
 
@@ -1243,16 +1332,16 @@ int main(int argc, char *argv[]) {
         }
     }
     */
+    myParse(fname);  //}
     if (loadFromFile) {
-        // myParse(fname);  //}
 		infile.open (fname.c_str());
     }
 
 	
 //{ Initialization of glut and window:
 	if (openGLrender){
-    viewport.w = 600;
-    viewport.h = 600;
+    viewport.w = 900;
+    viewport.h = 900;
     glutInit(&argc, argv);                        // This initializes glut
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );  // Use a double-buffered window with red, green, and blue channels
     glutInitWindowSize(viewport.w, viewport.h);   //The size and position of the window
