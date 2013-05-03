@@ -1,7 +1,7 @@
 //{ Includes, Declarations of functions/classes:
 #include "ColorAndVector.h"
 #include "Geometry.h"
-
+#include <omp.h>
 #include <ctime>
 #include <vector>
 #include <iostream>
@@ -32,7 +32,7 @@
 
 
 #define PI 3.14159265  // Should be used from mathlib
-#define sphAcc 20
+#define sphAcc 7
 
 inline float sqr(float x) { return x*x; }
 using namespace std;
@@ -42,6 +42,9 @@ int firstTime = 0;
 int prevCounter = 0;
 int counter = 0;
 int fDataCounter = 0;
+int lineNo = 0;
+		ifstream infile;
+
 
 //{ SETTINGS:
 string fname = "scenes/test1";
@@ -51,22 +54,40 @@ bool openGLrender = 1;
 
 bool dragOn = 0;
 bool gravityOn = 0;
-bool downwardGravity = 1;
+float gConst = 0.00000005;
+bool downwardGravity = 0;
+float downwardC = 0.0008;
 
+//SCENES
 bool pool = 0;
+bool box = 0;
+bool jeromiesScene = 0;
+bool jeromieScene2 = 0;
+	float incrAmtJeromie = 0.3;
+		float jx = -3.5;
+		float jy = 4.5;
+		float jz = 1;
 
+float defZ = 0;
 //turn on to remove spheres that go out of bounds.
 bool removeSpheres = 1;
 float bound = 6;
 
-int numSpheresPerClick = 10;
+
+int numSpheresPerClick = 1;
 float timeStp = 1;
-float defMass = 0.1;
-float defRadius = 0.06;
-//float defRadius = 0.2;
+float defMass = 0.00001;
+// float originalRadius = 0.04;
+float originalRadius = 0.05;
+float defRadius = originalRadius;
+
+float dragCoef = 0.01;
 //special case means all the spheres have same radii value.
 bool specialCase = 0;
 float rSqrd = (2*defRadius)*(2*defRadius);
+int numCubed = 0;
+	float numDivs = 100;
+	float cameraTracking = 0;
 //}
 
 void appendToFile(string fnameParam, string toAppend){
@@ -143,54 +164,66 @@ void appendToFile(string fnameParam, string toAppend){
 	// }
 	// return val;
 // }
+
+/*
+#include <sys/timeb.h>
+int startTime;
+void resetTimer(){
+	timeb tb;
+	ftime(&tb);
+	startTime = tb.millitm + (tb.time & 0xfffff) * 1000;
+}
+int getMilliCount2(){
+	timeb tb;
+	ftime(&tb);
+	return tb.millitm + (tb.time & 0xfffff) * 1000;
+}
+void getTimer(){
+	int nSpan = getMilliCount2()-startTime;
+	if(nSpan < 0)
+		nSpan += 0x100000 * 1000;
+	printf("Elapsed time = %u milliseconds\n", nSpan);
+}
+struct timeval tvi1;
+struct timeval tvi2;
+struct timeval tvi3;
+struct timeval tvi4;
+struct timeval tvi5;
+struct timeval tvf;
+struct timezone tz;
+int running1 = 0;
+int running2 = 0;
+int running3 = 0;
+int running4 = 0;
+int running5 = 0;
+void rT(timeval & t){
+    gettimeofday(&t, &tz);
+    localtime(&t.tv_sec);
+}	
+int gT(timeval & t){
+    gettimeofday(&tvf, &tz);
+    localtime(&tvf.tv_sec);
+	return (int)(1000000*(tvf.tv_sec - t.tv_sec)+(tvf.tv_usec-t.tv_usec));
+}
+
+* */
 //} /////PERFORMANCE STUFF ENDS HERE.
 //}
 
 //{ Global Variables
 //{ Other
-//#include <sys/timeb.h>
-int startTime;
-//void resetTimer(){
-//	timeb tb;
-//	ftime(&tb);
-//	startTime = tb.millitm + (tb.time & 0xfffff) * 1000;
-//}
-//int getMilliCount2(){
-//	timeb tb;
-//	ftime(&tb);
-//	return tb.millitm + (tb.time & 0xfffff) * 1000;
-//}
-//void getTimer(){
-//	int nSpan = getMilliCount2()-startTime;
-//	if(nSpan < 0)
-//		nSpan += 0x100000 * 1000;
-//	printf("Elapsed time = %u milliseconds\n", nSpan);
-//}
-//struct timeval tvi;
-//struct timeval tvf;
-//struct timezone tz;
-//long runningT = 0;
-//void rT()
-//{
-//     gettimeofday(&tvi, &tz);
-//     localtime(&tvi.tv_sec);
-//}	
-//long gT(){
-//     gettimeofday(&tvf, &tz);
-//     localtime(&tvf.tv_sec);
-//	return 1000000*(tvf.tv_sec - tvi.tv_sec)+(tvf.tv_usec-tvi.tv_usec);
-//}
 
-void globals(){
-}
+
 Viewport viewport;
 GLfloat light_diffuse[] = {1.0, 1.0, 1.0};  /* white diffuse light. */
 GLfloat light_ambient[] = {0.1, 0.1, 0.1};  /* white ambient light. */
 GLfloat light_specular[] = {1.0, 1.0, 1.0};  /* white specular light. */
-GLfloat light_position[] = {1.0, 1.0, 1.0, 0.0};  /* Infinite light location. */
+GLfloat light_position[] = {3.0, -23.0, 3.0, 0.0};  /* Infinite light location. */
+GLfloat light_position2[] = {3.0, 23.0, 3.0, 0.0};  /* Infinite light location. */
 
 KDtree * mainTree = NULL;
 vector<sphere> listOfSpheres;
+vector<sphere> listOfLargeSpheres;
 vector<plane> listOfPlanes;
 int prevX, prevY;
 
@@ -225,7 +258,7 @@ float zLookAt = -1;
 
 //}
 
-bool alisCrack = 1;
+bool alisCrack = 0;
 //}
 
 //{ Functions.
@@ -247,17 +280,28 @@ switch (button)
       if (state == 0){prevX = x; prevY = y; return;}
       float r = 1 - 2 *(float) rand() / RAND_MAX;
       float lenOfDrag = sqrt(pow(x-prevX,2.0f)+pow(y-prevY,2.0f)) / 40;
-
-      float xx = (float)(-300 + prevX)/43.4;
-      float yy = (float)(-300 + prevY)/-43.4;
+	//43.4
+      float xx = (float)(-viewport.w*0.5 + prevX)/65.4;
+      float yy = (float)(-viewport.h*0.5 + prevY)/-65.4;
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
-      // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),Vect3(0.02*r,0.02*r,0),0.2)); //RANDOM vel dir.
 	  
 	  // cout << xx << " " << yy << endl;
 	  for (int i = 0; i < numSpheresPerClick; i++){
-      // listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass,Vect3(1,0,0)));
-      //The following is colorful (random).
-      listOfSpheres.push_back(sphere(Vect3(xx,yy,0),vel,defRadius,defMass));
+	  if (alisCrack && defRadius > originalRadius){
+		  if (pool){
+		listOfLargeSpheres.push_back(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass));}
+		else{
+		listOfLargeSpheres.push_back(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass));
+	}
+		}
+	  else{
+		  if (pool){
+			  listOfSpheres.push_back(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass));
+		  }
+		else{
+		listOfSpheres.push_back(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass));
+	}
+		}
 	  }
 	  
 	
@@ -298,15 +342,15 @@ void myKybdHndlr(int key, int x, int y){
             // transX += transAmt;
         // elsedefRadius,defMass
 			if (!specialCase){
-            defMass += 10;
-            defRadius += 0.2;}}
+            defMass *= 2;
+            defRadius *= 1.5;}}
     else if (key == GLUT_KEY_PAGE_DOWN){
         // if (glutGetModifiers() == GLUT_ACTIVE_SHIFT)
             // transX += transAmt;
         // else
 			if (!specialCase){
-            defMass -= 10;
-            defRadius -= 0.2;}}
+            defMass /= 2;
+            defRadius /= 1.5;}}
     else
         return;
 
@@ -314,27 +358,54 @@ void myKybdHndlr(int key, int x, int y){
 }
 void sparse(string s){
 	if (s == "clear")
-		listOfSpheres.clear();
+		listOfSpheres.clear();	
+	if (s == "numspheres")
+		cout << "There are " << listOfSpheres.size() + listOfLargeSpheres.size() << " currently." << endl;
+	if (s == "pause")
+		paused = !paused;
+
+	if (s == "gravity")
+		downwardGravity = !downwardGravity;
 }
+
 void myKybdHndlr(unsigned char key, int x, int y){
 	//cout << (int) key << endl;
 
 	if (key == '1'){
-		timeStp*=0.5;
-		cout << "timestep is now " << timeStp << endl;
-		//cout << runningT << endl;
+		//cout << alisCrack << endl;
+		 timeStp*=0.5;
+		 cout << "timestep is now " << timeStp << endl;
+		//cout << running1 << endl;
+		//cout << running2 << endl;
+		// cout << counter << endl;
 	}
  
 	if (key == '2'){
 		timeStp*=2;
 		cout << "timestep is now " << timeStp << endl;
 	}
-	
-	if (key == 'p')
-		paused = !paused;
-	
+
+	if (key == '3'){
+		numSpheresPerClick /= 2;
+		cout << "numspheresperclick is now " << numSpheresPerClick << endl;
+	}
+	if (key == '4'){
+		
+		numSpheresPerClick = max(numSpheresPerClick*2,1);
+		cout << "numspheresperclick is now " << numSpheresPerClick << endl;
+	}
+	if (key == '5'){
+		defZ += 0.2;
+		cout << "defZ is now " << defZ << endl;
+	}
+	if (key == '6'){
+		defZ -= 0.2;
+		cout << "defZ is now " << defZ << endl;
+	}
 	if ((int) key == 27){  // ESC key.
-		appendToFile(fname,globalToAppend);
+		infile.close();
+		if (saveToFile)
+			appendToFile(fname,globalToAppend);
         exit(0);
 	}
     else if (key == '+')
@@ -380,19 +451,60 @@ void myParse(std::string file) {
       //Ignore comments
       if(splitline[0][0] == '#') {
         continue;
-      }
-      if(splitline[0][0] == 'E') {
-        fData.push_back(tmpFrame);
-        tmpFrame.clear();
-        continue;
-      }
-      if(splitline.size() == 3){
-        tmpFrame.push_back(Vect3(atof(splitline[0].c_str()),atof(splitline[1].c_str()),atof(splitline[2].c_str())));
-      } else {
+      } 
+      if(splitline[0]=="subdivs") {
+		alisCrack = 1;
+        numDivs = atof(splitline[1].c_str());
+      } 
+      else if(splitline[0]=="numSpheresPerClick") {
+        numSpheresPerClick = atof(splitline[1].c_str());
+      } 
+      else if(splitline[0]=="scene1") {
+        pool = 1;
+        alisCrack = 0;
+      } 
+      else if(splitline[0]=="scene4") {
+		box = 1;
+	  }
+      else if(splitline[0]=="scene2") {
+        jeromiesScene = 1;
+      } 
+      else if(splitline[0]=="scene3") {
+        jeromieScene2 = 1;
+      } 
+      else if(splitline[0]=="scene5") {
+        gravityOn=1;
+        gConst=0.000005;
+        alisCrack=0;
+        defMass=1;
+        bound = 30;
+      } 
+      else if(splitline[0]=="numcubed") {
+        numCubed = atof(splitline[1].c_str());
+      } 
+      else if (splitline[0]=="dragOn"){
+		dragOn = 1;
+	  }
+	  else if (splitline[0]=="dragoff"){
+		dragOn = 0;
+	  }
+	  else if (splitline[0]=="gravity"){
+		gravityOn = atof(splitline[1].c_str());
+	  }
+	  else if (splitline[0]=="gravityC"){
+		gConst = atof(splitline[1].c_str());
+	  }
+	  else if (splitline[0]=="R"){
+		R = atof(splitline[1].c_str());
+	  }
+	  else if (splitline[0]=="defRadius"){
+		  originalRadius = atof(splitline[1].c_str());
+		defRadius = originalRadius;
+		  
+		  }else {
         std::cerr << "Unknown command: " << splitline[0] << std::endl;
       }
     }
-
     inpfile.close();
   }
 
@@ -427,19 +539,54 @@ void initScene() {
 	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
     glLightfv(GL_LIGHT0, GL_POSITION, light_position);
 	
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse);
+    glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, light_specular);
+    glLightfv(GL_LIGHT1, GL_POSITION, light_position2);
+	
     glEnable(GL_LIGHT0);
+    glEnable(GL_LIGHT1);
     glEnable(GL_LIGHTING);
     glEnable(GL_DEPTH_TEST);
 	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 	glShadeModel(GL_SMOOTH);
 
+
 	float width = 2;
-	bool box = 0;
+	if (jeromieScene2){
+        bool apr2 = 0;
+	 dragOn = 1;
+ gravityOn = 0;
+ downwardGravity = 1;
+ downwardC = 0.002;
+ originalRadius = 0.05;
+ defRadius = originalRadius;
+ removeSpheres = 1;
+ bound = 6; numSpheresPerClick = 100;
+ R=0.6;
+        
+		float width = 1;
+		//plane 3
+        listOfPlanes.push_back(plane(Vect3(-1,3,-width), Vect3(1,2,-width), Vect3(1,2,width), Vect3(-1,3,width), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(0.1,4,-width), Vect3(0.1,4,width), Vect3(4,5,width), Vect3(4,5,-width), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-0.1,4,-width), Vect3(-0.1,4,width), Vect3(-4,5,width), Vect3(-4,5,-width), apr2));
+        
+		//5th plane
+        listOfPlanes.push_back(plane(Vect3(0.1,0,-width), Vect3(0.1,0,width), Vect3(4,1.5,width), Vect3(4,1.5,-width), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-0.1,-1,-width), Vect3(-0.1,-1,width), Vect3(-4,0.5,width), Vect3(-4,0.5,-width), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-1,-2,-width), Vect3(1,-2,-width), Vect3(1,-3,width), Vect3(-1,-3,width), apr2));
+        
+   	}
 	if(pool){
 		float hwidth = 2;
 		float hlength = 4;
 		float hrails = 0.3;
 		float r = 0.2;
+		defRadius = r;
 		Vect3 sC = Vect3(1,0,0);
 		bool apr = 0;
 		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,0,-hwidth),Vect3(0.059,0.330,0.157),apr));
@@ -447,18 +594,48 @@ void initScene() {
 		listOfPlanes.push_back(plane(Vect3(hlength,0,-hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588),apr));
 		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(hlength,hrails,-hwidth),Vect3(hlength,0,-hwidth),Vect3(0.173,0.094,0.0588),apr));
 		listOfPlanes.push_back(plane(Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,0,hwidth),Vect3(0.173,0.094,0.0588),apr));
-		listOfSpheres.push_back(sphere(Vect3(0,r,0),Vect3(.01,0,0),r,sC));
-		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r,sC));
-		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,sC));
-		listOfSpheres.push_back(sphere(Vect3(1,r,1),Vect3(.01,0,0),r,sC));
-		// listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,sC));
-		listOfSpheres.push_back(sphere(Vect3(-2,r,1),Vect3(.01,0,0),r,sC));
-		listOfSpheres.push_back(sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r,sC));
-		listOfSpheres.push_back(sphere(Vect3(2,r,-1),Vect3(.01,0,0),r,sC));
+
+		listOfSpheres.push_back(sphere(Vect3(0,r,0),Vect3(.01,0,0),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(1,r,1),Vect3(.01,0,0),r,defMass,sC));
+		// listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(-2,r,1),Vect3(.01,0,0),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(2,r,-1),Vect3(.01,0,0),r,defMass,sC));
 	}
 
 
-
+	if (jeromiesScene) {
+	dragOn = 0;
+gravityOn = 0;
+downwardGravity = 1;
+ downwardC = 0.0008;
+ originalRadius = 0.05;
+ defRadius = originalRadius;
+removeSpheres = 1;
+ bound = 6;
+numSpheresPerClick = 100;
+ R=0.6;
+        bool apr2 = 0;
+		//lower box depth
+		float lBD = -1;
+        listOfPlanes.push_back(plane(Vect3(0.2,lBD,0.2),Vect3(0.2,lBD,-0.2),Vect3(2,2,-2), Vect3(2,2,2), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(0.2,lBD,-0.2),Vect3(-0.2,lBD,-0.2),Vect3(-2,2,-2), Vect3(2,2,-2), apr2));
+        listOfPlanes.push_back(plane(Vect3(-0.2,lBD,-0.2),Vect3(-0.2,lBD,0.2),Vect3(-2,2,2), Vect3(-2,2,-2), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-0.2,lBD,0.2),Vect3(0.2,lBD,0.2),Vect3(2,2,2), Vect3(-2,2,2), apr2));
+        
+        
+       listOfPlanes.push_back(plane(Vect3(2,2.8,-2.8), Vect3(2,2.8,2.8), Vect3(4,4,4), Vect3(4,4,-4), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-2,2.8,-2.8), Vect3(2,2.8,-2.8), Vect3(4,4,-4), Vect3(-4,4,-4), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-2,2.8,2.8), Vect3(-2,2.8,-2.8),  Vect3(-4,4,-4), Vect3(-4,4,4), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(2,2.8,2.8), Vect3(-2,2.8,2.8),  Vect3(-4,4,4), Vect3(4,4,4), apr2));
+    }
 
 
 	if (box){
@@ -476,14 +653,13 @@ void initScene() {
 		listOfPlanes.push_back(plane(Vect3(-overlap,1,1),Vect3(-overlap,-1,1),Vect3(width+overlap,-1,1),Vect3(width+overlap,1,1),apr2));
     }
 	
-
-    int numCubed = 0;
-    float dist = 0.2;
+    float dist = 0.16;
 	if (loadFromFile) numCubed = 0;
     for (int i = 0; i < numCubed; i++) {
         for (int j = 0; j < numCubed; j++){
             for (int k = 0; k < numCubed; k++){
-                listOfSpheres.push_back(sphere(Vect3(i*dist,j*dist,k*dist),Vect3(0,0,0),0.05));
+                listOfSpheres.push_back(sphere(Vect3(i*dist+0.2,j*dist,k*dist-0.8),Vect3(0,0,0),0.05,0.00001));
+
             }
         }
     }
@@ -493,6 +669,7 @@ void initScene() {
 
 }
 void removeSphere(int x){
+
     sphere& s = listOfSpheres[x];
     KDtree * tNode = s.KDnode;
     vector<sphere *> * nodeSpheres = & tNode->localSpheres;
@@ -505,21 +682,17 @@ void removeSphere(int x){
 
     listOfSpheres.erase(listOfSpheres.begin()+x);
 }
+void removeSphere2(int x){
+sphere& s = listOfLargeSpheres[x];
 
+
+	listOfLargeSpheres.erase(listOfLargeSpheres.begin()+x);
+}
 void collide(sphere& s1, sphere& s2){
     //**************************************************************
     // Exact handler of 3D collisions. Based off of Thomas Smid's implementation from http://www.plasmaphysics.org.uk/programs/coll3d_cpp.htm
     //**************************************************************
-
-    /*void collision3D(double R, double m1, double m2, double r1, double r2,
-     double& x1, double& y1,double& z1,
-     double& x2, double& y2, double& z2,
-     double& vx1, double& vy1, double& vz1,
-     double& vx2, double& vy2, double& vz2,
-     int& error)     {*/
 	
-    float R(1.0f);
-
     Vect3& p1(s1.pos), p2(s2.pos), v1(s1.vel) , v2(s2.vel);
     float m1(s1.m), m2(s2.m);
     float r1(s1.r), r2(s2.r);
@@ -528,23 +701,17 @@ void collide(sphere& s1, sphere& s2){
 
     float phi2, fvz1r, thetav, phiv, dr, alpha, beta, sbeta, cbeta, dvz2;
 
-    //     **** initialize some variables ****
     float totalRadius(r1 + r2);
     float massRatio(m2 / m1);
 
-    //Vect3 posDiff = s2.pos - p1.pos;
-    //Vect3 velDiff = s2.vel - s1.vel;
     Vect3 v_cm = (m1 * v1 + m2 * v2) * (1.0f / (m1 + m2));
 
     //Vect3 centerVect = ((m1 * s1.vel) + (m2 * s2.vel)) * (1 / (m1 + m2));
-    //     **** calculate relative distance and relative speed ***
     float d = displacement.getNorm();
     float v = velDiff.getNorm();
 
-    //     **** boost coordinate system so that ball 2 is resting ***
     velDiff = -1 * velDiff;
 
-    //     **** find the polar coordinates of the location of ball 2 ***
     float theta2 = (!d) ? 0 : acos( displacement.z / d );
     if (displacement.x == 0 && displacement.y == 0) phi2 = 0;
     else phi2 = atan2( displacement.y, displacement.x );
@@ -554,15 +721,13 @@ void collide(sphere& s1, sphere& s2){
     float sp(sin(phi2));
     float cp(cos(phi2));
 
-    //     **** express the velocity vector of ball 1 in a rotated coordinate
-    //          system where ball 2 lies on the z-axis ******
     Vect3 vel1r;
     vel1r.x = ct * cp * velDiff.x + ct * sp * velDiff.y - st * velDiff.z;
     vel1r.y =    - sp * velDiff.x      + cp * velDiff.y;
     vel1r.z = st * cp * velDiff.x + st * sp * velDiff.y + ct * velDiff.z;
 
     fvz1r = (!v) ? 0 : vel1r.z / v;
-    if (fvz1r > 1) fvz1r = 1;   // fix for possible rounding errors
+    if (fvz1r > 1) fvz1r = 1; 
     else if (fvz1r < -1) fvz1r = -1;
 
     thetav = acos(fvz1r);
@@ -570,34 +735,15 @@ void collide(sphere& s1, sphere& s2){
     if (vel1r.x == 0 && vel1r.y == 0) phiv = 0;
     else phiv = atan2( vel1r.y, vel1r.x );
 
-    //     **** calculate the normalized impact parameter ***
     dr = d * sin(thetav) / totalRadius;
 
-    //     **** calculate impact angles if balls do collide ***
     alpha = asin(- dr);
     beta = phiv;
     sbeta = sin(beta);
     cbeta = cos(beta);
 
 
-    //     **** calculate time to collision ***
     float t = (d * cos(thetav) - totalRadius * sqrt(1 - dr * dr) ) / v;
-    //cout << t << endl;
-    //     **** update positions and reverse the coordinate shift ***
-
-    /* //x1, y1, z1, x2, y2, z2 aren't used after this
-    x2 = x2 + vx2 * t + p1.x;
-    y2 = y2 + vy2 * t + p1.y;
-    z2 = z2 + vz2 * t + p1.z;
-
-
-    x1 = (vx1+vx2)*t + x1;
-    y1 = (vy1+vy2)*t + y1;
-    z1 = (vz1+vz2)*t + z1;
-    */
-
-
-    //  ***  update velocities ***
 
     float a = tan(thetav + alpha);
     dvz2 = 2 * (vel1r.z + a * (cbeta * vel1r.x + sbeta * vel1r.y)) /
@@ -606,8 +752,7 @@ void collide(sphere& s1, sphere& s2){
     Vect3 vel2r = dvz2 * Vect3(a * cbeta, a * sbeta, 1.0);
 
     vel1r = vel1r - massRatio * vel2r;
-    //     **** rotate the velocity vectors back and add the initial velocity
-    //           vector of ball 2 to retrieve the original coordinate system ****
+
     v1.x = ct * cp * vel1r.x - sp * vel1r.y + st * cp * vel1r.z + v2.x;
     v1.y = ct * sp * vel1r.x + cp * vel1r.y + st * sp * vel1r.z + v2.y;
     v1.z =    - st * vel1r.x                     + ct * vel1r.z + v2.z;
@@ -617,7 +762,6 @@ void collide(sphere& s1, sphere& s2){
     v2.y = ct * sp * vel2r.x + cp * vel2r.y + st * sp * vel2r.z + tmpy;
     v2.z =    - st * vel2r.x                     + ct * vel2r.z + tmpz;
 
-    //     ***  velocity correction for inelastic collisions ***
     v1 = (v1 - v_cm) * R + v_cm;
     v2 = (v2 - v_cm) * R + v_cm;
 	
@@ -666,18 +810,19 @@ void collide(sphere& s1, sphere& s2){
      // s1.vel = (2 * s2.vel)*(1/(s1.m+s2.m));
      // s2.vel = (2 * s1.vel)*(1/(s1.m+s2.m));*/
 
-	 
-	 
 	 /////////////////////
-    Vect3 pos1 = s1.pos;
-    Vect3 pos2 = s2.pos;
-    float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
-	float delta = 0;
-	if ((s2.pos-s1.pos).getNorm() < ((s1.r+s2.r)))
-		delta = 0.0001;
-    Vect3 deltaVector = Vect3(delta,delta,delta);
-    s1.pos = pos1+(normalize(pos1-pos2+deltaVector))*((diff)/2);
-    s2.pos = pos2+(normalize(pos2-pos1-deltaVector))*((diff)/2);
+	 if (s2.r < 1 && s1.r < 1){
+	 // if (0){
+		Vect3 pos1 = s1.pos;
+		Vect3 pos2 = s2.pos;
+		float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
+		float delta = 0;
+		if ((s2.pos-s1.pos).getNorm() < ((s1.r+s2.r)))
+			delta = 0.0001;
+		Vect3 deltaVector = Vect3(delta,delta,delta);
+		s1.pos = pos1+(normalize(pos1-pos2+deltaVector))*((diff)/1);
+		s2.pos = pos2+(normalize(pos2-pos1-deltaVector))*((diff)/1);
+	}
 
 }
 void collide(sphere& s1, plane& p1){
@@ -713,7 +858,7 @@ void preRender(){
 
         // gravity loop
 		if (downwardGravity)
-			s1.vel.y -= 0.00001;
+			s1.vel.y -= downwardC;
         if (gravityOn)
             for (int j = 0; j < listOfSpheres.size(); j++){
                 if (j == k){ continue; }
@@ -756,7 +901,51 @@ void preRender(){
 	
 	
 }
+	struct mykey{
+		int a;
+		int b;
+		int c;
+	};		
+	bool operator < (const mykey &l, const mykey &r) { 
+		return l.a < r.a || (l.a == r.a && l.b < r.b) || (l.a == r.a && l.b == r.b && l.c < r.c ); 
+	}
+	void jeromiesSphereInit(){
+		float r = (float)rand()/RAND_MAX;
+		float r2 = (float)rand()/RAND_MAX;
+		r -= 0.5;
+		r *= 0.5;	
+		r2 -= 0.5;
+		r2 *= 0.5;
+		listOfSpheres.push_back(sphere(Vect3(jx+r,jy+r,jz+r),Vect3(0,-0.02,0),originalRadius,defMass));
+		listOfSpheres.push_back(sphere(Vect3(jx+r2,jy+r2,jz+r2),Vect3(0,-0.02,0),originalRadius,defMass));
+		if (jx <= -3.5){
+			if (jz <= 3.5)
+				jz += incrAmtJeromie;
+		}
+		else if (jx >= 3.5){
+			// if (jz >= -3.5)
+				jz -= incrAmtJeromie;
+		}
+		if (jz >= 3.5){
+			jz = 3.5;
+			jx += incrAmtJeromie;
+		} else if (jz <= -3.5){
+			jz = -3.5;
+			jx-=incrAmtJeromie;
+		}
+	}
+void jeromiesSphereInit2(){
+
+		float r = (float)rand()/RAND_MAX;
+		if (r < timeStp){
+		listOfSpheres.push_back(sphere(Vect3(-2.5,5.5,0),Vect3(0,0,0),originalRadius,defMass,Vect3(1,0,0)));
+		listOfSpheres.push_back(sphere(Vect3(2.5,5.5,0),Vect3(0,0,0),originalRadius,defMass,Vect3(0,0,1)));
+	}
+	}
 void myDisplay() {
+	//rT(tvi2);
+	
+
 	if (paused)
 		return;
     //{ Buffers and Matrices:
@@ -801,11 +990,27 @@ void myDisplay() {
     fDataCounter++;
 
 		
+	if (jeromiesScene)
+		jeromiesSphereInit();
+	if (jeromieScene2)
+		jeromiesSphereInit2();
+	//move all the spheres before doing any calculations.
+	for (int k = 0; k < listOfSpheres.size(); k++) {
+		//rT(tvi1);
+        sphere& s1 = listOfSpheres[k];
+        s1.move();
+		//running1 += gT(tvi1);
+	}
 	// vector<vector<vector<vector<int> > > > xMap;
-	float numDivs = 1;
-	vector<vector< vector< vector<int> > > > xMap ( numDivs+1, vector<vector<vector<int> > >(numDivs+1, vector<vector<int> >(numDivs+1, vector<int>(0, 0))));
 
+	// vector<vector< vector< vector<int> > > > xMap ( numDivs+1, vector<vector<vector<int> > >(numDivs+1, vector<vector<int> >(numDivs+1, vector<int>(0, 0))));
+
+
+	map<mykey, vector<int> > zMap;
+	map<mykey, vector<int> >::iterator it;
+	
 	float range = 7;
+
 	if (alisCrack){
 		for (int k = 0; k < listOfSpheres.size(); k++) {
 			float valx = listOfSpheres[k].pos.x;
@@ -818,22 +1023,26 @@ void myDisplay() {
 			int valfy = floor(valy)+numDivs/2;
 			int valfz = floor(valz)+numDivs/2;
 			//cout << valfx << " " << valfy << " " << valfz << endl;
-			xMap.at(valfx).at(valfy).at(valfz).push_back(k);
-		}		
+			mykey tmp;
+			tmp.a = valfx;
+			tmp.b = valfy;
+			tmp.c = valfz;
+			// xMap.at(valfx).at(valfy).at(valfz).push_back(k);
+			zMap[tmp].push_back(k);
+		}
 	}
+	//#pragma omp parallel for
     for (int k = 0; k < listOfSpheres.size(); k++) {
         sphere& s1 = listOfSpheres[k];
 
-        s1.move();
+
         if (dragOn)
             s1.drag();
 
 
         // gravity loop
-	//rT();
 		if (downwardGravity)
-			s1.vel.y -= 0.00001*timeStp;
-	//runningT += gT();
+			s1.vel.y -= downwardC*timeStp;
 
         if (gravityOn)
             for (int j = 0; j < listOfSpheres.size(); j++){
@@ -841,7 +1050,7 @@ void myDisplay() {
                 sphere& s2 = listOfSpheres[j];
                 if ((s2.pos-s1.pos).getNorm() < 0.001) continue;
                 // else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
-                else s1.vel = s1.vel + 0.00000005*timeStp*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                else s1.vel = s1.vel + gConst*timeStp*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
             }
 
         //intersection loop
@@ -855,9 +1064,18 @@ void myDisplay() {
 			int valfx = floor(valx)+numDivs/2;
 			int valfy = floor(valy)+numDivs/2;
 			int valfz = floor(valz)+numDivs/2;
-			// cout << "yes " << valfx << " " << valfy << endl;
-			vector<int> thisVector = xMap.at(valfx).at(valfy).at(valfz);
-			// cout << "no" << endl;
+			
+			
+			vector<int> thisVector;
+			// thisVector = xMap.at(valfx).at(valfy).at(valfz);
+			mykey tmp;
+			tmp.a = valfx;
+			tmp.b = valfy;
+			tmp.c = valfz;
+			it = zMap.find(tmp);
+			if (it != zMap.end()){
+				thisVector = it->second;
+			}
 			for (int i = 0; i < thisVector.size(); i++){
 				int thisSph = thisVector[i];
 				if (k == thisSph){ continue; }
@@ -866,6 +1084,7 @@ void myDisplay() {
 					collide(s1,s2);
 				}
 			}
+			
 		}
 		//end of ali's crack.
 		else{
@@ -924,10 +1143,43 @@ void myDisplay() {
         s1.render();
 		//glDisable(GL_COLOR_MATERIAL);
     }
+	for (int i = 0; i < listOfLargeSpheres.size(); i++){  //TESTING large spherse vs small.
+		sphere & s1 = listOfLargeSpheres[i];
+		s1.move();
+		for (int j = 0; j < listOfSpheres.size(); j++){
+				sphere & s2 = listOfSpheres[j];
+				if (s1.intersect(s2)) {
+					collide(s1,s2);
+				}
+		}
+		for (int j = 0; j < listOfLargeSpheres.size(); j++){
+				sphere & s2 = listOfLargeSpheres[j];
+				if (i == j){ continue; }
+				if (s1.intersect(s2)) {
+					collide(s1,s2);
+				}
+		}
+		for (int j = 0; j < listOfPlanes.size(); j++) {
+            plane p = listOfPlanes[j];
+            if (s1.intersect(p)) {
+				collide(s1,p);  
+				s1.move();
+			}
+        }
+		GLfloat light_spec[] = {1,1,1,1};
+		GLfloat light_amb[] = {s1.color.x*0.3,s1.color.y*0.3,s1.color.z*0.3};
+		GLfloat light_diff[] = {s1.color.x*0.7, s1.color.y*0.7, s1.color.z*0.7};
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, light_amb);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, light_diff);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, light_spec);
+		glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 15.0);
+		glColor3f(s1.color.x, s1.color.y, s1.color.z);
+		s1.render();
+	}
 	for (int j = 0; j < listOfPlanes.size(); j++) {
         plane p = listOfPlanes[j];
 		if (p.isRect){
-			GLfloat light_spec[] = {1,1,1,1};
+			GLfloat light_spec[] = {0,0,0,0};
 			GLfloat light_amb[] = {p.color.x*0.3, p.color.y*0.3, p.color.z*0.3};
 			GLfloat light_diff[] = {p.color.x*0.7, p.color.y*0.7, p.color.z*0.7};
 			//GLfloat light_spec[] = {p.color.x, p.color.y, p.color.z};
@@ -947,19 +1199,59 @@ void myDisplay() {
     }
 
     if(loadFromFile) {
-        if (fDataCounter < fData.size()) {
-            vector<Vect3> thisFrame = fData[fDataCounter];
-            for (int i = 0 ; i < thisFrame.size(); i++) {
-                Vect3 pos = thisFrame[i];
-                glTranslatef(pos.x,pos.y,pos.z);
-                glutSolidSphere(defRadius,sphAcc,sphAcc);
-                glTranslatef(-pos.x,-pos.y,-pos.z);
-            }
-        } else {fDataCounter = 0;}
+		std::string line;
+		while(infile.good()) {
+			std::vector<std::string> splitline;
+			std::string buf;
+		
+			std::getline(infile,line);
+			std::stringstream ss(line);
+
+			while (ss >> buf) {
+				splitline.push_back(buf);
+			}
+			//Ignore blank lines
+			if(splitline.size() == 0) {
+				continue;
+			}
+			//Ignore comments
+			if(splitline[0][0] == '#') {
+				continue;
+			}
+			if(splitline[0][0] == 'E') {
+				break;
+			}
+			if(splitline.size() == 7){
+				glColor3f(atof(splitline[4].c_str()),atof(splitline[5].c_str()),atof(splitline[6].c_str()));
+				glPushMatrix();
+				glTranslatef(atof(splitline[0].c_str()),atof(splitline[1].c_str()),atof(splitline[2].c_str()));
+				float r = atof(splitline[3].c_str());
+				if (r < 0.3)
+					glutSolidSphere(r,7,7);
+				else
+					glutSolidSphere(r,20,20);
+				
+
+				glPopMatrix();
+			} else {
+				std::cerr << "Unknown command: " << splitline[0] << std::endl;
+			}
+		}
     }
 
 	if (removeSpheres){
 		bool erase;
+		for (int j = 0; j < listOfLargeSpheres.size(); j++){
+			Vect3 pos = listOfLargeSpheres[j].pos;
+			erase = 0;
+			if ((pos.x > bound)||(pos.x < -bound)||(pos.y > bound)
+			||(pos.y < -bound)||(pos.z > bound)||(pos.z < -bound))
+				erase = 1;
+			else
+				j++;
+			if (erase)
+				removeSphere2(j);
+		}
 		for (int j = 0; j < listOfSpheres.size();) {
 			Vect3 pos = listOfSpheres[j].pos;
 			erase = 0;
@@ -975,6 +1267,7 @@ void myDisplay() {
     glFlush();
     glutSwapBuffers();					// swap buffers (we earlier set double buffer)
 
+	//running2 += gT(tvi2);
 }
 //}
 
@@ -1048,15 +1341,16 @@ int main(int argc, char *argv[]) {
         }
     }
     */
+    myParse(fname);  //}
     if (loadFromFile) {
-        myParse(fname);  //}
+		infile.open (fname.c_str());
     }
 
 	
 //{ Initialization of glut and window:
 	if (openGLrender){
-    viewport.w = 600;
-    viewport.h = 600;
+    viewport.w = 900;
+    viewport.h = 900;
     glutInit(&argc, argv);                        // This initializes glut
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );  // Use a double-buffered window with red, green, and blue channels
     glutInitWindowSize(viewport.w, viewport.h);   //The size and position of the window
