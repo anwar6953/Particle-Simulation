@@ -300,7 +300,7 @@ bool sphere::intersect(plane p){
 		normal = normal * -1;
 		d2 = normalize(-1*vel)*(p.n*-1);
     }
-    vel = (max(1.0*R,1.0d))*mag*normalize(normalize(vel) + 2*d2*(normal));
+    vel = (max(1.0*R,1.0)) * mag * normalize(normalize(vel) + 2*d2*(normal));
 	
 	if (p.isRect && !willIntersect){
 		Vect3 diff = pos - Vect3(xc,yc,zc);
