@@ -51,7 +51,7 @@ string fname = "scenes/test1";
 bool loadFromFile = 0;
 bool saveToFile = 0;
 bool openGLrender = 1;
-
+float R;
 bool dragOn = 0;
 bool gravityOn = 0;
 float gConst = 0.00000005;
@@ -222,6 +222,8 @@ GLfloat light_position[] = {3.0, -23.0, 3.0, 0.0};  /* Infinite light location. 
 GLfloat light_position2[] = {3.0, 23.0, 3.0, 0.0};  /* Infinite light location. */
 
 KDtree * mainTree = NULL;
+sphere * sceneSpheres = NULL;
+int numSpheres = 500; //default spheres in a scene
 vector<sphere> listOfSpheres;
 vector<sphere> listOfLargeSpheres;
 vector<plane> listOfPlanes;
@@ -525,6 +527,7 @@ void applyVectorField(sphere & thisSph) {
     }
 
 void initScene() {
+    sceneSpheres = new sphere [numSpheres];
     Vect3 UL(-1, 1, -1), LR(1, -1, 1);
     UL = 16 * UL;
     LR = 16 * LR;
