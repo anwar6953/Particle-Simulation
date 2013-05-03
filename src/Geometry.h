@@ -42,16 +42,16 @@ class plane : public Shape {
     plane();
     plane(float, float, float, float);
     plane(Vect3, Vect3, Vect3, Vect3, bool);
-	plane(float, float, float, float, Vect3);
+    plane(float, float, float, float, Vect3);
     plane(Vect3, Vect3, Vect3, Vect3, Vect3, bool);
     Vect3 center;
     Vect3 pt1,pt2,pt3,pt4;
     Vect3 apt1,apt2,apt3,apt4;
     Vect3 n;
-	Vect3 color;
+    Vect3 color;
     float a,b,c,d;
     float isRect;
-	bool approx;
+    bool approx;
     void render();
     int myType();
 };
@@ -115,7 +115,9 @@ class KDtree {
     void constructWeb();
     void printMe(int depth);
     KDtree * getNode(Vect3 & point);
+    void clearNodes();
     void render();
+    void fullRender();
  private:
     void init(Vect3, Vect3);
     //    void destroy(KDtree * child, int d);
@@ -128,13 +130,18 @@ void appendToFile(string fnameParam, string toAppend);
 void bindLeaf(KDtree * primary, KDtree * secondary, char type);
 KDtree * turnHandle(KDtree * current, char sign, char axis);
 char flipSign (char sign);
-void renderNode(KDtree * node);
-KDtree * visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2, void (*intersectNode)(KDtree *), bool moveCall);
-void visitCorner(KDtree * current, char sign1, char axis1, char sign2, char axis2, char sign3, char axis3, void (*interfaceNode)(KDtree *) );
-void nodeNeighborTest(sphere * sph);
+void renderNode(KDtree * node, sphere *);
+KDtree * visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2, void (*intersectNode)(KDtree *, sphere * ), bool, sphere * );
+void visitCorner(KDtree * current, char sign1, char axis1, char sign2, char axis2, char sign3, char axis3, void (*interfaceNode)(KDtree *, sphere * ), sphere * );
+void nodeNeighborTest(sphere * sph, void (*intersectNode)(KDtree *, sphere * ));
 void recoverNav(bool * , char *, char * );
-void intersectNode(KDtree * node);
-void doNothing(KDtree * node);
+void doNothing(KDtree * node, sphere *);
 sphere * removeSpherePtr(sphere * sph);
+void intersectNode(KDtree * node, sphere *);
 
+// *****************************
+// as4.cpp function port prototypes
+// *****************************
+/* need to make collide visible by Geometry.cpp*/
+void collide(sphere& s1, sphere& s2);
 #endif
