@@ -700,6 +700,16 @@ void removeSphere(int x){
     
     //new method below
     activeSpheres[x] = false;
+
+    KDtree * tNode = s.KDnode;
+    vector<sphere *> * nodeSpheres = & tNode->localSpheres;
+    for (int i = 0; i < nodeSpheres->size(); i++) {
+	if (nodeSpheres->at(i) == & s) {
+	    nodeSpheres->erase(nodeSpheres->begin() + i);
+	    break;
+	}
+    }
+
 }
 void removeSphere2(int x){
 sphere& s = listOfLargeSpheres[x];

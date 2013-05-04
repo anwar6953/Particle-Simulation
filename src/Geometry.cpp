@@ -6,7 +6,7 @@
 #include <string>
 #include <sstream>
 #include <cstdlib>
-
+#include <windows.h>
 #ifdef OSX
 #include <GLUT/glut.h>
 #include <OpenGL/glu.h>
@@ -29,6 +29,8 @@ extern string globalToAppend;
 extern int counter;
 extern int prevCounter;
 extern float timeStp;
+extern KDtree * mainTree;
+extern vector<sphere> listOfSpheres;
 extern float R;
 extern float dragCoef;
 
@@ -190,15 +192,11 @@ sphere::sphere(Vect3 posp, Vect3 velp, float rp, float massp, Vect3 cl) {
     init(posp, velp, rp, massp, cl);
 }
 void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass) {
-    pos = center;
-    vel = velocity;
-    r = radius;
-    m = mass;
-	float c1 = ((float)rand())/RAND_MAX;
-	float c2 = ((float)rand())/RAND_MAX;
-	float c3 = ((float)rand())/RAND_MAX;
-	color = Vect3(c1,c2,c3);
-	// color = Vect3((rand() / RAND_MAX),(rand() / RAND_MAX),(rand() / RAND_MAX));
+    float c1 = ((float)rand())/RAND_MAX;
+    float c2 = ((float)rand())/RAND_MAX;
+    float c3 = ((float)rand())/RAND_MAX;
+    color = Vect3(c1,c2,c3);
+    init(center, velocity, radius, mass, color);
 }
 void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass, Vect3 cl) {
     pos = center;
@@ -206,15 +204,22 @@ void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass, Vect3 
     r = radius;
     m = mass;
     color = cl;
+    KDnode = mainTree->getNode(center);
+    KDnode->localSpheres.push_back(this);
 }
 void sphere::render(){
+    //cout << r << endl;
+    //cout << pos.printMe() << endl << endl;
     glTranslatef(pos.x,pos.y,pos.z);
+    
     
     // glutWireSphere(r,sphAcc,sphAcc);
     glutSolidSphere(r,sphAcc,sphAcc);
     
     glTranslatef(-pos.x,-pos.y,-pos.z);
     
+
+
     if(saveToFile){
         if (counter != prevCounter){
 			globalToAppend += "EOF\n";
@@ -328,7 +333,84 @@ bool sphere::intersect(sphere s2, float rSquared){
     else { return false; }
 }
 void sphere::move() {
-    pos = pos + timeStp*vel;
+    pos = pos + timeStp*vel; //update pos
+    //cout << "no" << endl;
+    sphere * moveMe = removeSpherePtr(this);
+    //if (listOfSpheres.size() == 0) return;
+    if (moveMe == NULL || listOfSpheres.size() == 0) return;
+    KDtree * nextNode = mainTree->getNode(pos);
+    nextNode->localSpheres.push_back(moveMe);
+    //    KDnode = nextNode;
+    nextNode->fullRender();
+    //nextNode->fullRender();
+    //nodeNeighborTest(this, renderNode);
+    //cout << "yes"<< endl;
+    char cnt = 0;
+    bool wallIntersect [] = {false, false, false, false, false, false}; // [ negX, posX, negY, posY, negZ, posZ ];
+
+    float margin = pos.x;
+    bool nextWall = margin < KDnode->UL.x;
+
+    if (KDnode->prevX != NULL) {
+	wallIntersect[0] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (KDnode->nextX != NULL) {    
+	nextWall = margin > KDnode->LR.x;
+	wallIntersect[1] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (KDnode->prevY != NULL) {
+	margin = pos.y;
+	nextWall = margin < KDnode->LR.y;
+	wallIntersect[2] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (KDnode->nextY != NULL) {
+	nextWall = margin > KDnode->UL.y;
+	wallIntersect[3] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (KDnode->prevZ != NULL) {
+	margin = pos.z;
+	nextWall = margin < KDnode->UL.z;
+	wallIntersect[4] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (KDnode->nextZ != NULL) {
+	nextWall = margin > KDnode->LR.z;
+	wallIntersect[5] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (cnt == 0 || 1) ; //no need to update node
+    else {
+	sphere * moveMe = removeSpherePtr(this);
+	KDtree * nextNode = NULL;
+	char sign [3];
+	char axis [3];
+	recoverNav(&wallIntersect[0], &sign[0], &axis[0]);
+	if (cnt == 1) {
+	    nextNode = turnHandle(KDnode, sign[0], axis[0]);
+	} else if (cnt == 2) {
+	    nextNode = visitEdge(KDnode, sign[0], axis[0], sign[1], axis[1], doNothing, true, moveMe);
+	} else if (cnt == 3) {
+	    KDtree * edge2 = turnHandle(KDnode, sign[2], axis[2]);
+	    nextNode = visitEdge(edge2, sign[0], axis[0], sign[1], axis[1], doNothing, true, moveMe);
+	} else cout << "Ve need reinforcements!" << endl;
+	//	renderNode(nextNode); //for testing
+	nextNode->localSpheres.push_back(moveMe);
+	KDnode = nextNode;
+    }
+    //    KDnode->render();
+    //KDnode->fullRender();
+    
+    
 }
 void sphere::drag() {
     /*float dragCoef = 2;
@@ -564,15 +646,139 @@ KDtree * KDtree::getNode(Vect3 & point) {
     return local;
 }
 void KDtree::render() {
+    //    Vect3 diff = LR - UL;
+    //float lenX(abs(diff.x)), lenY(abs(diff.y)), lenZ(abs(diff.z));
 
+    //posZ
+    glBegin(GL_LINES);
+    glVertex3f(UL.x, UL.y, UL.z);
+    glVertex3f(UL.x, LR.y, UL.z);
+
+    glVertex3f(UL.x, LR.y, UL.z);
+    glVertex3f(LR.x, LR.y, UL.z);
+
+    glVertex3f(LR.x, LR.y, UL.z);
+    glVertex3f(LR.x, UL.y, UL.z);
+
+    glVertex3f(LR.x, UL.y, UL.z);
+    glVertex3f(UL.x, UL.y, UL.z);
+    glEnd();
+
+    //negZ
+    glBegin(GL_LINES);
+    glVertex3f(UL.x, UL.y, LR.z);
+    glVertex3f(UL.x, LR.y, LR.z);
+
+    glVertex3f(UL.x, LR.y, LR.z);
+    glVertex3f(LR.x, LR.y, LR.z);
+
+    glVertex3f(LR.x, LR.y, LR.z);
+    glVertex3f(LR.x, UL.y, LR.z);
+
+    glVertex3f(LR.x, UL.y, LR.z);
+    glVertex3f(UL.x, UL.y, LR.z);
+    glEnd();
+
+    //negX
+    glBegin(GL_LINES);
+    glVertex3f(UL.x, UL.y, UL.z);
+    glVertex3f(UL.x, UL.y, LR.z);
+
+    glVertex3f(UL.x, UL.y, LR.z);
+    glVertex3f(UL.x, LR.y, LR.z);
+
+    glVertex3f(UL.x, LR.y, LR.z);
+    glVertex3f(UL.x, LR.y, UL.z);
+
+    glVertex3f(UL.x, LR.y, UL.z);
+    glVertex3f(UL.x, UL.y, UL.z);
+    glEnd();
+
+    //posX
+    glBegin(GL_LINES);
+    glVertex3f(LR.x, UL.y, UL.z);
+    glVertex3f(LR.x, UL.y, LR.z);
+
+    glVertex3f(LR.x, UL.y, LR.z);
+    glVertex3f(LR.x, LR.y, LR.z);
+
+    glVertex3f(LR.x, LR.y, LR.z);
+    glVertex3f(LR.x, LR.y, UL.z);
+
+    glVertex3f(LR.x, LR.y, UL.z);
+    glVertex3f(LR.x, UL.y, UL.z);
+    glEnd();
+
+    //posY
+    glBegin(GL_LINES);
+    glVertex3f(UL.x, UL.y, UL.z);
+    glVertex3f(LR.x, UL.y, UL.z);
+
+    glVertex3f(LR.x, UL.y, UL.z);
+    glVertex3f(LR.x, UL.y, LR.z);
+
+    glVertex3f(LR.x, UL.y, LR.z);
+    glVertex3f(UL.x, UL.y, LR.z);
+
+    glVertex3f(UL.x, UL.y, LR.z);
+    glVertex3f(UL.x, UL.y, UL.z);
+    glEnd();
+
+    //negY
+    glBegin(GL_LINES);
+    glVertex3f(UL.x, LR.y, UL.z);
+    glVertex3f(LR.x, LR.y, UL.z);
+
+    glVertex3f(LR.x, LR.y, UL.z);
+    glVertex3f(LR.x, LR.y, LR.z);
+
+    glVertex3f(LR.x, LR.y, LR.z);
+    glVertex3f(UL.x, LR.y, LR.z);
+
+    glVertex3f(UL.x, LR.y, LR.z);
+    glVertex3f(UL.x, LR.y, UL.z);
+    glEnd();
+
+	/*
     Vect3 pos = 0.5 * (UL + LR);
     float length = abs(UL.x - LR.x);
     glTranslatef(pos.x,pos.y,pos.z);
-    glutSolidSphere(.05,sphAcc,sphAcc);
+    glutSolidSphere(.01,sphAcc,sphAcc);
     glutWireCube( (GLdouble) length);
     glTranslatef(-pos.x,-pos.y,-pos.z);
-
+	*/
 }
+void KDtree::fullRender() {
+    Vect3 point = 0.5 * (UL + LR);
+    KDtree * local = mainTree;
+    char localAxis = local->axisSplit;
+    while (local->isLeaf == false) {
+	local->render();
+        // Start by assuming non-corner case
+        if (localAxis == 'x') {
+            if (point.x < (local->UL.x + local->LR.x) / 2.0f ) local = local->leftChild;
+            else local = local->rightChild;
+            localAxis = 'y';
+        } else if (localAxis == 'y') {
+            if (point.y < (local->UL.y + local->LR.y) / 2.0f ) local = local->rightChild;
+            else local = local->leftChild;
+            localAxis = 'z';
+        } else if (localAxis == 'z') {
+            if (point.z < (local->UL.z + local->LR.z) / 2.0f ) local = local->leftChild;
+            else local = local->rightChild;
+            localAxis = 'x';
+        }
+    } //end while
+    
+}
+void KDtree::clearNodes() {
+    localSpheres.clear();
+    if (! isLeaf && ( leftChild != NULL )) {
+        leftChild->clearNodes();
+        rightChild->clearNodes();
+    }
+}
+
 
 // *****************************
 // Sphere / KDtree interfacing utilities
@@ -601,7 +807,7 @@ char flipSign (char sign) {
     else             return '+';
 }
 
-void renderNode(KDtree * node) {
+void renderNode(KDtree * node, sphere * throwAway) {
     node->render();
 }
 /*
@@ -610,29 +816,154 @@ struct Navigate {
     char axis;
 };
 */
-void visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2, void (*interfaceNode)(KDtree *)) {
+KDtree * visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2, void (*interfaceNode)(KDtree *, sphere *), bool moveCall, sphere * currentSphere) {
     // TODO: How to capture all 4 of the Nodes.
     KDtree * nextVisit = current;
-    (*interfaceNode)(nextVisit);
+    (*interfaceNode)(nextVisit, currentSphere);
     // First Step
     nextVisit = turnHandle (nextVisit, sign1, axis1);
-    (*interfaceNode)(nextVisit);
+    (*interfaceNode)(nextVisit, currentSphere);
     // Second Step
     nextVisit = turnHandle (nextVisit, sign2, axis2);
-    (*interfaceNode)(nextVisit);
+    if (moveCall) return nextVisit;
+    (*interfaceNode)(nextVisit, currentSphere);
     // Third Step
     nextVisit = turnHandle (nextVisit, flipSign(sign1), axis1);
-    (*interfaceNode)(nextVisit);    
+    (*interfaceNode)(nextVisit, currentSphere);
 }
 
-void visitCorner(KDtree * current, char sign1, char axis1, char sign2, char axis2, char sign3, char axis3, void (*interfaceNode)(KDtree *)) {
+void visitCorner(KDtree * current, char sign1, char axis1, char sign2, char axis2, char sign3, char axis3, void (*interfaceNode)(KDtree *, sphere *), sphere * currentSphere) {
     KDtree * edge1 = current;
     KDtree * edge2 = turnHandle(current, sign3, axis3);
 
-    visitEdge(edge1, sign1, axis1, sign2, axis2, interfaceNode);
-    visitEdge(edge2, sign1, axis1, sign2, axis2, interfaceNode);
+    visitEdge(edge1, sign1, axis1, sign2, axis2, interfaceNode, false, currentSphere);
+    visitEdge(edge2, sign1, axis1, sign2, axis2, interfaceNode, false, currentSphere);
 }
 
-void intersectNode(KDtree * node) {
+void nodeNeighborTest(sphere * sph, void (* interfaceNode)(KDtree *, sphere *) ) {
+    char cnt = 0;
+    KDtree * myNode = sph->KDnode;
+    Vect3 & center = sph->pos;
+    float radius = sph->r;
+    bool wallIntersect [] = {false, false, false, false, false, false}; // [ negX, posX, negY, posY, negZ, posZ ];
+
+    float margin = center.x - radius;
+    bool nextWall = margin < myNode->UL.x;
+
+    if (myNode->prevX != NULL) {
+	wallIntersect[0] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (myNode->nextX != NULL) {    
+	margin = center.x + radius;
+	nextWall = margin > myNode->LR.x;
+	wallIntersect[1] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (myNode->prevY != NULL) {
+	margin = center.y - radius;
+	nextWall = margin < myNode->LR.y;
+	wallIntersect[2] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (myNode->nextY != NULL) {
+	margin = center.y + radius;
+	nextWall = margin > myNode->UL.y;
+	wallIntersect[3] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (myNode->prevZ != NULL) {
+	margin = center.z - radius;
+	nextWall = margin < myNode->UL.z;
+	wallIntersect[4] = nextWall;
+	cnt += nextWall;
+    }
+
+    if (myNode->nextZ != NULL) {
+	margin = center.z + radius;
+	nextWall = margin > myNode->LR.z;
+	wallIntersect[5] = nextWall;
+	cnt += nextWall;
+    }
     
+    if (cnt == 0) interfaceNode(myNode, sph);
+    else {
+	char sign [3];
+	char axis [3];
+	recoverNav(&wallIntersect[0], &sign[0], &axis[0]);
+	if (cnt == 1) {
+	    interfaceNode(myNode, sph);
+	    interfaceNode(turnHandle(myNode, sign[0], axis[0]), sph);
+	} else if (cnt == 2) {
+	    visitEdge(myNode, sign[0], axis[0], sign[1], axis[1], interfaceNode, false, sph);
+	} else if (cnt == 3) {
+	    visitCorner(myNode, sign[0], axis[0], sign[1], axis[1], sign[2], axis[2], interfaceNode, sph);
+	} else cout << "sound ze alarm!" << endl;
+    }
+}
+
+void intersectNode(KDtree * node, sphere * currentSphere) {
+    //TODO: apply collide over all the spheres in the node. default is to render for debugging.
+    sphere * localSphere = NULL;
+    for (int i = 0; i < node->localSpheres.size(); i++) {
+	localSphere = node->localSpheres[i];
+	if (currentSphere == localSphere) continue;
+	if (currentSphere->intersect( *localSphere )) {
+	    sphere & s1 = *currentSphere;
+	    sphere & s2 = *localSphere;
+	    collide(s1, s2);//collide them
+	}
+    }
+    //node->render();
+}
+void doNothing(KDtree * dummyNode, sphere * dummySphere) {
+    ;
+}
+void recoverNav(bool * wallIntersect, char * sign, char * axis) {
+    int index = 0;
+    for (int i = 0; i < 6; i++ ) {
+	if (wallIntersect[i]) {
+	    sign[index] = (i % 2 == 0) ? '-' : '+';
+
+	    int j = i / 2;
+	    switch(j) {
+	    case 0:
+		axis[index] = 'x';
+		break;
+	    case 1:
+		axis[index] = 'y';
+		break;
+	    case 2:
+		axis[index] = 'z';
+		break;
+	    }
+	    index++;
+	}
+    }
+}
+
+sphere * removeSpherePtr(sphere * sph) {
+    sphere * compareMe = NULL;
+    KDtree * oldNode = sph->KDnode;
+    sphere * dummy = NULL;
+
+    vector<sphere *> & nodeSpheres = oldNode->localSpheres;
+
+    if (nodeSpheres.size() > 0) dummy = nodeSpheres[0];
+
+    for (int i = 0; i < nodeSpheres.size(); i++) {
+
+
+	compareMe = nodeSpheres[i];
+
+	if (compareMe == sph) {
+	    nodeSpheres.erase(nodeSpheres.begin() + i);
+	    break;
+	}
+    }
+    return compareMe;
 }
