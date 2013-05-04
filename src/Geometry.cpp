@@ -204,6 +204,7 @@ void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass, Vect3 
     r = radius;
     m = mass;
     color = cl;
+    
     KDnode = mainTree->getNode(center);
     KDnode->localSpheres.push_back(this);
 }
@@ -505,6 +506,8 @@ void KDtree::init(Vect3 upperLeft, Vect3 lowerRight) {
     this->divY = 1;
     this->divZ = 1;
     this->leafCount = 0;
+    this->sphereHead = NULL;
+    this->sphereTail = NULL;
 }
 /*
 void KDtree::destroy(KDtree * child, int d) {
@@ -585,6 +588,25 @@ void bindLeaf(KDtree * primary, KDtree * secondary, char type) {
 	secondary->prevZ = primary;
 	break;
     }
+}
+void linkSphere(sphere * front, sphere * tail) {
+    front->nextKdSphere = tail;
+    tail->preKdSphere = front;
+}
+void appendLinkSphere(KDtree * node, sphere * tail) {
+    ; //Todo: implement me
+}
+void deLinkSphere(sphere * front, sphere * tail) {
+    front->nextKdSphere = NULL;
+    tail->prevKdSphere = NULL;
+}
+void insertLinkSphereAfter(sphere * front, sphere * insertNext) {
+    linkSphere(insertNext, front->nextKdSphere);
+    linkSphere(front, insertNext); //this order matters
+}
+void removeLinkSphere(sphere * removeMe) {
+    if (removeMe->nextKdSphere == NULL) removeMe->prevKdSphere = NULL;
+    else deLinkSphere(
 }
 
 void KDtree::constructWeb() {

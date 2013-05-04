@@ -378,7 +378,7 @@ void initSphere(sphere newSphere) {
     sceneSpheresIndex ++;
     if (sceneSpheresIndex == numSpheres) {
 	cout << "allocate more numSpheres, wrapping around to beginning" << endl;
-	sceneSpheresIndex = sceneSpheresIndex % numSpheres;
+	sceneSpheresIndex = 0;
     }
 }
 
