@@ -548,15 +548,16 @@ void applyVectorField(sphere & thisSph) {
     }
 
 void initScene() {
-    sceneSpheres = new sphere [numSpheres];
-    activeSpheres = new bool [numSpheres];
-    for (int i = 0; i < numSpheres; i++) activeSpheres[i] = false; //initialize array to false
     Vect3 UL(-1, 1, -1), LR(1, -1, 1);
     UL = 16 * UL;
     LR = 16 * LR;
     mainTree = new KDtree(UL, LR);
     mainTree->constructTree(2 * sqrt(3) + 0.1, 'x', mainTree);
     mainTree->constructWeb();
+
+    sceneSpheres = new sphere [numSpheres];
+    activeSpheres = new bool [numSpheres];
+    for (int i = 0; i < numSpheres; i++) activeSpheres[i] = false; //initialize array to false
 
     glLineWidth(0.5);
     //glColor3f(1,1,1);
