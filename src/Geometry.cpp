@@ -6,12 +6,12 @@
 #include <string>
 #include <sstream>
 #include <cstdlib>
-#include <windows.h>
 #ifdef OSX
 #include <GLUT/glut.h>
 #include <OpenGL/glu.h>
 #else
 #include <GL/glut.h>
+#include <windows.h>
 #include <GL/glu.h>
 #endif
 

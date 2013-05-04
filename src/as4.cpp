@@ -305,13 +305,16 @@ switch (button)
 	      }
 	  }
 	  else{
+          sphere e;
 	      if (pool){
-		  initSphere(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass)); //new
-		  listOfSpheres.push_back(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass));
+              e =(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass));
+		  initSphere(e); //new
+		  listOfSpheres.push_back(e);
 	      }
 	      else{
-		  initSphere(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass)); //new //default case
-		  listOfSpheres.push_back(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass));
+              e = (sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass));
+		  initSphere(e); //new //default case
+		  listOfSpheres.push_back(e);
 	      }
 	  }
       }
@@ -622,14 +625,27 @@ void initScene() {
 		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(hlength,hrails,-hwidth),Vect3(hlength,0,-hwidth),Vect3(0.173,0.094,0.0588),apr));
 		listOfPlanes.push_back(plane(Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,0,hwidth),Vect3(0.173,0.094,0.0588),apr));
 
-		listOfSpheres.push_back(sphere(Vect3(0,r,0),Vect3(.01,0,0),r,defMass,sC));
-		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r,defMass,sC));
-		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
-		listOfSpheres.push_back(sphere(Vect3(1,r,1),Vect3(.01,0,0),r,defMass,sC));
-		// listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
-		listOfSpheres.push_back(sphere(Vect3(-2,r,1),Vect3(.01,0,0),r,defMass,sC));
-		listOfSpheres.push_back(sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
-		listOfSpheres.push_back(sphere(Vect3(2,r,-1),Vect3(.01,0,0),r,defMass,sC));
+        sphere a = (sphere(Vect3(0,r,0),Vect3(.01,0,0),r,defMass,sC));
+        initSphere(a);
+		listOfSpheres.push_back(a);
+        a = (sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r,defMass,sC));
+		initSphere(a);
+		listOfSpheres.push_back(a);
+        a = (sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
+		initSphere(a);
+		listOfSpheres.push_back(a);
+        a = (sphere(Vect3(1,r,1),Vect3(.01,0,0),r,defMass,sC));
+		initSphere(a);
+		listOfSpheres.push_back(a);
+        a = (sphere(Vect3(-2,r,1),Vect3(.01,0,0),r,defMass,sC));
+		initSphere(a);
+		listOfSpheres.push_back(a);
+        a = (sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
+		initSphere(a);
+		listOfSpheres.push_back(a);
+        a = (sphere(Vect3(2,r,-1),Vect3(.01,0,0),r,defMass,sC));
+		initSphere(a);
+		listOfSpheres.push_back(a);
 	}
 
 
@@ -682,10 +698,13 @@ numSpheresPerClick = 100;
 	
     float dist = 0.16;
 	if (loadFromFile) numCubed = 0;
+    sphere b;
     for (int i = 0; i < numCubed; i++) {
         for (int j = 0; j < numCubed; j++){
             for (int k = 0; k < numCubed; k++){
-                listOfSpheres.push_back(sphere(Vect3(i*dist+0.2,j*dist,k*dist-0.8),Vect3(0,0,0),0.05,0.00001));
+                b = (sphere(Vect3(i*dist+0.2,j*dist,k*dist-0.8),Vect3(0,0,0),0.05,0.00001));
+                initSphere(b);
+                listOfSpheres.push_back(b);
 
             }
         }
@@ -946,8 +965,12 @@ void preRender(){
 		r *= 0.5;	
 		r2 -= 0.5;
 		r2 *= 0.5;
-		listOfSpheres.push_back(sphere(Vect3(jx+r,jy+r,jz+r),Vect3(0,-0.02,0),originalRadius,defMass));
-		listOfSpheres.push_back(sphere(Vect3(jx+r2,jy+r2,jz+r2),Vect3(0,-0.02,0),originalRadius,defMass));
+        sphere c = (sphere(Vect3(jx+r,jy+r,jz+r),Vect3(0,-0.02,0),originalRadius,defMass));
+        initSphere(c);
+		listOfSpheres.push_back(c);
+        c = (sphere(Vect3(jx+r2,jy+r2,jz+r2),Vect3(0,-0.02,0),originalRadius,defMass));
+        initSphere(c);
+		listOfSpheres.push_back(c);
 		if (jx <= -3.5){
 			if (jz <= 3.5)
 				jz += incrAmtJeromie;
@@ -968,8 +991,12 @@ void jeromiesSphereInit2(){
 
 		float r = (float)rand()/RAND_MAX;
 		if (r < timeStp){
-		listOfSpheres.push_back(sphere(Vect3(-2.5,5.5,0),Vect3(0,0,0),originalRadius,defMass,Vect3(1,0,0)));
-		listOfSpheres.push_back(sphere(Vect3(2.5,5.5,0),Vect3(0,0,0),originalRadius,defMass,Vect3(0,0,1)));
+            sphere d = (sphere(Vect3(-2.5,5.5,0),Vect3(0,0,0),originalRadius,defMass,Vect3(1,0,0)));
+            initSphere(d);
+		listOfSpheres.push_back(d);
+            d = (sphere(Vect3(2.5,5.5,0),Vect3(0,0,0),originalRadius,defMass,Vect3(0,0,1)));
+            initSphere(d);
+		listOfSpheres.push_back(d);
 	}
 	}
 void myDisplay() {
