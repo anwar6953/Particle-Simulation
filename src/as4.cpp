@@ -90,6 +90,9 @@ int numCubed = 0;
 	float cameraTracking = 0;
 //}
 
+// *********** forward declarations
+void initSphere(sphere newSphere);
+
 void appendToFile(string fnameParam, string toAppend){
     ofstream outfile;
     const char * fname = fnameParam.c_str();
@@ -225,6 +228,7 @@ KDtree * mainTree = NULL;
 sphere * sceneSpheres = NULL;
 bool * activeSpheres = NULL;
 int numSpheres = 500; //default spheres in a scene
+int sceneSpheresIndex = 0; //used to create new spheres (in the place of the sceneSpheres)
 vector<sphere> listOfSpheres;
 vector<sphere> listOfLargeSpheres;
 vector<plane> listOfPlanes;
@@ -359,6 +363,16 @@ void myKybdHndlr(int key, int x, int y){
 
     glutPostRedisplay ();
 }
+
+void initSphere(sphere newSphere) {
+    sceneSpheres[sceneSpheresIndex].copy(newSphere);
+    sceneSpheresIndex ++;
+    if (sceneSpheresIndex == numSpheres) {
+	cout << "allocate more numSpheres, wrapping around to beginning" << endl;
+	sceneSpheresIndex = sceneSpheresIndex % numSpheres;
+    }
+}
+
 void sparse(string s){
 	if (s == "clear")
 		listOfSpheres.clear();	

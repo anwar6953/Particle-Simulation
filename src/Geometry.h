@@ -69,9 +69,7 @@ class sphere : public Shape {
     Vect3 vel;
     float r;
     float m;
-    int collideWithIndex;
-	Vect3 color;
-    vector<Shape *> collideWith;
+    Vect3 color;
     void render();
     bool intersect(sphere);
     bool intersect(sphere, float);
@@ -79,6 +77,7 @@ class sphere : public Shape {
     void move();
     void drag();
     int myType();
+    void copy(sphere);
  private:
     void init(Vect3, Vect3, float, float);
 	void init(Vect3, Vect3, float, float, Vect3);

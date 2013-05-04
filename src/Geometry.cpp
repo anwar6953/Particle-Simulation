@@ -194,7 +194,6 @@ void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass) {
     vel = velocity;
     r = radius;
     m = mass;
-    collideWithIndex = 0;
 	float c1 = ((float)rand())/RAND_MAX;
 	float c2 = ((float)rand())/RAND_MAX;
 	float c3 = ((float)rand())/RAND_MAX;
@@ -206,8 +205,7 @@ void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass, Vect3 
     vel = velocity;
     r = radius;
     m = mass;
-    collideWithIndex = 0;
-	color = cl;
+    color = cl;
 }
 void sphere::render(){
     glTranslatef(pos.x,pos.y,pos.z);
@@ -373,7 +371,22 @@ void sphere::drag() {
 int sphere::myType() {
     return 0;
 }
+void sphere::copy(sphere copyMe) {
+    pos.x = copyMe.pos.x;
+    pos.y = copyMe.pos.y;
+    pos.z = copyMe.pos.z;
 
+    vel.x = copyMe.vel.x;
+    vel.y = copyMe.vel.y;
+    vel.z = copyMe.vel.z;
+
+    r = copyMe.r;
+    m = copyMe.m;
+
+    color.x = copyMe.color.x;
+    color.y = copyMe.color.y;
+    color.z = copyMe.color.z;
+}
 // *****************************
 // KDtree Implementation
 // *****************************
