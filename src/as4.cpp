@@ -293,24 +293,29 @@ switch (button)
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
 	  
 	  // cout << xx << " " << yy << endl;
-	  for (int i = 0; i < numSpheresPerClick; i++){
+      //      cout << pool << endl; // its false in default
+      for (int i = 0; i < numSpheresPerClick; i++){
 	  if (alisCrack && defRadius > originalRadius){
-		  if (pool){
-		listOfLargeSpheres.push_back(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass));}
-		else{
-		listOfLargeSpheres.push_back(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass));
-	}
-		}
-	  else{
-		  if (pool){
-			  listOfSpheres.push_back(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass));
-		  }
-		else{
-		listOfSpheres.push_back(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass));
-	}
-		}
+	      if (pool){
+		  initSphere(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass)); //new
+		  listOfLargeSpheres.push_back(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass));}
+	      else{
+		  initSphere(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass)); //new
+		  listOfLargeSpheres.push_back(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass));
+	      }
 	  }
-	  
+	  else{
+	      if (pool){
+		  initSphere(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass)); //new
+		  listOfSpheres.push_back(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass));
+	      }
+	      else{
+		  initSphere(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass)); //new //default case
+		  listOfSpheres.push_back(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass));
+	      }
+	  }
+      }
+      
 	
 	
     } break;
