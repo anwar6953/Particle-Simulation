@@ -74,7 +74,7 @@ bool removeSpheres = 1;
 float bound = 6;
 
 
-int numSpheresPerClick = 1;
+int numSpheresPerClick = 100;
 float timeStp = 1;
 float defMass = 0.00001;
 // float originalRadius = 0.04;
@@ -371,6 +371,7 @@ void myKybdHndlr(int key, int x, int y){
 
 void initSphere(sphere newSphere) {
     sceneSpheres[sceneSpheresIndex].copy(newSphere);
+    activeSpheres[sceneSpheresIndex] = true;
     sceneSpheresIndex ++;
     if (sceneSpheresIndex == numSpheres) {
 	cout << "allocate more numSpheres, wrapping around to beginning" << endl;
@@ -694,9 +695,11 @@ numSpheresPerClick = 100;
 
 }
 void removeSphere(int x){
-sphere& s = listOfSpheres[x];
-
-	listOfSpheres.erase(listOfSpheres.begin()+x);
+    sphere& s = listOfSpheres[x];
+    listOfSpheres.erase(listOfSpheres.begin()+x);
+    
+    //new method below
+    activeSpheres[x] = false;
 }
 void removeSphere2(int x){
 sphere& s = listOfLargeSpheres[x];
