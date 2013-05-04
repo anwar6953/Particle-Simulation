@@ -223,6 +223,7 @@ GLfloat light_position2[] = {3.0, 23.0, 3.0, 0.0};  /* Infinite light location. 
 
 KDtree * mainTree = NULL;
 sphere * sceneSpheres = NULL;
+bool * activeSpheres = NULL;
 int numSpheres = 500; //default spheres in a scene
 vector<sphere> listOfSpheres;
 vector<sphere> listOfLargeSpheres;
@@ -528,6 +529,8 @@ void applyVectorField(sphere & thisSph) {
 
 void initScene() {
     sceneSpheres = new sphere [numSpheres];
+    activeSpheres = new bool [numSpheres];
+    for (int i = 0; i < numSpheres; i++) activeSpheres[i] = false; //initialize array to false
     Vect3 UL(-1, 1, -1), LR(1, -1, 1);
     UL = 16 * UL;
     LR = 16 * LR;
