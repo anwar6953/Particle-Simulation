@@ -591,22 +591,32 @@ void bindLeaf(KDtree * primary, KDtree * secondary, char type) {
 }
 void linkSphere(sphere * front, sphere * tail) {
     front->nextKdSphere = tail;
-    tail->preKdSphere = front;
-}
-void appendLinkSphere(KDtree * node, sphere * tail) {
-    ; //Todo: implement me
+    tail->prevKdSphere = front;
 }
 void deLinkSphere(sphere * front, sphere * tail) {
     front->nextKdSphere = NULL;
     tail->prevKdSphere = NULL;
 }
+void appendLinkSphere(KDtree * node, sphere * tail) {
+    if (node->sphereHead == NULL) {
+	node->sphereHead = tail;
+    } else {
+	linkSphere(node->sphereTail, tail);
+    }
+    node->sphereTail = tail;
+}
 void insertLinkSphereAfter(sphere * front, sphere * insertNext) {
     linkSphere(insertNext, front->nextKdSphere);
     linkSphere(front, insertNext); //this order matters
 }
-void removeLinkSphere(sphere * removeMe) {
-    if (removeMe->nextKdSphere == NULL) removeMe->prevKdSphere = NULL;
-    else deLinkSphere(
+void removeLinkSphere(KDtree * node, sphere * removeMe) {
+    sphere * prevSph = removeMe->prevKdSphere;
+    sphere * nextSph = removeMe->nextSphere;
+    if (removeMe != node->sphereTail) deLinkSphere(removeMe, nextSph);
+    if (removeMe != node->sphereHead) deLinkSphere(prevSph, removeMe);
+    else { // this sphere IS the sphereHead
+	;
+    }
 }
 
 void KDtree::constructWeb() {
