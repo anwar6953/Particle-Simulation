@@ -68,6 +68,9 @@ class sphere : public Shape {
     sphere(Vect3, Vect3, float, float, Vect3);
     Vect3 pos;
     Vect3 vel;
+    Vect3 cumForce; // Force that is acting on sphere in present timestep
+    Vect3 momentum; // Momentum of Sphere
+    vector<Vect3> localForces;
     float r;
     float m;
     Vect3 color;
