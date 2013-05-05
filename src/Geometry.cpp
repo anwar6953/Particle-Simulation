@@ -201,6 +201,8 @@ void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass) {
 void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass, Vect3 cl) {
     pos = center;
     vel = velocity;
+    momentum = mass * velocity;
+    cumForce = Vect3(0.0f, 0.0f, 0.0f); // spheres initially have 0 accumulated force
     r = radius;
     m = mass;
     color = cl;
@@ -230,6 +232,26 @@ void sphere::render(){
         ss << pos.x << " " << pos.y << " " << pos.z << " " << r << " " << color.x << " " << color.y << " " << color.z << "\n";
 		globalToAppend += ss.str();
     }
+}
+void sphere::addForce(Vect3 forceToAdd) {
+    localForces.push_back(forceToAdd);
+}
+void sphere::applyForce(vector<Vect3> & globalForces) {
+    // This should happen immediately after move
+    for (int i = 0; i < globalForces.size(); i++) {
+        // Accumulate all global forces that act on the sphere. This should be a global variable.
+        cumForce = cumForce + globalForces.at(i);
+    }
+    for (int j = 0; j < localForces.size(); j++) {
+        // Accumulate all local forces that act on the sphere
+        cumForce = cumForce + localForces.at(i);
+    }
+    // Velocity for next timestep
+    vel = vel + (cumForce * (1/m));
+    // Momentum for next timestep
+    momentum = vel * m;
+    // Blank the forces until reapplication for next timestep
+    cumForce = Vect3();
 }
 bool sphere::intersect(plane p){
     float sumabcsquared = pow(p.a,2.0f) + pow(p.b,2.0f) + pow(p.c,2.0f);
