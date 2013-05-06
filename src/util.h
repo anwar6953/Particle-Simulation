@@ -10,6 +10,7 @@ void dump();
 void sparse(string s);
 void myKybdHndlr(unsigned char key, int x, int y);
 void myParse(std::string file);
+void myParse2(std::string file);
 
 
 #endif

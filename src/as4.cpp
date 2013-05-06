@@ -60,7 +60,7 @@ float downwardC = 0.0008;
 
 //SCENES
 bool pool = 0;
-bool box = 1;
+bool box = 0;
 bool jeromiesScene = 0;
 bool jeromieScene2 = 0;
 	float incrAmtJeromie = 0.3;
@@ -77,6 +77,7 @@ float bound = 6;
 int numSpheresPerClick = 1;
 float timeStp = 1;
 float defMass = 0.00001;
+// float defMass = 1;
 // float originalRadius = 0.04;
 float originalRadius = 0.05;
 float defRadius = originalRadius;
@@ -86,7 +87,7 @@ float dragCoef = 0.01;
 bool specialCase = 0;
 float rSqrd = (2*defRadius)*(2*defRadius);
 int numCubed = 0;
-	float numDivs = 100;
+	float numDivs = 50;
 	float cameraTracking = 0;
 //}
 
@@ -217,7 +218,8 @@ int gT(timeval & t){
 Viewport viewport;
 GLfloat light_diffuse[] = {1.0, 1.0, 1.0};  /* white diffuse light. */
 GLfloat light_ambient[] = {0.1, 0.1, 0.1};  /* white ambient light. */
-GLfloat light_specular[] = {1.0, 1.0, 1.0};  /* white specular light. */
+// GLfloat light_specular[] = {1.0, 1.0, 1.0};  /* white specular light. */
+GLfloat light_specular[] = {0.0,0.0,0.0};  /* white specular light. */
 GLfloat light_position[] = {3.0, -23.0, 3.0, 0.0};  /* Infinite light location. */
 GLfloat light_position2[] = {3.0, 23.0, 3.0, 0.0};  /* Infinite light location. */
 
@@ -847,7 +849,8 @@ int main(int argc, char *argv[]) {
         }
     }
     */
-    myParse(fname);  //}
+    // myParse(fname);  //}
+    // myParse2("test");  //}
     if (loadFromFile) {
 		infile.open (fname.c_str());
     }
@@ -875,13 +878,6 @@ int main(int argc, char *argv[]) {
     glutKeyboardFunc(myKybdHndlr);
     glutSpecialFunc(myKybdHndlr);
     glutMainLoop();				    // infinite loop that will keep drawing and resizing
-	}
-    else {
-		for (int i = 0; i < 10000; i++){
-			preRender();
-		}
-		appendToFile(fname,globalToAppend);
-        exit(0);
 	}
 	return 0;                       //} never reaches here?
 

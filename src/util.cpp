@@ -303,3 +303,85 @@ void myParse(std::string file) {
   }
 
 }
+void myParse2(std::string file) {
+  std::ifstream inpfile(file.c_str());
+  vector<Vect3> tmpFrame;
+  if(!inpfile.is_open()) {
+    std::cout << "Unable to open file" << std::endl;
+  } else {
+    std::string line;
+    while(inpfile.good()) {
+      std::vector<std::string> splitline;
+      std::string buf;
+
+      std::getline(inpfile,line);
+      std::stringstream ss(line);
+
+      while (ss >> buf) {
+        splitline.push_back(buf);
+      }
+      //Ignore blank lines
+      if(splitline.size() == 0) {
+        continue;
+      }
+      //Ignore comments
+      if(splitline[0][0] == '#') {
+        continue;
+      } 
+      if(splitline[0][0]=='v') {
+		float c = 20;
+		listOfSpheres.push_back(sphere(c*Vect3(atof(splitline[1].c_str()),atof(splitline[2].c_str()),atof(splitline[3].c_str())),Vect3(),0.02,1,Vect3(1,0,0)));
+      } 
+      else if(splitline[0]=="numSpheresPerClick") {
+        numSpheresPerClick = atof(splitline[1].c_str());
+      } 
+      else if(splitline[0]=="scene1") {
+        pool = 1;
+        alisCrack = 0;
+      } 
+      else if(splitline[0]=="scene4") {
+		box = 1;
+	  }
+      else if(splitline[0]=="scene2") {
+        jeromiesScene = 1;
+      } 
+      else if(splitline[0]=="scene3") {
+        jeromieScene2 = 1;
+      } 
+      else if(splitline[0]=="scene5") {
+        gravityOn=1;
+        gConst=0.000005;
+        alisCrack=0;
+        defMass=1;
+        bound = 30;
+      } 
+      else if(splitline[0]=="numcubed") {
+        numCubed = atof(splitline[1].c_str());
+      } 
+      else if (splitline[0]=="dragOn"){
+		dragOn = 1;
+	  }
+	  else if (splitline[0]=="dragoff"){
+		dragOn = 0;
+	  }
+	  else if (splitline[0]=="gravity"){
+		gravityOn = atof(splitline[1].c_str());
+	  }
+	  else if (splitline[0]=="gravityC"){
+		gConst = atof(splitline[1].c_str());
+	  }
+	  else if (splitline[0]=="R"){
+		R = atof(splitline[1].c_str());
+	  }
+	  else if (splitline[0]=="defRadius"){
+		  originalRadius = atof(splitline[1].c_str());
+		defRadius = originalRadius;
+		  
+		  }else {
+        std::cerr << "Unknown command: " << splitline[0] << std::endl;
+      }
+    }
+    inpfile.close();
+  }
+
+}
