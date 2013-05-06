@@ -131,5 +131,6 @@ void renderNode(KDtree * node);
 void visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2, void (*intersectNode)(KDtree *));
 void visitCorner(KDtree * current, char sign1, char axis1, char sign2, char axis2, char sign3, char axis3, void (*interfaceNode)(KDtree *) );
 void intersectNode(KDtree * node);
+void collide(sphere& s1, plane& p1);
 void collide(sphere& s1, sphere& s2);
 #endif

@@ -428,6 +428,154 @@ void sphere::drag() {
 int sphere::myType() {
     return 0;
 }
+void collide(sphere& s1, plane& p1){
+    // float mag = s1.vel.getNorm();
+    // float d = normalize(-1*s1.vel) * (p1.n);
+    // Vect3 normal = p1.n;
+    // if (d < 0){
+	// normal = normal * -1;
+	// d = normalize(-1*s1.vel)*(p1.n*-1);
+    // }
+    // s1.vel = mag*normalize(normalize(s1.vel) + 2*d*(normal));
+    //move sphere OUT of plane, if necessary.
+}
+void collide(sphere& s1, sphere& s2){
+    //**************************************************************
+    // Exact handler of 3D collisions. Based off of Thomas Smid's implementation from http://www.plasmaphysics.org.uk/programs/coll3d_cpp.htm
+    //**************************************************************
+	
+    Vect3& p1(s1.pos), p2(s2.pos), v1(s1.vel) , v2(s2.vel);
+    float m1(s1.m), m2(s2.m);
+    float r1(s1.r), r2(s2.r);
+    Vect3 displacement(p2 - p1);
+    Vect3 velDiff(v2 - v1);
+
+    float phi2, fvz1r, thetav, phiv, dr, alpha, beta, sbeta, cbeta, dvz2;
+
+    float totalRadius(r1 + r2);
+    float massRatio(m2 / m1);
+
+    Vect3 v_cm = (m1 * v1 + m2 * v2) * (1.0f / (m1 + m2));
+
+    //Vect3 centerVect = ((m1 * s1.vel) + (m2 * s2.vel)) * (1 / (m1 + m2));
+    float d = displacement.getNorm();
+    float v = velDiff.getNorm();
+
+    velDiff = -1 * velDiff;
+
+    float theta2 = (!d) ? 0 : acos( displacement.z / d );
+    if (displacement.x == 0 && displacement.y == 0) phi2 = 0;
+    else phi2 = atan2( displacement.y, displacement.x );
+
+    float st(sin(theta2));
+    float ct(cos(theta2));
+    float sp(sin(phi2));
+    float cp(cos(phi2));
+
+    Vect3 vel1r;
+    vel1r.x = ct * cp * velDiff.x + ct * sp * velDiff.y - st * velDiff.z;
+    vel1r.y =    - sp * velDiff.x      + cp * velDiff.y;
+    vel1r.z = st * cp * velDiff.x + st * sp * velDiff.y + ct * velDiff.z;
+
+    fvz1r = (!v) ? 0 : vel1r.z / v;
+    if (fvz1r > 1) fvz1r = 1; 
+    else if (fvz1r < -1) fvz1r = -1;
+
+    thetav = acos(fvz1r);
+
+    if (vel1r.x == 0 && vel1r.y == 0) phiv = 0;
+    else phiv = atan2( vel1r.y, vel1r.x );
+
+    dr = d * sin(thetav) / totalRadius;
+
+    alpha = asin(- dr);
+    beta = phiv;
+    sbeta = sin(beta);
+    cbeta = cos(beta);
+
+
+    float t = (d * cos(thetav) - totalRadius * sqrt(1 - dr * dr) ) / v;
+
+    float a = tan(thetav + alpha);
+    dvz2 = 2 * (vel1r.z + a * (cbeta * vel1r.x + sbeta * vel1r.y)) /
+	((1 + a * a) * (1 + massRatio));
+
+    Vect3 vel2r = dvz2 * Vect3(a * cbeta, a * sbeta, 1.0);
+
+    vel1r = vel1r - massRatio * vel2r;
+
+    v1.x = ct * cp * vel1r.x - sp * vel1r.y + st * cp * vel1r.z + v2.x;
+    v1.y = ct * sp * vel1r.x + cp * vel1r.y + st * sp * vel1r.z + v2.y;
+    v1.z =    - st * vel1r.x                     + ct * vel1r.z + v2.z;
+
+    float tmpx(v2.x), tmpy(v2.y), tmpz(v2.z);
+    v2.x = ct * cp * vel2r.x - sp * vel2r.y + st * cp * vel2r.z + tmpx;
+    v2.y = ct * sp * vel2r.x + cp * vel2r.y + st * sp * vel2r.z + tmpy;
+    v2.z =    - st * vel2r.x                     + ct * vel2r.z + tmpz;
+
+    v1 = (v1 - v_cm) * R + v_cm;
+    v2 = (v2 - v_cm) * R + v_cm;
+	
+	if (pool){
+		float thr = 0.01;
+		if (v1.y < thr && v1.y > -thr) v1.y = 0;
+		if (v2.y < thr && v2.y > -thr) v2.y = 0;
+	}
+	
+	//debugging tool:
+	// appendToFile("this","collision takign place\n");
+	// ostringstream ss2;
+	// if (v1.y != 0){
+        // ss2 << "x velocity component was " << s1.vel.x
+		// << " y velocity component was " << s1.vel.y 
+		// << " z velocity component was " << s1.vel.z 
+		// << " other sphere's x velocity component was " << s2.vel.x
+		// << " other sphere's y velocity component was " << s2.vel.y 
+		// << " other sphere's z velocity component was " << s2.vel.z 
+		// << " x position component was " << s1.pos.x
+		// << " y position component was " << s1.pos.y 
+		// << " z position component was " << s1.pos.z 
+		// << " other sphere's x position component was " << s2.pos.x
+		// << " other sphere's y position component was " << s2.pos.y 
+		// << " other sphere's z position component was " << s2.pos.z 
+		// << " new y vel is " << v1.y
+		// << "\n";
+		// appendToFile("this",ss2.str());
+		// exit(0);
+	// }
+	
+	s1.vel = v1;
+    s2.vel = v2;
+
+    //**************************************************************
+
+    /*Vect3 vel1 = s1.vel;
+     Vect3 vel2 = s2.vel;
+
+     s1.vel = (((s2.m)*(vel2 - vel1)) + (s2.m * vel2) + (s1.m * vel1))*(1/(s1.m+s2.m));
+     s2.vel = (((s1.m)*(vel1 - vel2)) + (s2.m * vel2) + (s1.m * vel1))*(1/(s1.m+s2.m));
+
+     //s1.vel = ((s1.m-s2.m)*vel1 + 2 * s2.m * vel2)*(1/(s1.m+s2.m));
+     //s2.vel = (2*s1.m*vel1 - (s1.m-s2.m)*vel2)*(1/(s1.m+s2.m));
+
+     // s1.vel = (2 * s2.vel)*(1/(s1.m+s2.m));
+     // s2.vel = (2 * s1.vel)*(1/(s1.m+s2.m));*/
+
+	 /////////////////////
+	 if (s2.r < 1 && s1.r < 1){
+	 // if (0){
+		Vect3 pos1 = s1.pos;
+		Vect3 pos2 = s2.pos;
+		float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
+		float delta = 0;
+		if ((s2.pos-s1.pos).getNorm() < ((s1.r+s2.r)))
+			delta = 0.0001;
+		Vect3 deltaVector = Vect3(delta,delta,delta);
+		s1.pos = pos1+(normalize(pos1-pos2+deltaVector))*((diff)/1);
+		s2.pos = pos2+(normalize(pos2-pos1-deltaVector))*((diff)/1);
+	}
+
+}
 
 // *****************************
 // KDtree Implementation
