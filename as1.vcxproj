@@ -83,10 +83,13 @@
     <ClCompile Include="src/as4.cpp" />
     <ClCompile Include="src/ColorAndVector.cpp" />
     <ClCompile Include="src/Geometry.cpp" />
+    <ClCompile Include="src/util.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src/globals.h" />
     <ClInclude Include="src/ColorAndVector.h" />
     <ClInclude Include="src/Geometry.h" />
+    <ClInclude Include="src/util.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

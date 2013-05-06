@@ -6,6 +6,7 @@
 #include <string>
 #include <sstream>
 #include <cstdlib>
+#include "globals.h"
 
 #ifdef OSX
 #include <GLUT/glut.h>
@@ -17,20 +18,13 @@
 
 #include "Geometry.h"
 #include "ColorAndVector.h"
+// #include "as4.cpp"
 
 #define sphAcc 20 //higher number => prettier spheres.
 #define thresholdForBounce 0 //higher number => bounces happen sooner.
 
 using namespace std;
 
-extern bool saveToFile;
-extern string fname;
-extern string globalToAppend;
-extern int counter;
-extern int prevCounter;
-extern float timeStp;
-extern float R;
-extern float dragCoef;
 
 // *****************************
 // forward Declaration
@@ -237,6 +231,8 @@ bool sphere::intersect(plane p){
     float yc = yo - p.b * (firstTerm) / (sumabcsquared);
     float zc = zo - p.c * (firstTerm) / (sumabcsquared);
 
+
+
     float d = abs(p.a*xo + p.b*yo + p.c*zo + p.d) / pow(sumabcsquared,0.5f);
     Vect3 intPt = Vect3(xc,yc,zc);
 	// glTranslatef(xc,yc,zc);
@@ -256,7 +252,62 @@ bool sphere::intersect(plane p){
 		else
 			return false; 
 	}
-    
+	float tP = 0;
+	float step = 0.1;
+	
+while(tP <=1){
+				
+		Vect3 edge1 = p.apt1 + (p.apt2-p.apt1)*tP;
+		Vect3 edge2 = p.apt2 + (p.apt3-p.apt2)*tP;
+		Vect3 edge3 = p.apt3 + (p.apt4-p.apt3)*tP;
+		Vect3 edge4 = p.apt4 + (p.apt1-p.apt4)*tP;
+		bool d1 = (pos-edge1).getNorm()<r;
+		bool d2 = (pos-edge2).getNorm()<r;
+		bool d3 = (pos-edge3).getNorm()<r;
+		bool d4 = (pos-edge4).getNorm()<r;
+		if (d1 || d2 || d3 || d4){
+			cout << "intersecting" << endl;
+			sphere tmp = sphere();
+			sphere tmp2 = sphere();
+			if(d1){
+				Vect3 sP = edge1-(edge1-p.center)*0.99;
+				tmp = sphere(sP, Vect3(), (sP-edge1).getNorm(), 100000000);
+				tmp2 = sphere(pos,vel,r,m);
+				collide(tmp, tmp2);
+				//pos = tmp2.pos;
+				vel = tmp2.vel;
+				//vel = -1*vel;
+			}else if(d2){
+				Vect3 sP = edge2-(edge2-p.center)*0.99;
+				tmp = sphere(sP, Vect3(), (sP-edge2).getNorm(), 100000000);
+				tmp2 = sphere(pos,vel,r,m);
+				collide(tmp, tmp2);
+				//pos = tmp2.pos;
+				vel = tmp2.vel;
+				//vel = -1*vel;
+			}else if(d3){
+				Vect3 sP = edge3-(edge3-p.center)*0.99;
+				tmp = sphere(sP, Vect3(), (sP-edge3).getNorm(), 100000000);
+				tmp2 = sphere(pos,vel,r,m);
+				collide(tmp, tmp2);
+				//pos = tmp2.pos;
+				vel = tmp2.vel;
+				//vel = -1*vel;
+			}else if(d4){
+				Vect3 sP = edge4-(edge4-p.center)*0.99;
+				tmp = sphere(sP, Vect3(), (sP-edge4).getNorm(), 100000000);
+				tmp2 = sphere(pos,vel,r,m);
+				collide(tmp, tmp2);
+				//pos = tmp2.pos;
+				vel = tmp2.vel;
+				//vel = -1*vel;
+			}
+
+			//vel = -1*vel;
+			return true;
+		}
+		tP += step;
+	}
 	if (p.isRect){
 		if (r > 0.08){
 			if (willIntersect)
@@ -287,9 +338,10 @@ bool sphere::intersect(plane p){
 		bool b3 = crossB3 * (intPt-p.pt3)>0;
 		bool b4 = crossB4 * (intPt-p.pt1)>0;
 		
-		if (!b1 || !b2 || !b3 || !b4)
+		if (!b1 || !b2 || !b3 || !b4){
 			return false;
-	}
+		}
+		}
 	}
 	// if (t < 1 && t > 0)
 		// cout << "changing velocity." << endl;
@@ -300,13 +352,16 @@ bool sphere::intersect(plane p){
 		normal = normal * -1;
 		d2 = normalize(-1*vel)*(p.n*-1);
     }
-    vel = (max(1.0*R,1.0)) * mag * normalize(normalize(vel) + 2*d2*(normal));
-	
+    vel = (max(1.0*R,1.0))*mag*normalize(normalize(vel) + 2*d2*(normal));
+
+
 	if (p.isRect && !willIntersect){
 		Vect3 diff = pos - Vect3(xc,yc,zc);
 		diff = (r-diff.getNorm()) * normalize(diff);
 		pos = pos + diff;
 	}
+
+
 	return true;
     //move sphere OUT of plane, if necessary.
 }

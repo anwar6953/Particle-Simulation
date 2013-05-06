@@ -1,7 +1,8 @@
 //{ Includes, Declarations of functions/classes:
+#include "globals.h"
 #include "ColorAndVector.h"
 #include "Geometry.h"
-#include <omp.h>
+#include "util.h"
 #include <ctime>
 #include <vector>
 #include <iostream>
@@ -34,7 +35,6 @@
 #define PI 3.14159265  // Should be used from mathlib
 #define sphAcc 7
 
-inline float sqr(float x) { return x*x; }
 using namespace std;
 void myDisplay();
 
@@ -43,7 +43,7 @@ int prevCounter = 0;
 int counter = 0;
 int fDataCounter = 0;
 int lineNo = 0;
-		ifstream infile;
+ifstream infile;
 
 
 //{ SETTINGS:
@@ -51,7 +51,7 @@ string fname = "scenes/test1";
 bool loadFromFile = 0;
 bool saveToFile = 0;
 bool openGLrender = 1;
-
+float R = 1;
 bool dragOn = 0;
 bool gravityOn = 0;
 float gConst = 0.00000005;
@@ -60,7 +60,7 @@ float downwardC = 0.0008;
 
 //SCENES
 bool pool = 0;
-bool box = 0;
+bool box = 1;
 bool jeromiesScene = 0;
 bool jeromieScene2 = 0;
 	float incrAmtJeromie = 0.3;
@@ -258,7 +258,7 @@ float zLookAt = -1;
 
 //}
 
-bool alisCrack = 0;
+bool alisCrack = 1;
 //}
 
 //{ Functions.
@@ -271,47 +271,6 @@ void myReshape(int w, int h) {
   glMatrixMode(GL_PROJECTION);
   glLoadIdentity();
   gluPerspective(60.0f,(GLfloat)viewport.w/(GLfloat)viewport.h,0.1f,100.0f);
-}
-void myMsHndlr(int button, int state, int x, int y){
-switch (button)
-  {
-  case GLUT_LEFT_BUTTON:
-    {
-      if (state == 0){prevX = x; prevY = y; return;}
-      float r = 1 - 2 *(float) rand() / RAND_MAX;
-      float lenOfDrag = sqrt(pow(x-prevX,2.0f)+pow(y-prevY,2.0f)) / 40;
-	//43.4
-      float xx = (float)(-viewport.w*0.5 + prevX)/65.4;
-      float yy = (float)(-viewport.h*0.5 + prevY)/-65.4;
-      Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
-	  
-	  // cout << xx << " " << yy << endl;
-	  for (int i = 0; i < numSpheresPerClick; i++){
-	  if (alisCrack && defRadius > originalRadius){
-		  if (pool){
-		listOfLargeSpheres.push_back(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass));}
-		else{
-		listOfLargeSpheres.push_back(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass));
-	}
-		}
-	  else{
-		  if (pool){
-			  listOfSpheres.push_back(sphere(Vect3(xx,defRadius,-yy),Vect3(vel.x,0,vel.z),defRadius,defMass));
-		  }
-		else{
-		listOfSpheres.push_back(sphere(Vect3(xx,yy,defZ),vel,defRadius,defMass));
-	}
-		}
-	  }
-	  
-	
-	
-    } break;
-  default:
-    return;
-  }
-  glutPostRedisplay ();
-
 }
 void myKybdHndlr(int key, int x, int y){
     if (key == GLUT_KEY_UP)
@@ -356,6 +315,29 @@ void myKybdHndlr(int key, int x, int y){
 
     glutPostRedisplay ();
 }
+void dump(){
+	appendToFile("this","DUMP:\n");
+	ostringstream ss2;
+	ss2 << "listOfSpheres size: " << listOfSpheres.size() << endl;
+	for (int i = 0; i < listOfSpheres.size(); i++){
+		sphere s1 = listOfSpheres[i];
+        ss2 << "Velocity: " << s1.vel.x << " " <<  s1.vel.y << " " <<  s1.vel.z;
+		// << " other sphere's x velocity component was " << s2.vel.x
+		// << " other sphere's y velocity component was " << s2.vel.y 
+		// << " other sphere's z velocity component was " << s2.vel.z 
+		// << " x position component was " << s1.pos.x
+		// << " y position component was " << s1.pos.y 
+		// << " z position component was " << s1.pos.z 
+		// << " other sphere's x position component was " << s2.pos.x
+		// << " other sphere's y position component was " << s2.pos.y 
+		// << " other sphere's z position component was " << s2.pos.z 
+		// << " new y vel is " << v1.y
+		// << "\n";
+	}
+	ss2 << "listOfLargeSpheres size: " << listOfLargeSpheres.size() << endl;
+		appendToFile("this",ss2.str());
+		exit(0);
+}
 void sparse(string s){
 	if (s == "clear")
 		listOfSpheres.clear();	
@@ -363,6 +345,8 @@ void sparse(string s){
 		cout << "There are " << listOfSpheres.size() + listOfLargeSpheres.size() << " currently." << endl;
 	if (s == "pause")
 		paused = !paused;
+	if (s == "dump")
+		dump();
 
 	if (s == "gravity")
 		downwardGravity = !downwardGravity;
@@ -511,6 +495,7 @@ void myParse(std::string file) {
 }
 //}
 
+
 void applyVectorField(sphere & thisSph) {
     //apply vortex field
     // Vect3 fieldVector = thisSph.pos;
@@ -524,7 +509,13 @@ void applyVectorField(sphere & thisSph) {
     //    thisSph.vel.y = 0.01 *  (cos(thisSph.pos.y));
     }
 
+//bool moveable(sphere& s){
+	//sphere sCopy = sphere(s.pos, s.vel);
+//}
 void initScene() {
+	// listOfPlanes.push_back(plane(Vect3(0,1,1 + 0),  Vect3(0,-1-0,1+0),  Vect3(0,-1-0,-1-0),  Vect3(0,1,-1-0)       ,0));
+
+
     Vect3 UL(-1, 1, -1), LR(1, -1, 1);
     UL = 16 * UL;
     LR = 16 * LR;
@@ -1013,16 +1004,13 @@ void myDisplay() {
 			int valfx = floor(valx)+numDivs/2;
 			int valfy = floor(valy)+numDivs/2;
 			int valfz = floor(valz)+numDivs/2;
-			//cout << valfx << " " << valfy << " " << valfz << endl;
 			mykey tmp;
 			tmp.a = valfx;
 			tmp.b = valfy;
 			tmp.c = valfz;
-			// xMap.at(valfx).at(valfy).at(valfz).push_back(k);
 			zMap[tmp].push_back(k);
 		}
 	}
-	//#pragma omp parallel for
     for (int k = 0; k < listOfSpheres.size(); k++) {
         sphere& s1 = listOfSpheres[k];
 
@@ -1263,32 +1251,7 @@ void myDisplay() {
 //}
 
 int main(int argc, char *argv[]) {
-
-	// map<int,vector<int> > xMap;
 	
-	
-    // if (it != xMap.end())
-        // it->second.push_back(5);
-	// else
-		// cout << "no" << endl;	
-		
-	// xMap[2].push_back(5);
-	
-
-	// else
-		// cout << "no" << endl;
-	// exit(0);
-	
-	// map<int,string> testMap;
-	// string s1 = "first";
-	// string s2 = "second";
-	// string s3 = "third";
-	// string s4 = "fourth";
-	// testMap.insert(std::pair<int,string>(2,"first"));
-	// testMap.insert(std::pair<int,string>(2,"second"));
-	
-	
-
 	// exit(0);
 
 	
