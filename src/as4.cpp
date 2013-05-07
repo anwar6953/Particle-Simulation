@@ -76,8 +76,8 @@ float bound = 6;
 
 int numSpheresPerClick = 1;
 float timeStp = 1;
-float defMass = 0.00001;
-// float defMass = 1;
+//float defMass = 0.00001;
+ float defMass = 10;
 // float originalRadius = 0.04;
 float originalRadius = 0.05;
 float defRadius = originalRadius;
@@ -87,7 +87,7 @@ float dragCoef = 0.01;
 bool specialCase = 0;
 float rSqrd = (2*defRadius)*(2*defRadius);
 int numCubed = 0;
-	float numDivs = 50;
+	float numDivs = 100;
 	float cameraTracking = 0;
 //}
 
@@ -850,7 +850,7 @@ int main(int argc, char *argv[]) {
     }
     */
     // myParse(fname);  //}
-    // myParse2("test");  //}
+    myParse2("scenes/design16");  //}
     if (loadFromFile) {
 		infile.open (fname.c_str());
     }
