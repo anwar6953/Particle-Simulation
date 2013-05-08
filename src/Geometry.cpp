@@ -21,14 +21,6 @@
 #define sphAcc 20 //higher number => prettier spheres.
 #define thresholdForBounce 0 //higher number => bounces happen sooner.
 
-struct queueNode {
-    queueNode * prevKdLink; //these are for KDnodes to link
-    queueNode * nextKdLink;
-    queueNode * next; //these are for ActiveSpheres
-    queueNode * prev;
-    int serial;
-};
-
 
 using namespace std;
 
@@ -216,8 +208,8 @@ void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass, Vect3 
     r = radius;
     m = mass;
     color = cl;
-    KDnode = mainTree->getNode(center);
-    KDnode->localSpheres.push_back(this);
+    KDnode = NULL; //initSphere must make a call to insert the sphere into the KDtree
+    //    KDnode->localSpheres.push_back(this);
 }
 void sphere::render(){
     //cout << r << endl;
@@ -854,6 +846,15 @@ void KDtree::clearNodes() {
     }
 }
 
+// *****************************
+// queueNode implementation
+// *****************************
+queueNode::queueNode() {
+    prevKdLink = NULL;
+    nextKdLink = NULL;
+    next = NULL;
+    prev = NULL;
+}
 
 // *****************************
 // Sphere / KDtree interfacing utilities

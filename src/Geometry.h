@@ -18,7 +18,14 @@ class sphere;
 class plane;
 class KDtree;
 
-struct queueNode;
+struct queueNode {
+    queueNode * prevKdLink; //these are for KDnodes to link
+    queueNode * nextKdLink;
+    queueNode * next; //these are for ActiveSpheres
+    queueNode * prev;
+    int serial;
+    queueNode();
+};
 
 
 // *****************************
