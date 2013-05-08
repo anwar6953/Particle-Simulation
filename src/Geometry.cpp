@@ -21,6 +21,15 @@
 #define sphAcc 20 //higher number => prettier spheres.
 #define thresholdForBounce 0 //higher number => bounces happen sooner.
 
+struct queueNode {
+    queueNode * prevKdLink; //these are for KDnodes to link
+    queueNode * nextKdLink;
+    queueNode * next; //these are for ActiveSpheres
+    queueNode * prev;
+    int serial;
+};
+
+
 using namespace std;
 
 extern bool saveToFile;
@@ -199,6 +208,7 @@ void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass) {
     init(center, velocity, radius, mass, color);
 }
 void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass, Vect3 cl) {
+    serial = 0;
     pos = center;
     vel = velocity;
     momentum = mass * velocity;
@@ -206,7 +216,6 @@ void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass, Vect3 
     r = radius;
     m = mass;
     color = cl;
-    
     KDnode = mainTree->getNode(center);
     KDnode->localSpheres.push_back(this);
 }
@@ -233,9 +242,12 @@ void sphere::render(){
 		globalToAppend += ss.str();
     }
 }
+/*
 void sphere::addForce(Vect3 forceToAdd) {
     localForces.push_back(forceToAdd);
 }
+*/
+/*
 void sphere::applyForce(vector<Vect3> & globalForces) {
     // This should happen immediately after move
     for (int i = 0; i < globalForces.size(); i++) {
@@ -253,6 +265,7 @@ void sphere::applyForce(vector<Vect3> & globalForces) {
     // Blank the forces until reapplication for next timestep
     cumForce = Vect3();
 }
+*/
 bool sphere::intersect(plane p){
     float sumabcsquared = pow(p.a,2.0f) + pow(p.b,2.0f) + pow(p.c,2.0f);
     float xo = pos.x;
@@ -358,16 +371,17 @@ bool sphere::intersect(sphere s2, float rSquared){
 void sphere::move() {
     pos = pos + timeStp*vel; //update pos
     //cout << "no" << endl;
-    sphere * moveMe = removeSpherePtr(this);
+    //sphere * moveMe = removeSpherePtr(this);
     //if (listOfSpheres.size() == 0) return;
-    if (moveMe == NULL || listOfSpheres.size() == 0) return;
+    //    if (moveMe == NULL || listOfSpheres.size() == 0) return;
     KDtree * nextNode = mainTree->getNode(pos);
-    nextNode->localSpheres.push_back(moveMe);
+    //    nextNode->localSpheres.push_back(moveMe);
     //    KDnode = nextNode;
     nextNode->fullRender();
-    //nextNode->fullRender();
-    //nodeNeighborTest(this, renderNode);
-    //cout << "yes"<< endl;
+
+    if (nextNode == KDnode) return; //sphere hasn't left this node
+
+
     char cnt = 0;
     bool wallIntersect [] = {false, false, false, false, false, false}; // [ negX, posX, negY, posY, negZ, posZ ];
 
@@ -611,15 +625,15 @@ void bindLeaf(KDtree * primary, KDtree * secondary, char type) {
 	break;
     }
 }
-void linkSphere(sphere * front, sphere * tail) {
-    front->nextKdSphere = tail;
-    tail->prevKdSphere = front;
+void linkSphere(queueNode * front, queueNode * tail) {
+    front->nextKdLink = tail;
+    tail->prevKdLink = front;
 }
-void deLinkSphere(sphere * front, sphere * tail) {
-    front->nextKdSphere = NULL;
-    tail->prevKdSphere = NULL;
+void deLinkSphere(queueNode * front, queueNode * tail) {
+    front->nextKdLink = NULL;
+    tail->prevKdLink = NULL;
 }
-void appendLinkSphere(KDtree * node, sphere * tail) {
+void appendLinkSphere(KDtree * node, queueNode * tail) {
     if (node->sphereHead == NULL) {
 	node->sphereHead = tail;
     } else {
@@ -627,17 +641,24 @@ void appendLinkSphere(KDtree * node, sphere * tail) {
     }
     node->sphereTail = tail;
 }
-void insertLinkSphereAfter(sphere * front, sphere * insertNext) {
-    linkSphere(insertNext, front->nextKdSphere);
+void insertLinkSphereAfter(queueNode * front, queueNode * insertNext) {
+    linkSphere(insertNext, front->nextKdLink);
     linkSphere(front, insertNext); //this order matters
 }
-void removeLinkSphere(KDtree * node, sphere * removeMe) {
-    sphere * prevSph = removeMe->prevKdSphere;
-    sphere * nextSph = removeMe->nextSphere;
-    if (removeMe != node->sphereTail) deLinkSphere(removeMe, nextSph);
-    if (removeMe != node->sphereHead) deLinkSphere(prevSph, removeMe);
-    else { // this sphere IS the sphereHead
-	;
+void removeLinkSphere(KDtree * node, queueNode * removeMe) {
+    queueNode * prevSph = removeMe->prevKdLink;
+    queueNode * nextSph = removeMe->nextKdLink;    
+    if (prevSph == NULL) { //removeMe is the HEAD
+	node->sphereHead = nextSph;
+	if (nextSph == NULL) node->sphereTail = NULL; //removeMe is ALSO the TAIL
+	else deLinkSphere(removeMe, nextSph); //removeMe is the HEAD, but not the TAIL
+    } else { //removeMe is not the HEAD
+	deLinkSphere(prevSph, removeMe);
+	if (nextSph == NULL) node->sphereTail = prevSph; //but removeMe is the Tail
+	else { //removeMe is not the HEAD nor the TAIL
+	    deLinkSphere(removeMe, nextSph);
+	    linkSphere(prevSph, nextSph);
+	}
     }
 }
 
@@ -872,18 +893,19 @@ struct Navigate {
 */
 KDtree * visitEdge(KDtree * current, char sign1, char axis1, char sign2, char axis2, void (*interfaceNode)(KDtree *, sphere *), bool moveCall, sphere * currentSphere) {
     // TODO: How to capture all 4 of the Nodes.
+    //    cout << "hi" << endl;
     KDtree * nextVisit = current;
-    (*interfaceNode)(nextVisit, currentSphere);
+    interfaceNode(nextVisit, currentSphere);
     // First Step
     nextVisit = turnHandle (nextVisit, sign1, axis1);
-    (*interfaceNode)(nextVisit, currentSphere);
+    interfaceNode(nextVisit, currentSphere);
     // Second Step
     nextVisit = turnHandle (nextVisit, sign2, axis2);
     if (moveCall) return nextVisit;
-    (*interfaceNode)(nextVisit, currentSphere);
+    interfaceNode(nextVisit, currentSphere);
     // Third Step
     nextVisit = turnHandle (nextVisit, flipSign(sign1), axis1);
-    (*interfaceNode)(nextVisit, currentSphere);
+    interfaceNode(nextVisit, currentSphere);
 }
 
 void visitCorner(KDtree * current, char sign1, char axis1, char sign2, char axis2, char sign3, char axis3, void (*interfaceNode)(KDtree *, sphere *), sphere * currentSphere) {

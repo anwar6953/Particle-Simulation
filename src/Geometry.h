@@ -18,6 +18,9 @@ class sphere;
 class plane;
 class KDtree;
 
+struct queueNode;
+
+
 // *****************************
 // Viewport prototype
 // *****************************
@@ -66,6 +69,7 @@ class sphere : public Shape {
     sphere(Vect3, Vect3, float, float);
     sphere(Vect3, Vect3, float, Vect3);
     sphere(Vect3, Vect3, float, float, Vect3);
+    int serial;
     Vect3 pos;
     Vect3 vel;
     Vect3 cumForce; // Force that is acting on sphere in present timestep
@@ -83,8 +87,6 @@ class sphere : public Shape {
     int myType();
     void copy(sphere);
     KDtree * KDnode;
-    sphere * prevKdSphere; //prev and next will act as the doubly linked list
-    sphere * nextKdSphere;
  private:
     void init(Vect3, Vect3, float, float);
     void init(Vect3, Vect3, float, float, Vect3);
@@ -114,8 +116,8 @@ class KDtree {
     KDtree * leftChild;
     KDtree * rightChild;
     int leafCount;
-    sphere * sphereHead; //the linked list implementation
-    sphere * sphereTail;
+    queueNode * sphereHead; //the linked list implementation
+    queueNode * sphereTail;
     vector<sphere *> localSpheres;
     float getHypotenuse();
     void constructTree(float baseHypotenuse, char axis, KDtree * root);
@@ -136,11 +138,17 @@ class KDtree {
 // *****************************
 void appendToFile(string fnameParam, string toAppend);
 void bindLeaf(KDtree * primary, KDtree * secondary, char type);
-void deLinkSphere(sphere * front, sphere * tail);
-void linkSphere(sphere * front, sphere * tail);
-void appendLinkSphere(KDtree * node, sphere * tail);
-void insertLinkSphereNext(sphere * currentFront, sphere * insertNext);
-void removeLinkSphere(sphere * removeMe);
+
+/* The following are used in the linked list implementation 
+for spheres that belong to a node.
+They make use of the queueNode apparatus for quick de-referencing. */
+void deLinkSphere(sphere * front, queueNode * tail);
+void linkSphere(sphere * front, queueNode * tail);
+void appendLinkSphere(KDtree * node, queueNode * tail);
+void insertLinkSphereNext(queueNode * currentFront, queueNode * insertNext);
+void removeLinkSphere(queueNode * removeMe);
+
+
 KDtree * turnHandle(KDtree * current, char sign, char axis);
 char flipSign (char sign);
 void renderNode(KDtree * node, sphere *);
