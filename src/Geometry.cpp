@@ -34,6 +34,7 @@ extern KDtree * mainTree;
 extern vector<sphere> listOfSpheres;
 extern float R;
 extern float dragCoef;
+extern queueNode * keyChain;
 
 // *****************************
 // forward Declaration
@@ -200,7 +201,7 @@ void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass) {
     init(center, velocity, radius, mass, color);
 }
 void sphere::init(Vect3 center, Vect3 velocity, float radius, float mass, Vect3 cl) {
-    serial = 0;
+    serial = -1;
     pos = center;
     vel = velocity;
     momentum = mass * velocity;
@@ -369,8 +370,19 @@ void sphere::move() {
     KDtree * nextNode = mainTree->getNode(pos);
     //    nextNode->localSpheres.push_back(moveMe);
     //    KDnode = nextNode;
-    nextNode->fullRender();
+    //    nextNode->fullRender();
+    if (KDnode == 0) { 
+	cout << "hi" << endl;
+	return; 
+    }
+    if (nextNode == KDnode) { return; } //sphere hasn't moved anywhere
 
+    //else, we gotta move the sphere. for now we use naive tree traversal moving
+    removeLinkSphere(KDnode, keyChain + serial);
+    KDnode = nextNode;
+    appendLinkSphere(KDnode, keyChain + serial);
+
+    /*
     if (nextNode == KDnode) return; //sphere hasn't left this node
 
 
@@ -438,7 +450,7 @@ void sphere::move() {
     }
     //    KDnode->render();
     //KDnode->fullRender();
-    
+    */
     
 }
 void sphere::drag() {
@@ -483,6 +495,7 @@ int sphere::myType() {
     return 0;
 }
 void sphere::copy(sphere copyMe) {
+    //this is really an initialization of some sphere
     pos.x = copyMe.pos.x;
     pos.y = copyMe.pos.y;
     pos.z = copyMe.pos.z;
@@ -497,6 +510,9 @@ void sphere::copy(sphere copyMe) {
     color.x = copyMe.color.x;
     color.y = copyMe.color.y;
     color.z = copyMe.color.z;
+
+    KDnode = mainTree->getNode(pos);
+    appendLinkSphere(KDnode, keyChain + serial);    
 }
 // *****************************
 // KDtree Implementation
@@ -1024,23 +1040,6 @@ void recoverNav(bool * wallIntersect, char * sign, char * axis) {
 }
 
 sphere * removeSpherePtr(sphere * sph) {
-    sphere * compareMe = NULL;
-    KDtree * oldNode = sph->KDnode;
-    sphere * dummy = NULL;
-
-    vector<sphere *> & nodeSpheres = oldNode->localSpheres;
-
-    if (nodeSpheres.size() > 0) dummy = nodeSpheres[0];
-
-    for (int i = 0; i < nodeSpheres.size(); i++) {
-
-
-	compareMe = nodeSpheres[i];
-
-	if (compareMe == sph) {
-	    nodeSpheres.erase(nodeSpheres.begin() + i);
-	    break;
-	}
-    }
-    return compareMe;
+    removeLinkSphere(sph->KDnode, keyChain + sph->serial);
+    return sph;
 }

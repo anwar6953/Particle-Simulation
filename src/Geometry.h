@@ -153,7 +153,7 @@ void deLinkSphere(sphere * front, queueNode * tail);
 void linkSphere(sphere * front, queueNode * tail);
 void appendLinkSphere(KDtree * node, queueNode * tail);
 void insertLinkSphereNext(queueNode * currentFront, queueNode * insertNext);
-void removeLinkSphere(queueNode * removeMe);
+void removeLinkSphere(KDtree *node, queueNode * removeMe);
 
 
 KDtree * turnHandle(KDtree * current, char sign, char axis);
