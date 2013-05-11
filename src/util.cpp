@@ -332,8 +332,20 @@ void myParse2(std::string file) {
         continue;
       } 
       if(splitline[0][0]=='v') {
-		float c = 20;
-		listOfSpheres.push_back(sphere(c*Vect3(atof(splitline[1].c_str()),atof(splitline[2].c_str()),atof(splitline[3].c_str())),Vect3(),0.02,1,Vect3(1,0,0)));
+		//float c = 20;  //bunny
+		//float c = 0.006;  //elephant
+		//float c = 0.05;  //harley radius = 0.005
+		//float c = 0.05;  //vase
+		//float c = 0.1;  //design1 - set z = 0
+		//float c = 0.04; //design2 tradius = 0.01
+		//float c = 0.1; //design3 design4, 0.02
+		//float c = 0.2; //designs 4-8, 0.02
+		//float c = 0.5;  //design 9, 0.2
+		//float c = 0.1;  //design 10, 0.02
+		float c = 0.06;
+		float tRadius = 0.01;
+		float tMass = 1.0f;
+		listOfSpheres.push_back(sphere(c*Vect3(atof(splitline[1].c_str()),atof(splitline[2].c_str()),atof(splitline[3].c_str())),Vect3(),tRadius,tMass,Vect3(1,0,0)));
       } 
       else if(splitline[0]=="numSpheresPerClick") {
         numSpheresPerClick = atof(splitline[1].c_str());
