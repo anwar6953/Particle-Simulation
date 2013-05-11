@@ -15,6 +15,10 @@
 #include "ColorAndVector.h"
 #include "Geometry.h"
 using namespace std;
+extern bool lock;
+extern int posInFile;
+extern int lastTimeElapsed;
+extern FILE * pFile;
 
 class Viewport;
 

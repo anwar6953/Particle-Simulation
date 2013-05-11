@@ -38,6 +38,12 @@
 using namespace std;
 void myDisplay();
 
+bool lock = 0;
+int posInFile = 0;
+int lastTimeElapsed = 0;
+FILE * pFile;
+
+
 int firstTime = 0;
 int prevCounter = 0;
 int counter = 0;
@@ -213,7 +219,7 @@ int gT(timeval & t){
 
 //{ Global Variables
 //{ Other
-
+float load = 0;
 
 Viewport viewport;
 GLfloat light_diffuse[] = {1.0, 1.0, 1.0};  /* white diffuse light. */
@@ -281,6 +287,13 @@ void applyVectorField(sphere & thisSph) {
 	//sphere sCopy = sphere(s.pos, s.vel);
 //}
 void initScene() {
+// "C:/Users/Gateway/Documents/GitHub/Particle-Simulation/myfile.bin"
+	// pFile = fopen ( "myfile.bin" , "ab" );
+	pFile = fopen("myfile.bin","rb");
+	
+	glPixelStorei (GL_UNPACK_ALIGNMENT, 1);
+	glClearColor (0.0, 0.0, 0.0, 0.0);
+	// if (load){ return; }
 	// listOfPlanes.push_back(plane(Vect3(0,1,1 + 0),  Vect3(0,-1-0,1+0),  Vect3(0,-1-0,-1-0),  Vect3(0,1,-1-0)       ,0));
     Vect3 UL(-1, 1, -1), LR(1, -1, 1);
     UL = 16 * UL;
@@ -478,15 +491,22 @@ void jeromiesSphereInit2(){
 		listOfSpheres.push_back(sphere(Vect3(2.5,5.5,0),Vect3(0,0,0),originalRadius,defMass,Vect3(0,0,1)));
 	}
 	}
+
+
+	
 void myDisplay() {
 	//rT(tvi2);
-	
+	// if (glutGet(GLUT_ELAPSED_TIME) - lastTimeElapsed < 1000){
+		// return;
+	// }
+	// lastTimeElapsed = glutGet(GLUT_ELAPSED_TIME);
 
 	if (paused)
 		return;
     //{ Buffers and Matrices:
     glClear(GL_COLOR_BUFFER_BIT);		    // clear the color buffer
     glClear(GL_DEPTH_BUFFER_BIT);           // clear the depth buffer
+	if (!load){
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();				        // make sure transformation is "zero'd"
@@ -797,6 +817,100 @@ void myDisplay() {
 				removeSphere(j);
 		}
 	}
+	
+	}
+	
+	
+	//****
+	// unsigned char* pixels;
+	// FILE * pFile;
+	// pixels = new unsigned char [4 * viewport.w * viewport.h];
+	//****
+	//****
+	// glReadPixels( 0, 0, viewport.w, viewport.h, GL_RGBA, GL_UNSIGNED_BYTE, &pixels[0] );
+    // pFile = fopen ( "myfile.bin" , "wb" );
+    // fwrite (pixels , 1 , 4 * viewport.w * viewport.h , pFile );
+    // fclose (pFile);
+	//****
+	//****
+	// pFile = fopen ( "myfile.bin" , "r" );
+	// fread(pixels,1,4 * viewport.w * viewport.h,pFile);
+	// fclose (pFile);
+	//****
+	//****
+	// glDrawPixels(viewport.w, viewport.h, GL_RGBA, GL_UNSIGNED_BYTE, pixels);
+	// delete [] pixels;
+	//****
+	
+	float* arr;
+	int entries = 4;
+	string st ;
+	float numS;
+	bool lfd = 1;
+	bool std = 0;
+	
+	if(std){
+		lock = 1;
+		arr = new float [entries*listOfSpheres.size()];
+		for (int i = 0; i < listOfSpheres.size(); i++){
+			sphere s = listOfSpheres[i];
+			arr[i*entries + 0] = s.pos.x;
+			arr[i*entries + 1] = s.pos.y;
+			arr[i*entries + 2] = s.pos.z;
+			arr[i*entries + 3] = s.r;
+			cout << s.r << endl;
+		}
+		float f = listOfSpheres.size();
+		if (fwrite(&f, sizeof(float),1,pFile)==0){cout << "yes1" << endl;exit(0);}
+		if (fwrite(arr, sizeof(float),entries*listOfSpheres.size(),pFile)==0 && listOfSpheres.size()!=0){cout << "yes2" << endl; exit(0);}
+		delete [] arr;
+		/************************************************************/
+		/***only difference is listOfSpheres vs listOfLargeSpheres***/
+		/************(between top and bottom of serialize)***********/
+		/************************************************************/
+		arr = new float [entries*listOfLargeSpheres.size()];
+		for (int i = 0; i < listOfLargeSpheres.size(); i++){
+			sphere s = listOfLargeSpheres[i];
+			arr[i*entries + 0] = s.pos.x;
+			arr[i*entries + 1] = s.pos.y;
+			arr[i*entries + 2] = s.pos.z;
+			arr[i*entries + 3] = s.r;
+			cout << s.r << endl;
+		}
+		f = listOfLargeSpheres.size();
+		if (fwrite(&f, sizeof(float),1,pFile)==0){cout << "yes1" << endl;exit(0);}
+		if (fwrite(arr, sizeof(float),entries*listOfLargeSpheres.size(),pFile)==0 && listOfLargeSpheres.size()!=0){cout << "yes2" << endl; exit(0);}
+		delete [] arr;
+		lock = 0;
+	}
+	
+	if(lfd){
+		for (int repeat2x = 0; repeat2x < 2; repeat2x ++){
+			// fseek(pFile,posInFile,0);
+			int ret = fread(&numS,sizeof(float),1,pFile);
+			if (ret){
+				arr = new float[entries*numS];
+				for (int i = 0; i < entries*numS; i++){
+					arr[i]=-99999;
+				}
+				int numRead = fread(arr,sizeof(float),numS*entries,pFile);
+				if (numS != 0){
+					// cout << "read: " << numRead << endl;
+					// cout << "exist: " << numS*entries << endl;
+					if (numS*entries != numRead){ cout << "err: " << feof(pFile) << " " << ferror(pFile) << endl; }
+					for (int i = 0; i < numS; i++){
+						// cout << arr[i*entries+0] << " " << arr[i*entries+1] << " " << arr[i*entries+2] << endl;
+						// cout << arr[i*entries+3] << endl;
+						sphere(Vect3(arr[i*entries+0],arr[i*entries+1],arr[i*entries+2]),Vect3(),arr[i*entries+3]).render();
+					}
+				}
+				delete [] arr;
+				// posInFile += sizeof(float)*(1);
+				// posInFile += sizeof(float)*(entries*numS);
+			} else { cout << "End of file." << feof(pFile) << endl; /*xit(ret);*/ }
+		}
+	}
+
     glFlush();
     glutSwapBuffers();					// swap buffers (we earlier set double buffer)
 
@@ -850,7 +964,7 @@ int main(int argc, char *argv[]) {
     }
     */
     // myParse(fname);  //}
-    // myParse2("test");  //}
+    // myParse2("test");  //
     if (loadFromFile) {
 		infile.open (fname.c_str());
     }
@@ -858,8 +972,8 @@ int main(int argc, char *argv[]) {
 	
 //{ Initialization of glut and window:
 	if (openGLrender){
-    viewport.w = 900;
-    viewport.h = 900;
+    viewport.w = 400;
+    viewport.h = 400;
     glutInit(&argc, argv);                        // This initializes glut
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );  // Use a double-buffered window with red, green, and blue channels
     glutInitWindowSize(viewport.w, viewport.h);   //The size and position of the window

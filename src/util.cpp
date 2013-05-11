@@ -37,6 +37,7 @@ void myReshape(int w, int h) {
 }
 
 void myMsHndlr(int button, int state, int x, int y){
+if (lock){return;}
 switch (button)
   {
   case GLUT_LEFT_BUTTON:
@@ -46,7 +47,8 @@ switch (button)
       float lenOfDrag = sqrt(pow(x-prevX,2.0f)+pow(y-prevY,2.0f)) / 40;
 	//43.4
 	//65.4
-	float amt = 54;
+	// float amt = 54;
+	float amt = 60;
       float xx = (float)(-viewport.w*0.5 + prevX)/amt;
       float yy = (float)(-viewport.h*0.5 + prevY)/-amt;
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
@@ -145,6 +147,7 @@ void dump(){
 	}
 	ss2 << "listOfLargeSpheres size: " << listOfLargeSpheres.size() << endl;
 		appendToFile("this",ss2.str());
+		fclose (pFile);
 		exit(0);
 }
 void sparse(string s){
