@@ -31,7 +31,7 @@
 #include <GL/glu.h>
 #endif
 
-#include "../glui/include/GL/glui.h"
+#include <include/GL/glui.h>
 
 #define PI 3.14159265  // Should be used from mathlib
 #define sphAcc 7

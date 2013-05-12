@@ -1,4 +1,3 @@
-
 .SUFFIXES: .cpp
 
 #for sgi   -- comment out the lines below to use on HP
@@ -14,7 +13,7 @@ UNAME = $(shell uname)
 
 ifeq ($(UNAME), Linux)
 CXX       = g++
-CPPFLAGS += $(OPTS) -Wall -pedantic
+CPPFLAGS += $(OPTS) -w -pedantic
 endif
 
 #######################################
@@ -30,12 +29,11 @@ else
 endif
 	
 
-
 CPPFLAGS += -I./ -I./include
 
 LIBGLUI = -L./lib -lglui
-LIBGL   = -lGLU -lGL -glut
-LIBS    = -lXmu -lXext -lX11 -lXi -lm
+LIBGL   = -lGLU -lGL -lglut
+LIBS    = -lXext -lX11 -lm
 
 # One of the following options only...
 
@@ -63,23 +61,23 @@ GLUI_TOOLS = bin/ppm2array
 
 .PHONY: all setup examples tools clean depend dist
 
-all: setup $(GLUI_LIB) examples tools main
+all: setup $(GLUI_LIB) examples tools
 
-main: as4.o ColorAndVector.o Geometry.o
- 
-	@$(CXX) $(CPPFLAGS) $(CFLAGS) -o as4 as4.o ColorAndVector.o Geometry.o $(LDFLAGS) $(GLUI_LIB)
-as4.o: src/as4.cpp src/ColorAndVector.h src/Geometry.
-h
+main: as4.o ColorAndVector.o Geometry.o util.o
+	@echo Compiling executable! ./as4
+	@$(CXX) $(CPPFLAGS) $(CFLAGS) -o as4 as4.o ColorAndVector.o Geometry.o util.o $(LDFLAGS) $(GLUI_LIB)
+as4.o: src/as4.cpp src/ColorAndVector.h src/Geometry.h src/util.h
+	@echo Compiling src/as4.cpp
 	@$(CXX) $(CPPFLAGS) $(CFLAGS) -c src/as4.cpp -o as4.o
-Geometry.o: src/Geometry.cpp src/Geometry.h src/ColorAndVector.
-h
+Geometry.o: src/Geometry.cpp src/Geometry.h src/ColorAndVector.h src/globals.h
+	@echo Compiling src/Geometry.cpp
 	@$(CXX) $(CPPFLAGS) $(CFLAGS) -c src/Geometry.cpp -o Geometry.o $(LDFLAGS) $(GLUI_LIB)
-ColorAndVector.o: src/ColorAndVector.cpp src/ColorAndVector.
-h
-	@$(CXX) -c src/ColorAndVector.cpp -o ColorAndVector.
-
-
-o
+ColorAndVector.o: src/ColorAndVector.cpp src/ColorAndVector.h src/globals.h
+	@echo Compiling src/ColorAndVector.cpp
+	@$(CXX) -c src/ColorAndVector.cpp -o ColorAndVector.o
+util.o: src/util.cpp src/util.h src/globals.h
+	@echo Compiling src/util.cpp
+	@$(CXX) $(CPPFLAGS) $(CFLAGS) -c src/util.cpp -o util.o $(LDFLAGS) $(GLUI_LIB)
 
 
 setup:
@@ -109,8 +107,6 @@ docs:
 	doxygen doc/doxygen.cfg
 
 clean:
-
-
 	rm -f *.o $(GLUI_LIB) $(GLUI_EXAMPLES) $(GLUI_TOOLS) 
 	rm -fr doc/html
 
