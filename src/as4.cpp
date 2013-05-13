@@ -71,6 +71,7 @@ bool downwardGravity = 0;
 int downGrav = 0;
 float downwardC = 0.0008;
 
+
 //SCENES
 bool pool = 0;
 bool box = 0;
@@ -88,7 +89,7 @@ float bound = 6;
 
 
 int totalSpheres;
-int numSpheresPerClick = 1;
+//int numSpheresPerClick = 1;
 float timeStp = 1;
 //float defMass = 0.00001;
  float defMass = 10;
@@ -101,7 +102,7 @@ float dragCoef = 0.01;
 bool specialCase = 0;
 float rSqrd = (2*defRadius)*(2*defRadius);
 int numCubed = 0;
-	float numDivs = 100;
+	float numDivs = 200;
 	float cameraTracking = 0;
 //}
 
@@ -112,6 +113,26 @@ void appendToFile(string fnameParam, string toAppend){
     outfile << toAppend;
     outfile.close();
 }
+
+string convertInt(int number)
+{
+    if (number == 0)
+        return "0";
+    string temp="";
+    string returnvalue="";
+    while (number>0)
+    {
+        temp+=number%10+48;
+        number/=10;
+    }
+    for (int i=0;i<temp.length();i++)
+        returnvalue+=temp[temp.length()-i-1];
+    return returnvalue;
+}
+int thousandSpheresClick = 0;
+int remainderSpheresClick = 1;
+int numSpheresPerClick = thousandSpheresClick + remainderSpheresClick;
+string sphereText = convertInt(totalSpheres);
 
 
 //{PERFORMANCE STUFF FOLLOWS (works only on Windows).:
@@ -295,6 +316,8 @@ void applyVectorField(sphere & thisSph) {
 	//sphere sCopy = sphere(s.pos, s.vel);
 //}
 
+
+
 void myGluiIdle( void )
 {
     /* According to the GLUT specification, the current window is
@@ -303,6 +326,10 @@ void myGluiIdle( void )
     if ( glutGetWindow() != main_window )
         glutSetWindow(main_window);
     totalSpheres = listOfLargeSpheres.size() + listOfSpheres.size();
+    //thousandSpheres = totalSpheres / 1000;
+    //remainderSpheres = totalSpheres % 1000;
+    numSpheresPerClick = remainderSpheresClick + (thousandSpheresClick * 1000);
+    sphereText = convertInt(totalSpheres);
     glui->sync_live();
     //cout << totalSpheres << endl;
     
@@ -343,108 +370,6 @@ void initScene() {
     glEnable(GL_DEPTH_TEST);
 	glLightModelf(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 	glShadeModel(GL_SMOOTH);
-
-
-	float width = 2;
-	if (jeromieScene2){
-        bool apr2 = 0;
-	 dragAlt = 1;
- gravAlt = 0;
- downGrav = 1;
- downwardC = 0.002;
- originalRadius = 0.05;
- defRadius = originalRadius;
- removeSpheres = 1;
- bound = 6; numSpheresPerClick = 100;
- R=0.6;
-        
-		float width = 1;
-		//plane 3
-        listOfPlanes.push_back(plane(Vect3(-1,3,-width), Vect3(1,2,-width), Vect3(1,2,width), Vect3(-1,3,width), apr2));
-        
-        listOfPlanes.push_back(plane(Vect3(0.1,4,-width), Vect3(0.1,4,width), Vect3(4,5,width), Vect3(4,5,-width), apr2));
-        
-        listOfPlanes.push_back(plane(Vect3(-0.1,4,-width), Vect3(-0.1,4,width), Vect3(-4,5,width), Vect3(-4,5,-width), apr2));
-        
-		//5th plane
-        listOfPlanes.push_back(plane(Vect3(0.1,0,-width), Vect3(0.1,0,width), Vect3(4,1.5,width), Vect3(4,1.5,-width), apr2));
-        
-        listOfPlanes.push_back(plane(Vect3(-0.1,-1,-width), Vect3(-0.1,-1,width), Vect3(-4,0.5,width), Vect3(-4,0.5,-width), apr2));
-        
-        listOfPlanes.push_back(plane(Vect3(-1,-2,-width), Vect3(1,-2,-width), Vect3(1,-3,width), Vect3(-1,-3,width), apr2));
-        
-   	}
-	if(pool){
-		float hwidth = 2;
-		float hlength = 4;
-		float hrails = 0.3;
-		float r = 0.2;
-		defRadius = r;
-		Vect3 sC = Vect3(1,0,0);
-		bool apr = 0;
-		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,0,-hwidth),Vect3(0.059,0.330,0.157),apr));
-		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588),apr));
-		listOfPlanes.push_back(plane(Vect3(hlength,0,-hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588),apr));
-		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(hlength,hrails,-hwidth),Vect3(hlength,0,-hwidth),Vect3(0.173,0.094,0.0588),apr));
-		listOfPlanes.push_back(plane(Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,0,hwidth),Vect3(0.173,0.094,0.0588),apr));
-
-		listOfSpheres.push_back(sphere(Vect3(0,r,0),Vect3(.01,0,0),r,defMass,sC));
-		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r,defMass,sC));
-		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
-		listOfSpheres.push_back(sphere(Vect3(1,r,1),Vect3(.01,0,0),r,defMass,sC));
-		// listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
-		listOfSpheres.push_back(sphere(Vect3(-2,r,1),Vect3(.01,0,0),r,defMass,sC));
-		listOfSpheres.push_back(sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
-		listOfSpheres.push_back(sphere(Vect3(2,r,-1),Vect3(.01,0,0),r,defMass,sC));
-	}
-
-
-	if (jeromiesScene) {
-	dragAlt = 0;
-gravAlt = 0;
-downGrav = 1;
- downwardC = 0.0008;
- originalRadius = 0.05;
- defRadius = originalRadius;
-removeSpheres = 1;
- bound = 6;
-numSpheresPerClick = 100;
- R=0.6;
-        bool apr2 = 0;
-		//lower box depth
-		float lBD = -1;
-        listOfPlanes.push_back(plane(Vect3(0.2,lBD,0.2),Vect3(0.2,lBD,-0.2),Vect3(2,2,-2), Vect3(2,2,2), apr2));
-        
-        listOfPlanes.push_back(plane(Vect3(0.2,lBD,-0.2),Vect3(-0.2,lBD,-0.2),Vect3(-2,2,-2), Vect3(2,2,-2), apr2));
-        listOfPlanes.push_back(plane(Vect3(-0.2,lBD,-0.2),Vect3(-0.2,lBD,0.2),Vect3(-2,2,2), Vect3(-2,2,-2), apr2));
-        
-        listOfPlanes.push_back(plane(Vect3(-0.2,lBD,0.2),Vect3(0.2,lBD,0.2),Vect3(2,2,2), Vect3(-2,2,2), apr2));
-        
-        
-       listOfPlanes.push_back(plane(Vect3(2,2.8,-2.8), Vect3(2,2.8,2.8), Vect3(4,4,4), Vect3(4,4,-4), apr2));
-        
-        listOfPlanes.push_back(plane(Vect3(-2,2.8,-2.8), Vect3(2,2.8,-2.8), Vect3(4,4,-4), Vect3(-4,4,-4), apr2));
-        
-        listOfPlanes.push_back(plane(Vect3(-2,2.8,2.8), Vect3(-2,2.8,-2.8),  Vect3(-4,4,-4), Vect3(-4,4,4), apr2));
-        
-        listOfPlanes.push_back(plane(Vect3(2,2.8,2.8), Vect3(-2,2.8,2.8),  Vect3(-4,4,4), Vect3(4,4,4), apr2));
-    }
-
-
-	if (box){
-		float overlap = 0.1;
-		bool apr2 = 1;
-		//left box.
-		listOfPlanes.push_back(plane(Vect3(0,1,1 + overlap),  Vect3(0,-1-overlap,1+overlap),  Vect3(0,-1-overlap,-1-overlap),  Vect3(0,1,-1-overlap)       ,apr2));
-		//right box.
-		listOfPlanes.push_back(plane(Vect3(width,1,1+overlap),Vect3(width,-1-overlap,1+overlap),Vect3(width,-1-overlap,-1-overlap),Vect3(width,1,-1-overlap),apr2));
-		//bottom box.
-		listOfPlanes.push_back(plane(Vect3(-overlap,-1,1+overlap),Vect3(-overlap,-1,-1-overlap),Vect3(width+overlap,-1,-1-overlap),Vect3(width+overlap,-1,1+overlap),apr2));
-		//far box.
-		listOfPlanes.push_back(plane(Vect3(-overlap,1,-1),Vect3(-overlap,-1,-1),Vect3(width+overlap,-1,-1),Vect3(width+overlap,1,-1),apr2));
-		//near box.
-		listOfPlanes.push_back(plane(Vect3(-overlap,1,1),Vect3(-overlap,-1,1),Vect3(width+overlap,-1,1),Vect3(width+overlap,1,1),apr2));
-    }
 	
     float dist = 0.16;
 	if (loadFromFile) numCubed = 0;
@@ -943,7 +868,50 @@ void myDisplay() {
 //}
 
 int main(int argc, char *argv[]) {
+	
+	// exit(0);
 
+	
+//{ PARSING:
+    // if (argc < 3) { cout << "Please provide the filename and subdivision_Parameter" << endl; exit(0); }
+    //string fname = argv[1];
+	// string fname = "test1";
+    // stpSize = atof(argv[2]);
+    // if (argc == 4){
+        // if (string(argv[3]) == "-a"){ adaptive = true; }
+        // else { adaptive = false; }
+    // }
+    // if (!adaptive){ //if uniform...
+        // float numDivs = floor(1.0f / stpSize);
+        // if (numDivs != 1.0f/stpSize){ numDivs++; }
+        // stpSize = 1 / numDivs;
+    // }
+    /*
+    if (argc < 2){
+		printf("Dude, are you passing something at all? We'll just read input from an arbitrary file for now.\n");
+    } else {
+        int i = 1;
+
+        while (i < argc) {
+            if ((i == 2) && (*(argv[i]) != '-')) {
+                fname = argv[2];
+                loadFromFile = true;
+            }
+            if (*(argv[i]) == '-') {
+                char *p = argv[i];
+
+                if (*(p+1) == 'g' ) {
+                    gravityOn = true;
+                } else if (*(p+1) == 'd' ) {
+                    dragOn = true;
+                } else if (*(p+1) == 'd' ) {
+                    saveToFile = true;
+                }
+            }
+            i++;
+        }
+    }
+    */
     // myParse(fname);  //}
     myParse2("scenes/design16");  //}
     if (loadFromFile) {
@@ -975,8 +943,13 @@ int main(int argc, char *argv[]) {
     glutSpecialFunc(myKybdHndlr);
    
         glui = GLUI_Master.create_glui( "GLUI" );
-        (new GLUI_Spinner( glui, "Spheres per Click:", &numSpheresPerClick ))
-        ->set_int_limits( 1, 100 );
+        (new GLUI_Spinner( glui, "thousands of spheres per Click:", &thousandSpheresClick ))
+        ->set_int_limits( 0, 9 );
+        (new GLUI_Spinner( glui, "plus this many spheres per Click:", &remainderSpheresClick ))->set_int_limits( 0, 999 );
+	//(new GLUI_Scrollbar( glui, "Thousand Spheres per Click",1,&thousandSpheresClick))
+	//->set_int_limits( 0, 9);
+	(new GLUI_Scrollbar( glui, "Spheres per Click",1,&remainderSpheresClick))
+	->set_int_limits( 0, 999);
         (new GLUI_Spinner( glui, "Sphere Radius:", & defRadius ))
         ->set_float_limits( .01f, 5 );
         (new GLUI_Spinner( glui, "Collision Elasticity:", & R ))
@@ -989,6 +962,16 @@ int main(int argc, char *argv[]) {
         new GLUI_EditText( glui, "Spheres in Scene:", & totalSpheres);
         counter_edittext->disable();
         new GLUI_Button( glui, "Quit", 0,(GLUI_Update_CB)exit );
+	GLUI_EditText *counter_edittext3 =
+        new GLUI_EditText( glui, "spheres in the scene:", sphereText);
+
+	
+
+	glui->add_button("Scene 1", 1,setScene1); 
+	glui->add_button("Scene 2", 1,setScene2); 
+	glui->add_button("Scene 3", 1,setScene3); 
+	glui->add_button("Scene 4", 1,setScene4); 
+	glui->add_button("Scene 5", 1,setScene5); 
         
         glui->set_main_gfx_window( main_window );
         

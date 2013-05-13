@@ -224,6 +224,169 @@ void myKybdHndlr(unsigned char key, int x, int y){
     glutPostRedisplay ();
 }
 
+void poolScene(){
+	pool = 1;
+	alisCrack = 0;
+	float hwidth = 2;
+	float hlength = 4;
+	float hrails = 0.3;
+	float r = 0.2;
+	defRadius = r;
+	Vect3 sC = Vect3(1,0,0);
+	bool apr = 0;
+	listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,0,-hwidth),Vect3(0.059,0.330,0.157),apr));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588),apr));
+		listOfPlanes.push_back(plane(Vect3(hlength,0,-hwidth),Vect3(hlength,0,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,hrails,-hwidth),Vect3(0.173,0.094,0.0588),apr));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,-hwidth),Vect3(-hlength,hrails,-hwidth),Vect3(hlength,hrails,-hwidth),Vect3(hlength,0,-hwidth),Vect3(0.173,0.094,0.0588),apr));
+		listOfPlanes.push_back(plane(Vect3(-hlength,0,hwidth),Vect3(-hlength,hrails,hwidth),Vect3(hlength,hrails,hwidth),Vect3(hlength,0,hwidth),Vect3(0.173,0.094,0.0588),apr));
+
+		listOfSpheres.push_back(sphere(Vect3(0,r,0),Vect3(.01,0,0),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(1,r,0),Vect3(.01,0,0.01),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(1,r,1),Vect3(.01,0,0),r,defMass,sC));
+		// listOfSpheres.push_back(sphere(Vect3(-1,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(-2,r,1),Vect3(.01,0,0),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(-3,r,0),Vect3(.01,0,-0.01),r,defMass,sC));
+		listOfSpheres.push_back(sphere(Vect3(2,r,-1),Vect3(.01,0,0),r,defMass,sC));
+}
+
+void jeromieScene(){
+jeromiesScene=1;
+	dragAlt = 0;
+gravAlt = 0;
+downGrav = 1;
+ downwardC = 0.0008;
+ originalRadius = 0.05;
+ defRadius = originalRadius;
+removeSpheres = 1;
+ bound = 6;
+numSpheresPerClick = 100;
+ R=0.6;
+        bool apr2 = 0;
+		//lower box depth
+		float lBD = -1;
+        listOfPlanes.push_back(plane(Vect3(0.2,lBD,0.2),Vect3(0.2,lBD,-0.2),Vect3(2,2,-2), Vect3(2,2,2), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(0.2,lBD,-0.2),Vect3(-0.2,lBD,-0.2),Vect3(-2,2,-2), Vect3(2,2,-2), apr2));
+        listOfPlanes.push_back(plane(Vect3(-0.2,lBD,-0.2),Vect3(-0.2,lBD,0.2),Vect3(-2,2,2), Vect3(-2,2,-2), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-0.2,lBD,0.2),Vect3(0.2,lBD,0.2),Vect3(2,2,2), Vect3(-2,2,2), apr2));
+        
+        
+       listOfPlanes.push_back(plane(Vect3(2,2.8,-2.8), Vect3(2,2.8,2.8), Vect3(4,4,4), Vect3(4,4,-4), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-2,2.8,-2.8), Vect3(2,2.8,-2.8), Vect3(4,4,-4), Vect3(-4,4,-4), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-2,2.8,2.8), Vect3(-2,2.8,-2.8),  Vect3(-4,4,-4), Vect3(-4,4,4), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(2,2.8,2.8), Vect3(-2,2.8,2.8),  Vect3(-4,4,4), Vect3(4,4,4), apr2));
+
+}
+
+void jeromiesScene_2(){
+	jeromieScene2 = 1;
+        bool apr2 = 0;
+	 dragAlt = 1;
+ gravAlt = 0;
+ downGrav = 1;
+ downwardC = 0.002;
+ originalRadius = 0.05;
+ defRadius = originalRadius;
+ removeSpheres = 1;
+ bound = 6; numSpheresPerClick = 100;
+ R=0.6;
+
+        
+		float width = 1;
+		//plane 3
+        listOfPlanes.push_back(plane(Vect3(-1,3,-width), Vect3(1,2,-width), Vect3(1,2,width), Vect3(-1,3,width), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(0.1,4,-width), Vect3(0.1,4,width), Vect3(4,5,width), Vect3(4,5,-width), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-0.1,4,-width), Vect3(-0.1,4,width), Vect3(-4,5,width), Vect3(-4,5,-width), apr2));
+        
+		//5th plane
+        listOfPlanes.push_back(plane(Vect3(0.1,0,-width), Vect3(0.1,0,width), Vect3(4,1.5,width), Vect3(4,1.5,-width), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-0.1,-1,-width), Vect3(-0.1,-1,width), Vect3(-4,0.5,width), Vect3(-4,0.5,-width), apr2));
+        
+        listOfPlanes.push_back(plane(Vect3(-1,-2,-width), Vect3(1,-2,-width), Vect3(1,-3,width), Vect3(-1,-3,width), apr2));
+        
+}
+
+void boxScene(){
+float width = 2;
+	box=1;
+		float overlap = 0.1;
+		bool apr2 = 1;
+		//left box.
+		listOfPlanes.push_back(plane(Vect3(0,1,1 + overlap),  Vect3(0,-1-overlap,1+overlap),  Vect3(0,-1-overlap,-1-overlap),  Vect3(0,1,-1-overlap)       ,apr2));
+		//right box.
+		listOfPlanes.push_back(plane(Vect3(width,1,1+overlap),Vect3(width,-1-overlap,1+overlap),Vect3(width,-1-overlap,-1-overlap),Vect3(width,1,-1-overlap),apr2));
+		//bottom box.
+		listOfPlanes.push_back(plane(Vect3(-overlap,-1,1+overlap),Vect3(-overlap,-1,-1-overlap),Vect3(width+overlap,-1,-1-overlap),Vect3(width+overlap,-1,1+overlap),apr2));
+		//far box.
+		listOfPlanes.push_back(plane(Vect3(-overlap,1,-1),Vect3(-overlap,-1,-1),Vect3(width+overlap,-1,-1),Vect3(width+overlap,1,-1),apr2));
+		//near box.
+		listOfPlanes.push_back(plane(Vect3(-overlap,1,1),Vect3(-overlap,-1,1),Vect3(width+overlap,-1,1),Vect3(width+overlap,1,1),apr2));
+}
+
+void clearScene(){
+	listOfSpheres.clear();
+	listOfLargeSpheres.clear();
+	listOfPlanes.clear();
+	jeromiesScene = 0;
+	pool = 0;
+	jeromieScene2 = 0;
+	box = 0;
+	downGrav=0;
+	gravityOn=0;
+	dragOn = 0;
+	gravAlt = 0;
+	dragAlt=0;
+	//totalSpheres=1;
+	numSpheresPerClick=1;
+	R = 1.0;
+	defRadius=0.01;
+	alisCrack=1;
+}
+
+void setScene1(int r){
+	clearScene();
+	poolScene();
+	glutPostRedisplay();
+}
+
+void setScene2(int r){
+	clearScene();
+	jeromieScene();
+	glutPostRedisplay();
+}
+
+void setScene3(int r){
+	clearScene();
+	jeromiesScene_2();
+	glutPostRedisplay();
+}
+
+void setScene4(int r){
+	clearScene();
+	boxScene();
+	glutPostRedisplay();
+}
+
+void setScene5(int r){
+	clearScene();
+	gravityOn=1;
+	gravAlt=1;
+	gravAlt = 1;
+        gConst=0.000005;
+        alisCrack=0;
+        defMass=1;
+        bound = 30;
+	glutPostRedisplay();
+}
+
 void myParse(std::string file) {
   std::ifstream inpfile(file.c_str());
   vector<Vect3> tmpFrame;
@@ -257,24 +420,19 @@ void myParse(std::string file) {
         numSpheresPerClick = atof(splitline[1].c_str());
       } 
       else if(splitline[0]=="scene1") {
-        pool = 1;
-        alisCrack = 0;
+        setScene1(4);
       } 
       else if(splitline[0]=="scene4") {
-		box = 1;
+		setScene4(4);
 	  }
       else if(splitline[0]=="scene2") {
-        jeromiesScene = 1;
+        setScene2(4);
       } 
       else if(splitline[0]=="scene3") {
-        jeromieScene2 = 1;
+        setScene3(4);
       } 
       else if(splitline[0]=="scene5") {
-        gravityOn=1;
-        gConst=0.000005;
-        alisCrack=0;
-        defMass=1;
-        bound = 30;
+	setScene5(4);
       } 
       else if(splitline[0]=="numcubed") {
         numCubed = atof(splitline[1].c_str());
