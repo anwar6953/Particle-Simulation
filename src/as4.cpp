@@ -102,7 +102,7 @@ float dragCoef = 0.01;
 bool specialCase = 0;
 float rSqrd = (2*defRadius)*(2*defRadius);
 int numCubed = 0;
-	float numDivs = 200;
+	float numDivs = bound/defRadius;
 	float cameraTracking = 0;
 //}
 
