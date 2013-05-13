@@ -44,6 +44,8 @@ extern int dragAlt ;
 extern int gravAlt ;
 extern int downGrav ;
 extern int totalSpheres ;
+
+extern int tmpID;
 //extern int convertInt ;
 
 extern bool pool ;

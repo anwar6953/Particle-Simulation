@@ -22,6 +22,7 @@
 
 #define sphAcc 20 //higher number => prettier spheres.
 #define thresholdForBounce 0 //higher number => bounces happen sooner.
+#define PI 3.14159265
 
 using namespace std;
 
@@ -151,8 +152,10 @@ void dump(){
 		exit(0);
 }
 void sparse(string s){
-	if (s == "clear")
+	if (s == "clear"){
 		listOfSpheres.clear();	
+		listOfLargeSpheres.clear();
+}
 	if (s == "numspheres")
 		cout << "There are " << listOfSpheres.size() + listOfLargeSpheres.size() << " currently." << endl;
 	if (s == "pause")
@@ -331,6 +334,48 @@ float width = 2;
 		listOfPlanes.push_back(plane(Vect3(-overlap,1,1),Vect3(-overlap,-1,1),Vect3(width+overlap,-1,1),Vect3(width+overlap,1,1),apr2));
 }
 
+void createCone(){
+	int subdivisions=3000;
+	float topR = 5;
+	Vect3 topC(0,4,0);
+	float botR = 1;
+	Vect3 botC(0,-4,0);
+	Vect3 color(1,0,1);	
+
+	float angle = 2*PI/subdivisions;
+
+	Vect3 firstT(topR,2,0);
+	Vect3 firstB(botR,-2,0);
+	vector<Vect3> topPoints;
+	vector<Vect3> botPoints;
+	//topPoints.push_back(firstT);
+	//botPoints.push_back(firstB);
+	for(int i=0; i < subdivisions; i++){
+		topPoints.push_back(Vect3(sin(i*angle)*topR,topC.y,cos(i*angle)*topR));
+		botPoints.push_back(Vect3(sin(i*angle)*botR,botC.y,cos(i*angle)*botR));
+	}
+	topPoints.push_back(Vect3(0,topC.y,topR));
+	botPoints.push_back(Vect3(0,botC.y,botR));
+	topPoints.push_back(firstT);
+	botPoints.push_back(firstB);
+	for(int i =0; i < subdivisions; i+=1){
+		Vect3 pt1 = topPoints[i];Vect3 pt2 = topPoints[i+1];
+		Vect3 pt3 = botPoints[i];Vect3 pt4 = botPoints[i+1];
+		plane p(pt1,pt3,pt4,pt2,0);p.setColor(color);
+		listOfPlanes.push_back(p);
+	}
+	for(int i=0;i<9;i++){
+		int randN = floor(listOfPlanes.size()*(rand()/RAND_MAX));
+		float sR = 0.15;
+		plane p = listOfPlanes[randN];
+		Vect3 point = p.n+(p.n-(p.pt1-p.pt4)*0.5)*0.9;
+		Vect3 sC = point+(p.n)*(1/p.n.getNorm())*sR;
+		Vect3 sVel = 0.05*(p.pt1-p.pt4)*(1/(p.pt1-p.pt4).getNorm());
+		sphere s(sC,sVel,sR,1); 
+		listOfSpheres.push_back(s);
+	}
+	downGrav=1;
+}
 void clearScene(){
 	listOfSpheres.clear();
 	listOfLargeSpheres.clear();
@@ -348,7 +393,13 @@ void clearScene(){
 	numSpheresPerClick=1;
 	R = 1.0;
 	defRadius=0.01;
+	originalRadius=defRadius;
 	alisCrack=1;
+}
+
+void clearSpheres(int r){
+	listOfSpheres.clear();
+	listOfLargeSpheres.clear();
 }
 
 void setScene1(int r){
@@ -369,13 +420,13 @@ void setScene3(int r){
 	glutPostRedisplay();
 }
 
-void setScene4(int r){
+void setScene4(){
 	clearScene();
 	boxScene();
 	glutPostRedisplay();
 }
 
-void setScene5(int r){
+void setScene5(){
 	clearScene();
 	gravityOn=0;
 	gravAlt=0;
@@ -383,6 +434,12 @@ void setScene5(int r){
         alisCrack=1;
         defMass=1;
         bound = 6;
+	glutPostRedisplay();
+}
+
+void setScene6(int r){
+	clearScene();
+	createCone();
 	glutPostRedisplay();
 }
 
@@ -422,7 +479,7 @@ void myParse(std::string file) {
         setScene1(4);
       } 
       else if(splitline[0]=="scene4") {
-		setScene4(4);
+		setScene4();
 	  }
       else if(splitline[0]=="scene2") {
         setScene2(4);
@@ -431,7 +488,7 @@ void myParse(std::string file) {
         setScene3(4);
       } 
       else if(splitline[0]=="scene5") {
-	setScene5(4);
+	setScene5();
       } 
       else if(splitline[0]=="numcubed") {
         numCubed = atof(splitline[1].c_str());
@@ -463,7 +520,7 @@ void myParse(std::string file) {
   }
 
 }
-void myParse2(std::string file) {
+void myParse2(std::string file, float c) {
   std::ifstream inpfile(file.c_str());
   vector<Vect3> tmpFrame;
   if(!inpfile.is_open()) {
@@ -499,8 +556,8 @@ void myParse2(std::string file) {
 		//float c = 0.2; //designs 4-8, 0.02
 		//float c = 0.5;  //design 9, 0.2
 		//float c = 0.1;  //design 10, 0.02
-		float c = 0.06;
-		float tRadius = 0.01;
+		//float c = 0.06;
+		float tRadius = 0.04;
 		float tMass = 1.0f;
 		listOfSpheres.push_back(sphere(c*Vect3(atof(splitline[1].c_str()),atof(splitline[2].c_str()),atof(splitline[3].c_str())),Vect3(),tRadius,tMass,Vect3(1,0,0)));
       } 
@@ -556,4 +613,55 @@ void myParse2(std::string file) {
     inpfile.close();
   }
 
+}
+
+
+void bunnyScene(){
+	clearScene();
+	myParse2("scenes/bunny", 20);
+	listOfPlanes.push_back(plane(Vect3(-6,-2,-6), Vect3(-6,-2,6), Vect3(6,-2,6), Vect3(6,-2,-6), 0));
+	glutPostRedisplay();
+}
+void elephantScene(){
+	clearScene();
+	myParse2("scenes/elephant", 0.006);
+	listOfPlanes.push_back(plane(Vect3(-6,-2,-6), Vect3(-6,-2,6), Vect3(6,-2,6), Vect3(6,-2,-6), 0));
+	glutPostRedisplay();
+}
+void vaseScene(){
+	clearScene();
+	myParse2("scenes/vase", 0.05);
+	listOfPlanes.push_back(plane(Vect3(-6,-2,-6), Vect3(-6,-2,6), Vect3(6,-2,6), Vect3(6,-2,-6), 0));
+	glutPostRedisplay();
+}
+void design1Scene(){
+	clearScene();
+	myParse2("scenes/design1", 0.1);
+	listOfPlanes.push_back(plane(Vect3(-6,-2,-6), Vect3(-6,-2,6), Vect3(6,-2,6), Vect3(6,-2,-6), 0));
+	glutPostRedisplay();
+}
+
+void setScenes(int s){
+	//cout<<s<<endl;
+	switch(tmpID){
+		case 1:
+			bunnyScene();
+		break;
+
+		case 2:
+			elephantScene();
+		break;
+
+		case 3:
+			vaseScene();
+		break;
+
+		case 4:
+			design1Scene();
+		break;
+
+		case 5:
+			setScene4();
+		break;
+	}
 }

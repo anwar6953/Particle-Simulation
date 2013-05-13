@@ -145,6 +145,9 @@ plane::plane(Vect3 p1, Vect3 p2, Vect3 p3, Vect3 p4, Vect3 cl, bool approx){
 
 	color = cl;
 }
+void plane::setColor(Vect3 cl){
+	color = cl;
+}
 void plane::render(){
 	if (isRect){
 		glBegin(GL_QUADS);
@@ -266,7 +269,7 @@ while(tP <=1){
 		bool d3 = (pos-edge3).getNorm()<r;
 		bool d4 = (pos-edge4).getNorm()<r;
 		if (d1 || d2 || d3 || d4){
-			cout << "intersecting" << endl;
+			//cout << "intersecting" << endl;
 			sphere tmp = sphere();
 			sphere tmp2 = sphere();
 			if(d1){

@@ -83,11 +83,14 @@ bool jeromieScene2 = 0;
 		float jz = 1;
 
 float defZ = 0;
+	int scene_r = 0;
+	int* scene_s= &scene_r;
 //turn on to remove spheres that go out of bounds.
 bool removeSpheres = 1;
 float bound = 6;
 
 
+int tmpID = 0;
 int totalSpheres;
 //int numSpheresPerClick = 1;
 float timeStp = 1;
@@ -945,7 +948,7 @@ int main(int argc, char *argv[]) {
     }
     */
     // myParse(fname);  //}
-    myParse2("scenes/design16");  //}
+    // myParse2("scenes/design16");  //}
     if (loadFromFile) {
 		infile.open (fname.c_str());
     }
@@ -984,23 +987,39 @@ int main(int argc, char *argv[]) {
 	->set_int_limits( 0, 999);
         (new GLUI_Spinner( glui, "Sphere Radius:", & defRadius ))
         ->set_float_limits( .01f, 5 );
+        (new GLUI_Spinner( glui, "Sphere Mass:", & defMass ))
+        ->set_float_limits( 0.1f, 500 );
         (new GLUI_Spinner( glui, "Collision Elasticity:", & R ))
         ->set_float_limits( 0.0f, 1 );
         //new GLUI_Checkbox( glui, "Wireframe", &wireframe );
         new GLUI_Checkbox( glui, "Drag?", &dragAlt );
         new GLUI_Checkbox( glui, "Downward Gravity?", &downGrav );
         new GLUI_Checkbox( glui, "Interparticle Gravity?", &gravAlt );
+        new GLUI_Button( glui, "Quit", 0,(GLUI_Update_CB)exit );
 	GLUI_EditText *counter_edittext3 =
         new GLUI_EditText( glui, "spheres in the scene:", sphereText);
-	counter_edittext3->disable();
-        new GLUI_Button( glui, "Quit", 0,(GLUI_Update_CB)exit );
-	
+		counter_edittext3->disable();
 
+	GLUI_Listbox *listbox = glui->add_listbox("Scene/Design", &tmpID, tmpID, setScenes);
+	listbox->add_item(0, "      ");
+	listbox->add_item(1,"Bunny Scene");
+	listbox->add_item(2,"Elephant Scene");
+	listbox->add_item(3,"Vase Scene");
+	listbox->add_item(4,"Design1");
+	listbox->add_item(5,"Box");
+
+	//glui->add_button("Bunny Scene", 1,bunnyScene); 
+	//glui->add_button("Elephant Scene", 1,elephantScene);
+	//glui->add_button("Vase Scene", 1,vaseScene);
+	//glui->add_button("Design1 Scene", 1,design1Scene);
 	glui->add_button("Scene 1", 1,setScene1); 
 	glui->add_button("Scene 2", 1,setScene2); 
 	glui->add_button("Scene 3", 1,setScene3); 
-	glui->add_button("Scene 4", 1,setScene4); 
-	glui->add_button("Scene 5", 1,setScene5); 
+	//glui->add_button("Scene 4", 1,setScene4); 
+	//glui->add_button("Scene 5", 1,setScene5); 
+	glui->add_button("Scene 6", 1,setScene6);
+	glui->add_button("Clear All Spheres", 1,clearSpheres); 
+        
         
         glui->set_main_gfx_window( main_window );
         

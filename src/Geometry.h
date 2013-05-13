@@ -50,6 +50,7 @@ class plane : public Shape {
     float a,b,c,d;
     float isRect;
 	bool approx;
+    void setColor(Vect3);
     void render();
     int myType();
 };
