@@ -565,8 +565,7 @@ void collide(sphere& s1, sphere& s2){
      // s2.vel = (2 * s1.vel)*(1/(s1.m+s2.m));*/
 
 	 /////////////////////
-	 if (s2.r < 1 && s1.r < 1){
-	 // if (0){
+	 if (abs(s2.r - s1.r) < 1){
 		Vect3 pos1 = s1.pos;
 		Vect3 pos2 = s2.pos;
 		float diff = (s1.r+s2.r) - (s2.pos-s1.pos).getNorm();
