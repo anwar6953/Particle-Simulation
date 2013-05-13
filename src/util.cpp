@@ -377,13 +377,12 @@ void setScene4(int r){
 
 void setScene5(int r){
 	clearScene();
-	gravityOn=1;
+	gravityOn=0;
 	gravAlt=1;
-	gravAlt = 1;
         gConst=0.000005;
-        alisCrack=0;
+        alisCrack=1;
         defMass=1;
-        bound = 30;
+        bound = 6;
 	glutPostRedisplay();
 }
 
