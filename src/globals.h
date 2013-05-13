@@ -40,6 +40,12 @@ extern float gConst ;
 extern bool downwardGravity ;
 extern float downwardC ;
 
+extern int dragAlt ;
+extern int gravAlt ;
+extern int downGrav ;
+extern int totalSpheres ;
+//extern int convertInt ;
+
 extern bool pool ;
 extern bool box ;
 extern bool jeromiesScene ;
