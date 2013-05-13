@@ -545,7 +545,7 @@ void myDisplay() {
 		if (downGrav == 1)
 			s1.vel.y -= downwardC*timeStp;
 
-        if (gravAlt == 1)
+        if (gravAlt == 1){
             for (int j = 0; j < listOfSpheres.size(); j++){
                 if (j == k){ continue; }
                 sphere& s2 = listOfSpheres[j];
@@ -553,7 +553,14 @@ void myDisplay() {
                 // else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
                 else s1.vel = s1.vel + gConst*timeStp*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
             }
-
+            for (int j = 0; j < listOfLargeSpheres.size(); j++){
+                if (j == k){ continue; }
+                sphere& s2 = listOfLargeSpheres[j];
+                if ((s2.pos-s1.pos).getNorm() < 0.001) continue;
+                // else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                else s1.vel = s1.vel + gConst*timeStp*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+            }
+	}
         //intersection loop
 		if (alisCrack){
 			float valx = s1.pos.x;
@@ -645,7 +652,31 @@ void myDisplay() {
 		//glDisable(GL_COLOR_MATERIAL);
     }
 	for (int i = 0; i < listOfLargeSpheres.size(); i++){  //TESTING large spherse vs small.
+
+
 		sphere & s1 = listOfLargeSpheres[i];
+
+		//GRAVITY:
+if (gravAlt == 1){
+            for (int j = 0; j < listOfSpheres.size(); j++){
+                if (j == i){ continue; }
+                sphere& s2 = listOfSpheres[j];
+                if ((s2.pos-s1.pos).getNorm() < 0.001) continue;
+                // else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                else s1.vel = s1.vel + gConst*timeStp*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+            }
+            for (int j = 0; j < listOfLargeSpheres.size(); j++){
+                if (j == i){ continue; }
+                sphere& s2 = listOfLargeSpheres[j];
+                if ((s2.pos-s1.pos).getNorm() < 0.001) continue;
+                // else s1.vel = s1.vel + 0.00000005*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+                else s1.vel = s1.vel + gConst*timeStp*(s2.pos-s1.pos)*(s1.m+s2.m)*(1/(s1.m*(s2.pos-s1.pos).getNorm()));
+            }
+	}
+
+
+
+
 		s1.move();
 		for (int j = 0; j < listOfSpheres.size(); j++){
 				sphere & s2 = listOfSpheres[j];
@@ -794,6 +825,7 @@ void myDisplay() {
 	int entries = 4;
 	string st ;
 	float numS;
+	//std = saveToDisk, lfd = loadFromDisk
 	bool lfd = 0;
 	bool std = 0;
 	
