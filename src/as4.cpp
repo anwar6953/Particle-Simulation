@@ -943,50 +943,7 @@ void myDisplay() {
 //}
 
 int main(int argc, char *argv[]) {
-	
-	// exit(0);
 
-	
-//{ PARSING:
-    // if (argc < 3) { cout << "Please provide the filename and subdivision_Parameter" << endl; exit(0); }
-    //string fname = argv[1];
-	// string fname = "test1";
-    // stpSize = atof(argv[2]);
-    // if (argc == 4){
-        // if (string(argv[3]) == "-a"){ adaptive = true; }
-        // else { adaptive = false; }
-    // }
-    // if (!adaptive){ //if uniform...
-        // float numDivs = floor(1.0f / stpSize);
-        // if (numDivs != 1.0f/stpSize){ numDivs++; }
-        // stpSize = 1 / numDivs;
-    // }
-    /*
-    if (argc < 2){
-		printf("Dude, are you passing something at all? We'll just read input from an arbitrary file for now.\n");
-    } else {
-        int i = 1;
-
-        while (i < argc) {
-            if ((i == 2) && (*(argv[i]) != '-')) {
-                fname = argv[2];
-                loadFromFile = true;
-            }
-            if (*(argv[i]) == '-') {
-                char *p = argv[i];
-
-                if (*(p+1) == 'g' ) {
-                    gravityOn = true;
-                } else if (*(p+1) == 'd' ) {
-                    dragOn = true;
-                } else if (*(p+1) == 'd' ) {
-                    saveToFile = true;
-                }
-            }
-            i++;
-        }
-    }
-    */
     // myParse(fname);  //}
     myParse2("scenes/design16");  //}
     if (loadFromFile) {
