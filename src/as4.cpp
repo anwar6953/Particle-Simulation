@@ -66,7 +66,7 @@ bool dragOn = 0;
 int dragAlt = 0;
 bool gravityOn = 0;
 int gravAlt = 0;
-float gConst = 0.00000005; 
+float gConst = 0.00005; 
 bool downwardGravity = 0;
 int downGrav = 0;
 float downwardC = 0.0008;
@@ -956,8 +956,8 @@ int main(int argc, char *argv[]) {
 	
 //{ Initialization of glut and window:
 	if (openGLrender){
-    viewport.w = 400;
-    viewport.h = 400;
+    viewport.w = 800;
+    viewport.h = 800;
     glutInit(&argc, argv);                        // This initializes glut
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH );  // Use a double-buffered window with red, green, and blue channels
     glutInitWindowSize(viewport.w, viewport.h);   //The size and position of the window

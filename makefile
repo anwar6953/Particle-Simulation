@@ -66,7 +66,7 @@ as4.o: src/as4.cpp src/ColorAndVector.h src/Geometry.h src/util.h
 	@$(CXX) $(CPPFLAGS) $(CFLAGS) -c src/as4.cpp -o as4.o
 Geometry.o: src/Geometry.cpp src/Geometry.h src/ColorAndVector.h src/globals.h
 	@echo Compiling src/Geometry.cpp
-	@$(CXX) $(CPPFLAGS) $(CFLAGS) -c src/Geometry.cpp -o Geometry.o $(LDFLAGS) $(GLUI_LIB)
+	@$(CXX) $(CPPFLAGS) $(CFLAGS) -c src/Geometry.cpp -o Geometry.o $(LDFLAGS)
 ColorAndVector.o: src/ColorAndVector.cpp src/ColorAndVector.h src/globals.h
 	@echo Compiling src/ColorAndVector.cpp
 	@$(CXX) -c src/ColorAndVector.cpp -o ColorAndVector.o
