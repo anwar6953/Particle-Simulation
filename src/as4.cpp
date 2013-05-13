@@ -958,13 +958,10 @@ int main(int argc, char *argv[]) {
         new GLUI_Checkbox( glui, "Drag?", &dragAlt );
         new GLUI_Checkbox( glui, "Downward Gravity?", &downGrav );
         new GLUI_Checkbox( glui, "Interparticle Gravity?", &gravAlt );
-        GLUI_EditText *counter_edittext =
-        new GLUI_EditText( glui, "Spheres in Scene:", & totalSpheres);
-        counter_edittext->disable();
-        new GLUI_Button( glui, "Quit", 0,(GLUI_Update_CB)exit );
 	GLUI_EditText *counter_edittext3 =
         new GLUI_EditText( glui, "spheres in the scene:", sphereText);
-
+	counter_edittext3->disable();
+        new GLUI_Button( glui, "Quit", 0,(GLUI_Update_CB)exit );
 	
 
 	glui->add_button("Scene 1", 1,setScene1); 

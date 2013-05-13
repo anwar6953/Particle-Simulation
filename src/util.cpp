@@ -378,7 +378,7 @@ void setScene4(int r){
 void setScene5(int r){
 	clearScene();
 	gravityOn=0;
-	gravAlt=1;
+	gravAlt=0;
         gConst=0.000005;
         alisCrack=1;
         defMass=1;
