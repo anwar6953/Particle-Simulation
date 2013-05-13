@@ -55,6 +55,7 @@ switch (button)
       Vect3 vel = lenOfDrag * 0.02 * normalize(Vect3(x-prevX,-y+prevY,0)); //MOUSE DRAG decides direction of vel.
 	  
 	  // cout << xx << " " << yy << endl;
+	  if (numSpheresPerclick == 0){ numSpheresPerClick = 1; }
 	  for (int i = 0; i < numSpheresPerClick; i++){
 	  if (alisCrack && defRadius > originalRadius){
 		  if (pool){
