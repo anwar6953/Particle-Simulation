@@ -659,6 +659,11 @@ void myDisplay() {
 
 		sphere & s1 = listOfLargeSpheres[i];
 
+if (downGrav == 1)
+			s1.vel.y -= downwardC*timeStp;
+
+
+
 		//GRAVITY:
 if (gravAlt == 1){
             for (int j = 0; j < listOfSpheres.size(); j++){
