@@ -719,7 +719,7 @@ if (gravAlt == 1){
 	for (int j = 0; j < listOfPlanes.size(); j++) {
         plane p = listOfPlanes[j];
 		if (p.isRect){
-			GLfloat light_spec[] = {0,0,0,0};
+			GLfloat light_spec[] = {1,1,1,0};
 			GLfloat light_amb[] = {p.color.x*0.3, p.color.y*0.3, p.color.z*0.3};
 			GLfloat light_diff[] = {p.color.x*0.7, p.color.y*0.7, p.color.z*0.7};
 			//GLfloat light_spec[] = {p.color.x, p.color.y, p.color.z};
@@ -729,7 +729,7 @@ if (gravAlt == 1){
 			glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, light_diff);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, light_spec);
 			glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, light_amb);
-			//glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 1.0);
+			glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, 1.0);
 			//glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT);
 			//glEnable(GL_COLOR_MATERIAL);
 			glColor3f(p.color.x, p.color.y, p.color.z);
