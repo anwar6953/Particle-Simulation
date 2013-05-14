@@ -298,7 +298,7 @@ void jeromiesScene_2(){
  defRadius = originalRadius;
  removeSpheres = 1;
  bound = 6; numSpheresPerClick = 100;
- R=0.6;
+ R=1.0;
 
         
 		float width = 1;
