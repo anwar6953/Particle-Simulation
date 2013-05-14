@@ -369,10 +369,10 @@ void createCone(){
 		int randN = floor(listOfPlanes.size()*(rand()/RAND_MAX));
 		float sR = 0.15;
 		plane p = listOfPlanes[randN];
-		Vect3 point = p.n+(p.n-(p.pt1-p.pt4)*0.5)*0.9;
-		Vect3 sC = point+(p.n)*(1/p.n.getNorm())*sR;
+		Vect3 point = (p.n+(p.n-(p.pt1-p.pt4)*0.5)*0.9) + Vect3(2,2,0);
+		Vect3 sC = point+(p.n)*(2/p.n.getNorm())*sR;
 		Vect3 sVel = 0.05*(p.pt1-p.pt4)*(1/(p.pt1-p.pt4).getNorm());
-		sphere s(sC,sVel,sR,1); 
+		sphere s(sC,1.1*sVel,sR,1); 
 		listOfSpheres.push_back(s);
 	}
 	downGrav=1;
@@ -441,6 +441,7 @@ void setScene5(){
 void setScene6(int r){
 	clearScene();
 	createCone();
+	R=0.65;
 	glutPostRedisplay();
 }
 
