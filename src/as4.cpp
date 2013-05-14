@@ -1010,8 +1010,8 @@ int main(int argc, char *argv[]) {
 	listbox->add_item(1,"Bunny Scene");
 	listbox->add_item(2,"Elephant Scene");
 	listbox->add_item(3,"Vase Scene");
-	listbox->add_item(4,"Design1");
-	listbox->add_item(5,"Box");
+	//listbox->add_item(4,"Design1");
+	listbox->add_item(4,"Box");
 
 	//glui->add_button("Bunny Scene", 1,bunnyScene); 
 	//glui->add_button("Elephant Scene", 1,elephantScene);
