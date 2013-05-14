@@ -515,7 +515,7 @@ void myParse(std::string file) {
 		defRadius = originalRadius;
 		  
 		  }else {
-        std::cerr << "Unknown command: " << splitline[0] << std::endl;
+        //std::cerr << "Unknown command: " << splitline[0] << std::endl;
       }
     }
     inpfile.close();
@@ -609,7 +609,7 @@ void myParse2(std::string file, float c) {
 		defRadius = originalRadius;
 		  
 		  }else {
-        std::cerr << "Unknown command: " << splitline[0] << std::endl;
+        //std::cerr << "Unknown command: " << splitline[0] << std::endl;
       }
     }
     inpfile.close();

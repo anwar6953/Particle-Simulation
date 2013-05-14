@@ -1022,7 +1022,7 @@ int main(int argc, char *argv[]) {
 	glui->add_button("Scene 3", 1,setScene3); 
 	//glui->add_button("Scene 4", 1,setScene4); 
 	//glui->add_button("Scene 5", 1,setScene5); 
-	glui->add_button("Scene 6", 1,setScene6);
+	glui->add_button("Scene 4", 1,setScene6);
 	glui->add_button("Clear All Spheres", 1,clearSpheres); 
         
         
